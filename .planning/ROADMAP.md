@@ -48,11 +48,10 @@ Plans:
   2. User can preprocess all eval PDFs with one command
   3. Preprocessed PDFs stay within Claude's context window limits
   4. Preprocessing preserves critical information (schedules, diagrams, CBECC pages)
-**Plans**: TBD
+**Plans**: 1 plan in 1 wave
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
+- [ ] 02-01-PLAN.md — PDF rasterization pipeline (PyMuPDF + CLI)
 
 ### Phase 3: Single-Domain Extraction
 **Goal**: Validate extraction pattern with discovery agent, first domain extractor, and orchestrator foundation
@@ -135,7 +134,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-03 |
-| 2. Document Processing | 0/TBD | Not started | - |
+| 2. Document Processing | 0/1 | Planned | - |
 | 3. Single-Domain Extraction | 0/TBD | Not started | - |
 | 4. Multi-Domain Extraction | 0/TBD | Not started | - |
 | 5. Manual Improvement Loop | 0/TBD | Not started | - |
