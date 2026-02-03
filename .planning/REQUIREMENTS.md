@@ -22,6 +22,7 @@
 - [ ] **EVAL-03**: Verifier categorizes failures (omission, hallucination, format error, wrong value)
 - [ ] **EVAL-04**: User can run verification on a single extraction result
 - [ ] **EVAL-05**: User can run verification on all 5 evals and see aggregate metrics
+- [ ] **EVAL-06**: Verifier generates HTML report showing results, field comparisons, and failure details
 
 ### Agent Architecture
 - [ ] **ARCH-01**: Agent definitions (.claude/agents/*.md) are thin wrappers that load dynamic instructions
@@ -62,34 +63,35 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PDF-01 | TBD | Pending |
-| PDF-02 | TBD | Pending |
-| EXT-01 | TBD | Pending |
-| EXT-02 | TBD | Pending |
-| EXT-03 | TBD | Pending |
-| EXT-04 | TBD | Pending |
-| EXT-05 | TBD | Pending |
-| EXT-06 | TBD | Pending |
-| EXT-07 | TBD | Pending |
-| EXT-08 | TBD | Pending |
-| EVAL-01 | TBD | Pending |
-| EVAL-02 | TBD | Pending |
-| EVAL-03 | TBD | Pending |
-| EVAL-04 | TBD | Pending |
-| EVAL-05 | TBD | Pending |
-| ARCH-01 | TBD | Pending |
-| ARCH-02 | TBD | Pending |
-| ARCH-03 | TBD | Pending |
-| IMP-01 | TBD | Pending |
-| IMP-02 | TBD | Pending |
-| IMP-03 | TBD | Pending |
-| IMP-04 | TBD | Pending |
-| IMP-05 | TBD | Pending |
-| IMP-06 | TBD | Pending |
-| IMP-07 | TBD | Pending |
-| IMP-08 | TBD | Pending |
-| IMP-09 | TBD | Pending |
-| TARGET-01 | TBD | Pending |
+| ARCH-01 | Phase 1 | Pending |
+| ARCH-02 | Phase 1 | Pending |
+| ARCH-03 | Phase 1 | Pending |
+| EVAL-01 | Phase 1 | Pending |
+| EVAL-02 | Phase 1 | Pending |
+| EVAL-03 | Phase 1 | Pending |
+| EVAL-04 | Phase 1 | Pending |
+| EVAL-05 | Phase 1 | Pending |
+| EVAL-06 | Phase 1 | Pending |
+| PDF-01 | Phase 2 | Pending |
+| PDF-02 | Phase 2 | Pending |
+| EXT-01 | Phase 3 | Pending |
+| EXT-02 | Phase 3 | Pending |
+| EXT-06 | Phase 3 | Pending |
+| EXT-03 | Phase 4 | Pending |
+| EXT-04 | Phase 4 | Pending |
+| EXT-05 | Phase 4 | Pending |
+| EXT-07 | Phase 4 | Pending |
+| EXT-08 | Phase 4 | Pending |
+| IMP-01 | Phase 5 | Pending |
+| IMP-02 | Phase 5 | Pending |
+| IMP-03 | Phase 5 | Pending |
+| IMP-04 | Phase 6 | Pending |
+| IMP-05 | Phase 6 | Pending |
+| IMP-06 | Phase 6 | Pending |
+| IMP-07 | Phase 6 | Pending |
+| IMP-08 | Phase 6 | Pending |
+| IMP-09 | Phase 6 | Pending |
+| TARGET-01 | Phase 6 | Pending |
 
 ---
-*Last updated: 2026-02-03 after requirements definition*
+*Last updated: 2026-02-03 after roadmap creation*
