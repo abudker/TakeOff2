@@ -32,12 +32,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Verifier outputs field-level discrepancies categorized by failure type (omission, hallucination, format error, wrong value)
   5. Verifier generates HTML report showing results, field comparisons, and failure details
   6. Evaluation results persist and can be tracked across iterations
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Dynamic agent architecture (instructions in external files)
+- [ ] 01-02-PLAN.md — Verifier core (comparison, metrics, CLI)
+- [ ] 01-03-PLAN.md — HTML reporting and iteration persistence
 
 ### Phase 2: Document Processing
 **Goal**: PDF preprocessing pipeline that handles Claude's size and structured output limits
@@ -134,7 +134,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Ready to execute | - |
 | 2. Document Processing | 0/TBD | Not started | - |
 | 3. Single-Domain Extraction | 0/TBD | Not started | - |
 | 4. Multi-Domain Extraction | 0/TBD | Not started | - |
@@ -142,4 +142,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-03 after roadmap creation*
+*Last updated: 2026-02-03 after Phase 1 planning*
