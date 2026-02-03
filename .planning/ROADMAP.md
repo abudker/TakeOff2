@@ -63,12 +63,12 @@ Plans:
   3. Orchestrator coordinates discovery → extraction flow and produces BuildingSpec JSON
   4. User can run extraction on a single eval and verify output against ground truth
   5. Baseline F1 established for project/envelope domain
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — Discovery agent (schema + agent definition + classification instructions)
+- [ ] 03-02-PLAN.md — Project extractor (agent definition + field extraction guide)
+- [ ] 03-03-PLAN.md — Orchestrator + CLI (LangGraph workflow + extraction commands)
 
 ### Phase 4: Multi-Domain Extraction
 **Goal**: Complete multi-agent extraction system covering all domains
@@ -135,10 +135,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-03 |
 | 2. Document Processing | 1/1 | ✓ Complete | 2026-02-03 |
-| 3. Single-Domain Extraction | 0/TBD | Not started | - |
+| 3. Single-Domain Extraction | 0/3 | Planned | - |
 | 4. Multi-Domain Extraction | 0/TBD | Not started | - |
 | 5. Manual Improvement Loop | 0/TBD | Not started | - |
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-03 after Phase 2 execution*
+*Last updated: 2026-02-03 after Phase 3 planning*
