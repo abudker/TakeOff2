@@ -1,0 +1,73 @@
+# Field mapping from ground truth CSV columns to JSON field paths
+# CSV format: "Column Name" -> "json.field.path"
+#
+# Ground truth CSV uses CBECC-Res/EnergyPro export format:
+# - Section headers with field-value pairs
+# - Field names in column B, values in column C, units in column D
+
+csv_to_json:
+  # Project fields
+  "Run Title": "project.run_title"
+  "Address": "project.address"
+  "City": "project.city"
+  "Climate Zone": "project.climate_zone"
+  "Fuel Type": "project.fuel_type"
+  "House Type": "project.house_type"
+  "Dwelling Units": "project.dwelling_units"
+  "Stories": "project.stories"
+  "Bedrooms": "project.bedrooms"
+
+  # Envelope fields
+  "Conditioned Floor Area": "envelope.conditioned_floor_area"
+  "Total Conditioned Zone Window Area": "envelope.window_area"
+  "Window to Floor Area Ratio": "envelope.window_to_floor_ratio"
+  "Exterior Wall Area": "envelope.exterior_wall_area"
+  "Area-Weighted Fenestration Ufactor": "envelope.fenestration_u_factor"
+
+# Field types for comparison logic
+# Determines how values are compared (exact match vs. tolerance)
+field_types:
+  numeric:
+    - "project.climate_zone"
+    - "project.dwelling_units"
+    - "project.stories"
+    - "project.bedrooms"
+    - "envelope.conditioned_floor_area"
+    - "envelope.window_area"
+    - "envelope.window_to_floor_ratio"
+    - "envelope.exterior_wall_area"
+    - "envelope.fenestration_u_factor"
+  string:
+    - "project.run_title"
+    - "project.address"
+    - "project.city"
+    - "project.fuel_type"
+    - "project.house_type"
+
+# Tolerance settings for numeric comparisons
+# Applied based on field characteristics
+tolerances:
+  default:
+    percent: 0.5  # +/-0.5% of expected value
+    absolute: 0.01  # +/-0.01 units (for values near zero)
+  area:
+    percent: 1.0  # +/-1% for areas (sq ft)
+    absolute: 1.0  # +/-1 sq ft
+  ratio:
+    percent: 0.5
+    absolute: 0.001  # For ratios like WWR
+
+# Field categories for tolerance selection
+# Fields matching these patterns use the corresponding tolerance
+tolerance_categories:
+  area:
+    - "conditioned_floor_area"
+    - "window_area"
+    - "exterior_wall_area"
+    - "floor_area"
+    - "volume"
+  ratio:
+    - "window_to_floor_ratio"
+    - "r_value"
+    - "u_factor"
+    - "shgc"
