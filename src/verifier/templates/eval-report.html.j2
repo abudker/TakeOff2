@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Report: {{ eval_id }}</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #4e9fff;
+            --accent-green: #00d26a;
+            --accent-red: #ff4757;
+            --accent-orange: #ffa502;
+            --accent-yellow: #ffc312;
+            --accent-purple: #9c88ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-card);
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .meta span {
+            margin-right: 1.5rem;
+        }
+
+        /* Metrics Section */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .metric-value.f1 { color: var(--accent-blue); }
+        .metric-value.precision { color: var(--accent-green); }
+        .metric-value.recall { color: var(--accent-purple); }
+        .metric-value.correct { color: var(--accent-green); }
+
+        .metric-subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* F1 Score Color Coding */
+        .f1-excellent { color: var(--accent-green) !important; }
+        .f1-good { color: var(--accent-blue) !important; }
+        .f1-fair { color: var(--accent-orange) !important; }
+        .f1-poor { color: var(--accent-red) !important; }
+
+        /* Error Breakdown */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .error-card.omission { border-left: 4px solid var(--accent-red); }
+        .error-card.hallucination { border-left: 4px solid var(--accent-orange); }
+        .error-card.format_error { border-left: 4px solid var(--accent-yellow); }
+        .error-card.wrong_value { border-left: 4px solid var(--accent-purple); }
+
+        .error-count {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .error-card.omission .error-count { color: var(--accent-red); }
+        .error-card.hallucination .error-count { color: var(--accent-orange); }
+        .error-card.format_error .error-count { color: var(--accent-yellow); }
+        .error-card.wrong_value .error-count { color: var(--accent-purple); }
+
+        .error-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Discrepancies Table */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: var(--accent-blue);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            width: 250px;
+            font-size: 0.85rem;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .error-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .error-badge.omission { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); }
+        .error-badge.hallucination { background: rgba(255, 165, 2, 0.2); color: var(--accent-orange); }
+        .error-badge.format_error { background: rgba(255, 195, 18, 0.2); color: var(--accent-yellow); }
+        .error-badge.wrong_value { background: rgba(156, 136, 255, 0.2); color: var(--accent-purple); }
+
+        .field-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        .value-cell {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .value-expected {
+            color: var(--accent-green);
+        }
+
+        .value-actual {
+            color: var(--accent-red);
+        }
+
+        .value-null {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--bg-card);
+        }
+
+        .pagination button {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Iteration History */
+        .history-chart {
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .history-table {
+            font-size: 0.85rem;
+        }
+
+        .history-table td:first-child {
+            font-weight: 600;
+        }
+
+        .trend-up { color: var(--accent-green); }
+        .trend-down { color: var(--accent-red); }
+        .trend-same { color: var(--text-secondary); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .error-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        /* No discrepancies message */
+        .no-discrepancies {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .no-discrepancies .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Evaluation Report: {{ eval_id }}</h1>
+            <div class="meta">
+                <span>Generated: {{ timestamp }}</span>
+                {% if iteration %}
+                <span>Iteration: {{ iteration }}</span>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Metrics Overview -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>F1 Score</h3>
+                <div class="metric-value f1 {% if metrics.f1 >= 0.9 %}f1-excellent{% elif metrics.f1 >= 0.7 %}f1-good{% elif metrics.f1 >= 0.5 %}f1-fair{% else %}f1-poor{% endif %}">
+                    {{ "%.1f"|format(metrics.f1 * 100) }}%
+                </div>
+                <div class="metric-subtext">Target: 90%</div>
+            </div>
+            <div class="metric-card">
+                <h3>Precision</h3>
+                <div class="metric-value precision">{{ "%.1f"|format(metrics.precision * 100) }}%</div>
+                <div class="metric-subtext">Correct / Extracted</div>
+            </div>
+            <div class="metric-card">
+                <h3>Recall</h3>
+                <div class="metric-value recall">{{ "%.1f"|format(metrics.recall * 100) }}%</div>
+                <div class="metric-subtext">Correct / Expected</div>
+            </div>
+            <div class="metric-card">
+                <h3>Correct Fields</h3>
+                <div class="metric-value correct">{{ metrics.correct_fields }}</div>
+                <div class="metric-subtext">of {{ metrics.total_fields_gt }} expected</div>
+            </div>
+        </div>
+
+        <!-- Error Breakdown -->
+        <div class="section">
+            <h2>Error Breakdown</h2>
+            <div class="error-grid">
+                <div class="error-card omission">
+                    <div class="error-count">{{ metrics.errors_by_type.omission }}</div>
+                    <div class="error-label">Omissions</div>
+                </div>
+                <div class="error-card hallucination">
+                    <div class="error-count">{{ metrics.errors_by_type.hallucination }}</div>
+                    <div class="error-label">Hallucinations</div>
+                </div>
+                <div class="error-card format_error">
+                    <div class="error-count">{{ metrics.errors_by_type.format_error }}</div>
+                    <div class="error-label">Format Errors</div>
+                </div>
+                <div class="error-card wrong_value">
+                    <div class="error-count">{{ metrics.errors_by_type.wrong_value }}</div>
+                    <div class="error-label">Wrong Values</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discrepancies Table -->
+        <div class="section">
+            <h2>Field Discrepancies</h2>
+            {% if discrepancies %}
+            <div class="table-controls">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterDiscrepancies('all')">All ({{ discrepancies|length }})</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('omission')">Omissions ({{ metrics.errors_by_type.omission }})</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('hallucination')">Hallucinations ({{ metrics.errors_by_type.hallucination }})</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('format_error')">Format ({{ metrics.errors_by_type.format_error }})</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('wrong_value')">Wrong Value ({{ metrics.errors_by_type.wrong_value }})</button>
+                </div>
+                <input type="text" class="search-box" placeholder="Search field paths..." onkeyup="searchDiscrepancies(this.value)">
+            </div>
+            <table id="discrepancies-table">
+                <thead>
+                    <tr>
+                        <th>Error Type</th>
+                        <th>Field Path</th>
+                        <th>Expected</th>
+                        <th>Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for d in discrepancies %}
+                    <tr data-error-type="{{ d.error_type }}">
+                        <td><span class="error-badge {{ d.error_type }}">{{ d.error_type }}</span></td>
+                        <td class="field-path">{{ d.field_path }}</td>
+                        <td class="value-cell {% if d.expected is none %}value-null{% else %}value-expected{% endif %}">
+                            {% if d.expected is none %}(none){% else %}{{ d.expected }}{% endif %}
+                        </td>
+                        <td class="value-cell {% if d.actual is none %}value-null{% else %}value-actual{% endif %}">
+                            {% if d.actual is none %}(none){% else %}{{ d.actual }}{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button onclick="prevPage()" id="prev-btn" disabled>Previous</button>
+                <span class="page-info" id="page-info">Page 1 of 1</span>
+                <button onclick="nextPage()" id="next-btn">Next</button>
+            </div>
+            {% else %}
+            <div class="no-discrepancies">
+                <div class="icon">&#x2714;</div>
+                <p>No discrepancies found. All fields match ground truth.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if history %}
+        <!-- Iteration History -->
+        <div class="section">
+            <h2>F1 Score History</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Iteration</th>
+                        <th>F1</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>Trend</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in history %}
+                    <tr>
+                        <td>{{ h.iteration }}</td>
+                        <td>{{ "%.1f"|format(h.f1 * 100) }}%</td>
+                        <td>{{ "%.1f"|format(h.precision * 100) }}%</td>
+                        <td>{{ "%.1f"|format(h.recall * 100) }}%</td>
+                        <td class="{% if h.trend > 0 %}trend-up{% elif h.trend < 0 %}trend-down{% else %}trend-same{% endif %}">
+                            {% if h.trend > 0 %}+{{ "%.1f"|format(h.trend * 100) }}%
+                            {% elif h.trend < 0 %}{{ "%.1f"|format(h.trend * 100) }}%
+                            {% else %}--{% endif %}
+                        </td>
+                        <td>{{ h.timestamp }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Pagination state
+        const ROWS_PER_PAGE = 50;
+        let currentPage = 1;
+        let filteredRows = [];
+        let allRows = [];
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const tbody = document.querySelector('#discrepancies-table tbody');
+            if (tbody) {
+                allRows = Array.from(tbody.querySelectorAll('tr'));
+                filteredRows = [...allRows];
+                updatePagination();
+            }
+        });
+
+        function filterDiscrepancies(errorType) {
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter rows
+            if (errorType === 'all') {
+                filteredRows = [...allRows];
+            } else {
+                filteredRows = allRows.filter(row => row.dataset.errorType === errorType);
+            }
+
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function searchDiscrepancies(query) {
+            query = query.toLowerCase();
+            filteredRows = allRows.filter(row => {
+                const fieldPath = row.querySelector('.field-path').textContent.toLowerCase();
+                return fieldPath.includes(query);
+            });
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+            const endIdx = startIdx + ROWS_PER_PAGE;
+
+            // Show/hide rows
+            allRows.forEach(row => row.style.display = 'none');
+            filteredRows.slice(startIdx, endIdx).forEach(row => row.style.display = '');
+
+            // Update pagination controls
+            document.getElementById('page-info').textContent =
+                `Page ${currentPage} of ${Math.max(1, totalPages)} (${filteredRows.length} items)`;
+            document.getElementById('prev-btn').disabled = currentPage <= 1;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        }
+    </script>
+</body>
+</html>
