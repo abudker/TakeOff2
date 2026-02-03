@@ -1,6 +1,7 @@
 """CLI entry point for Takeoff v2 Verifier."""
 import csv
 import json
+import webbrowser
 from pathlib import Path
 from typing import Optional
 import click
@@ -8,6 +9,8 @@ import yaml
 
 from .compare import compare_fields, flatten_dict, load_field_mapping
 from .metrics import compute_field_level_metrics, compute_aggregate_metrics
+from .report import EvalReport, generate_html_report
+from .persistence import EvalStore, save_evaluation, get_next_iteration
 
 
 def load_ground_truth_csv(csv_path: Path, mapping: dict) -> dict:
@@ -81,7 +84,12 @@ def cli():
               help='Directory containing eval datasets')
 @click.option('--output', '-o', type=click.Path(), default=None,
               help='Output file for results JSON')
-def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Optional[str]):
+@click.option('--save', is_flag=True, default=False,
+              help='Save results to iteration directory with HTML report')
+@click.option('--open-report', is_flag=True, default=False,
+              help='Open HTML report in browser after generation')
+def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Optional[str],
+               save: bool, open_report: bool):
     """
     Run verification on a single extraction result.
 
@@ -90,6 +98,7 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
 
     Example:
         verifier verify-one lamb-adu results/extracted.json
+        verifier verify-one lamb-adu results/extracted.json --save --open-report
         python -m verifier verify-one lamb-adu results/extracted.json
     """
     evals_path = Path(evals_dir)
@@ -143,7 +152,7 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
         if len(discrepancies) > 20:
             click.echo(f"  ... and {len(discrepancies) - 20} more")
 
-    # Save results if output specified
+    # Save results if output specified (simple JSON output)
     if output:
         results = {
             'eval_id': eval_id,
@@ -161,6 +170,63 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
         Path(output).write_text(json.dumps(results, indent=2, default=str))
         click.echo(f"\nResults saved to: {output}")
 
+    # Save to iteration directory with HTML report if --save flag
+    if save:
+        store = EvalStore(evals_path)
+        iteration = store.get_next_iteration(eval_id)
+
+        # Get history for report
+        history = store.get_history(eval_id)
+
+        # Prepare discrepancies as dicts for report
+        discrepancy_dicts = [
+            {
+                'field_path': d.field_path,
+                'expected': d.expected,
+                'actual': d.actual,
+                'error_type': d.error_type
+            }
+            for d in discrepancies
+        ]
+
+        # Generate HTML report
+        report = EvalReport(
+            eval_id=eval_id,
+            metrics=metrics,
+            discrepancies=discrepancy_dicts,
+            iteration=iteration,
+            history=history,
+        )
+        html_content = report.render_html()
+
+        # Build eval results
+        eval_results = {
+            'eval_id': eval_id,
+            'metrics': metrics,
+            'discrepancies': discrepancy_dicts,
+        }
+
+        # Save everything
+        iter_dir = store.save_iteration(
+            eval_id=eval_id,
+            iteration=iteration,
+            extracted_data=extracted,
+            eval_results=eval_results,
+            html_report=html_content,
+        )
+
+        click.echo(f"\nResults saved to iteration {iteration}:")
+        click.echo(f"  {iter_dir}/extracted.json")
+        click.echo(f"  {iter_dir}/eval-results.json")
+        click.echo(f"  {iter_dir}/eval-report.html")
+
+        report_path = iter_dir / "eval-report.html"
+
+        # Open report in browser if requested
+        if open_report:
+            webbrowser.open(f"file://{report_path.absolute()}")
+            click.echo(f"\nOpened report in browser")
+
 
 @cli.command()
 @click.option('--evals-dir', type=click.Path(exists=True), default='evals',
@@ -169,7 +235,9 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
               help='Subdirectory within each eval containing extraction results')
 @click.option('--output', '-o', type=click.Path(), default=None,
               help='Output file for aggregate results JSON')
-def verify_all(evals_dir: str, results_subdir: str, output: Optional[str]):
+@click.option('--save', is_flag=True, default=False,
+              help='Save results to iteration directories with HTML reports')
+def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save: bool):
     """
     Run verification on all evals and show aggregate metrics.
 
@@ -178,6 +246,7 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str]):
     Example:
         verifier verify-all
         verifier verify-all --evals-dir ./evals --output aggregate.json
+        verifier verify-all --save
         python -m verifier verify-all
     """
     evals_path = Path(evals_dir)
@@ -242,7 +311,17 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str]):
         all_metrics.append(metrics)
         results_by_eval[eval_id] = {
             'metrics': metrics,
-            'discrepancy_count': len(discrepancies)
+            'discrepancy_count': len(discrepancies),
+            'discrepancies': [
+                {
+                    'field_path': d.field_path,
+                    'expected': d.expected,
+                    'actual': d.actual,
+                    'error_type': d.error_type
+                }
+                for d in discrepancies
+            ],
+            'extracted_data': extracted,
         }
 
     # Output skipped evals
@@ -275,7 +354,44 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str]):
         errors_total = sum(m['errors_by_type'].values())
         click.echo(f"  {m['eval_id']:<25} {m['precision']:>8.3f} {m['recall']:>8.3f} {m['f1']:>8.3f} {errors_total:>8}")
 
-    # Save results if output specified
+    # Save to iteration directories with HTML reports if --save flag
+    if save:
+        click.echo(f"\nSaving results to iteration directories...")
+        for eval_id, eval_data in results_by_eval.items():
+            store = EvalStore(evals_path)
+            iteration = store.get_next_iteration(eval_id)
+
+            # Get history for report
+            history = store.get_history(eval_id)
+
+            # Generate HTML report
+            report = EvalReport(
+                eval_id=eval_id,
+                metrics=eval_data['metrics'],
+                discrepancies=eval_data['discrepancies'],
+                iteration=iteration,
+                history=history,
+            )
+            html_content = report.render_html()
+
+            # Build eval results
+            eval_results = {
+                'eval_id': eval_id,
+                'metrics': eval_data['metrics'],
+                'discrepancies': eval_data['discrepancies'],
+            }
+
+            # Save everything
+            iter_dir = store.save_iteration(
+                eval_id=eval_id,
+                iteration=iteration,
+                extracted_data=eval_data['extracted_data'],
+                eval_results=eval_results,
+                html_report=html_content,
+            )
+            click.echo(f"  {eval_id}: iteration-{iteration:03d}")
+
+    # Save aggregate results if output specified
     if output:
         output_data = {
             'aggregate': {
@@ -287,11 +403,86 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str]):
                 'micro_f1': aggregate.get('micro_f1', 0),
                 'total_evals': aggregate['total_evals'],
             },
-            'by_eval': results_by_eval,
+            'by_eval': {
+                eval_id: {
+                    'metrics': data['metrics'],
+                    'discrepancy_count': data['discrepancy_count'],
+                }
+                for eval_id, data in results_by_eval.items()
+            },
             'skipped': skipped_evals
         }
         Path(output).write_text(json.dumps(output_data, indent=2, default=str))
-        click.echo(f"\nResults saved to: {output}")
+        click.echo(f"\nAggregate results saved to: {output}")
+
+
+@cli.command()
+@click.argument('eval_id')
+@click.option('--evals-dir', type=click.Path(exists=True), default='evals',
+              help='Directory containing eval datasets')
+@click.option('--results-subdir', default='results',
+              help='Subdirectory within each eval containing results')
+def history(eval_id: str, evals_dir: str, results_subdir: str):
+    """
+    Show F1 score progression across iterations for an eval.
+
+    EVAL_ID: Identifier of the eval (e.g., lamb-adu)
+
+    Example:
+        verifier history lamb-adu
+        python -m verifier history lamb-adu
+    """
+    evals_path = Path(evals_dir)
+    store = EvalStore(evals_path, results_subdir)
+
+    history_data = store.get_history(eval_id)
+
+    if not history_data:
+        click.echo(f"\nNo iteration history found for {eval_id}")
+        click.echo(f"Run 'verifier verify-one {eval_id} <json> --save' to create iterations")
+        return
+
+    aggregate = store.load_aggregate(eval_id)
+
+    click.echo(f"\n{'='*60}")
+    click.echo(f"F1 Score History: {eval_id}")
+    click.echo(f"{'='*60}")
+
+    if aggregate:
+        click.echo(f"\nBest F1: {aggregate['best_f1']:.3f} (iteration {aggregate['best_iteration']})")
+        click.echo(f"Total iterations: {len(history_data)}")
+
+    click.echo(f"\n  {'Iter':<6} {'F1':>8} {'P':>8} {'R':>8} {'Trend':>10} {'Timestamp':<20}")
+    click.echo(f"  {'-'*6} {'-'*8} {'-'*8} {'-'*8} {'-'*10} {'-'*20}")
+
+    for h in history_data:
+        trend = h.get('trend', 0)
+        trend_str = f"+{trend:.3f}" if trend > 0 else f"{trend:.3f}" if trend < 0 else "--"
+        timestamp = h.get('timestamp', '')[:19] if h.get('timestamp') else ''
+
+        click.echo(
+            f"  {h['iteration']:<6} "
+            f"{h['f1']:>8.3f} "
+            f"{h['precision']:>8.3f} "
+            f"{h['recall']:>8.3f} "
+            f"{trend_str:>10} "
+            f"{timestamp:<20}"
+        )
+
+    # Show trend visualization
+    if len(history_data) >= 2:
+        click.echo(f"\nTrend: ", nl=False)
+        for h in history_data:
+            f1 = h['f1']
+            if f1 >= 0.9:
+                click.echo(click.style("*", fg='green'), nl=False)
+            elif f1 >= 0.7:
+                click.echo(click.style("*", fg='blue'), nl=False)
+            elif f1 >= 0.5:
+                click.echo(click.style("*", fg='yellow'), nl=False)
+            else:
+                click.echo(click.style("*", fg='red'), nl=False)
+        click.echo()  # newline
 
 
 if __name__ == '__main__':
