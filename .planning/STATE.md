@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Extract building specs from Title 24 PDFs accurately enough to feed EnergyPlus modeling (0.90 F1 target)
-**Current focus:** Phase 2 - Document Processing (in progress)
+**Current focus:** Phase 3 - Single-Domain Extraction (next)
 
 ## Current Position
 
-Phase: 2 of 6 (Document Processing)
-Plan: 1 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-03 - Completed 02-01-PLAN.md (PDF Preprocessing)
+Phase: 3 of 6 (Single-Domain Extraction)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-03 — Phase 2 (Document Processing) complete
 
-Progress: [███░░░░░░░] ~22%
+Progress: [███░░░░░░░] ~33%
 
 ## Performance Metrics
 
@@ -67,8 +67,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 02-01-PLAN.md (PDF Preprocessing)
+Stopped at: Phase 2 complete, ready for Phase 3 planning
 Resume file: None
 
 ---
-*Last updated: 2026-02-03 after 02-01 execution*
+*Last updated: 2026-02-03 after Phase 2 execution*

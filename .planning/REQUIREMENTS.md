@@ -72,8 +72,8 @@
 | EVAL-04 | Phase 1 | Complete |
 | EVAL-05 | Phase 1 | Complete |
 | EVAL-06 | Phase 1 | Complete |
-| PDF-01 | Phase 2 | Pending |
-| PDF-02 | Phase 2 | Pending |
+| PDF-01 | Phase 2 | Complete |
+| PDF-02 | Phase 2 | Complete |
 | EXT-01 | Phase 3 | Pending |
 | EXT-02 | Phase 3 | Pending |
 | EXT-06 | Phase 3 | Pending |

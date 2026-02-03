@@ -13,7 +13,7 @@ Build a self-improving agentic extraction system that pulls building specificati
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Agent architecture + evaluation infrastructure
-- [ ] **Phase 2: Document Processing** - PDF preprocessing pipeline
+- [x] **Phase 2: Document Processing** - PDF preprocessing pipeline
 - [ ] **Phase 3: Single-Domain Extraction** - Discovery + first extractor + orchestrator foundation
 - [ ] **Phase 4: Multi-Domain Extraction** - Complete extraction system
 - [ ] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
@@ -51,7 +51,7 @@ Plans:
 **Plans**: 1 plan in 1 wave
 
 Plans:
-- [ ] 02-01-PLAN.md — PDF rasterization pipeline (PyMuPDF + CLI)
+- [x] 02-01-PLAN.md — PDF rasterization pipeline (PyMuPDF + CLI)
 
 ### Phase 3: Single-Domain Extraction
 **Goal**: Validate extraction pattern with discovery agent, first domain extractor, and orchestrator foundation
@@ -134,11 +134,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | ✓ Complete | 2026-02-03 |
-| 2. Document Processing | 0/1 | Planned | - |
+| 2. Document Processing | 1/1 | ✓ Complete | 2026-02-03 |
 | 3. Single-Domain Extraction | 0/TBD | Not started | - |
 | 4. Multi-Domain Extraction | 0/TBD | Not started | - |
 | 5. Manual Improvement Loop | 0/TBD | Not started | - |
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-03 after Phase 1 execution*
+*Last updated: 2026-02-03 after Phase 2 execution*
