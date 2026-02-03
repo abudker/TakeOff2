@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Extract building specs from Title 24 PDFs accurately enough to feed EnergyPlus modeling (0.90 F1 target)
-**Current focus:** Phase 2 - Document Processing (next)
+**Current focus:** Phase 2 - Document Processing (in progress)
 
 ## Current Position
 
 Phase: 2 of 6 (Document Processing)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-03 — Phase 1 (Foundation) complete
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 02-01-PLAN.md (PDF Preprocessing)
 
-Progress: [██░░░░░░░░] ~17%
+Progress: [███░░░░░░░] ~22%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 3.7 min
-- Total execution time: 0.18 hours
+- Total plans completed: 4
+- Average duration: 3.5 min
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 11 min | 3.7 min |
+| 02-document-processing | 1 | 3 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-02 (5 min), 01-03 (4 min)
+- Last 5 plans: 01-01 (2 min), 01-02 (5 min), 01-03 (4 min), 02-01 (3 min)
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -51,6 +52,9 @@ Recent decisions affecting current work:
 - Tolerance-based numeric comparison: 1% for areas, 0.5% for ratios (01-02)
 - Dark theme HTML reports with pagination (50 discrepancies/page) (01-03)
 - Iteration format: iteration-NNN zero-padded directories (01-03)
+- PyMuPDF over pdf2image: no external dependencies, faster, self-contained (02-01)
+- 1568px max longest edge: Claude's recommended max before auto-resize (02-01)
+- PNG format for lossless text legibility in building plans (02-01)
 
 ### Pending Todos
 
@@ -63,8 +67,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Phase 1 complete, ready for Phase 2 planning
+Stopped at: Completed 02-01-PLAN.md (PDF Preprocessing)
 Resume file: None
 
 ---
-*Last updated: 2026-02-03 after Phase 1 execution*
+*Last updated: 2026-02-03 after 02-01 execution*
