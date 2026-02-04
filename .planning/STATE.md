@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 3 of 6 (Single-Domain Extraction)
-Plan: 3 of TBD in current phase
-Status: In progress
-Last activity: 2026-02-03 — Completed 03-03-PLAN.md
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-02-04 — Completed 03-04-PLAN.md
 
-Progress: [███░░░░░░░] ~40%
+Progress: [████░░░░░░] ~50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 3.1 min
-- Total execution time: 0.36 hours
+- Total plans completed: 8
+- Average duration: 3.2 min
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [███░░░░░░░] ~40%
 |-------|-------|-------|----------|
 | 01-foundation | 3 | 11 min | 3.7 min |
 | 02-document-processing | 1 | 3 min | 3.0 min |
-| 03-single-domain-extraction | 3 | 9 min | 3.0 min |
+| 03-single-domain-extraction | 4 | 13 min | 3.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3 min), 03-01 (2 min), 03-02 (3 min), 03-03 (4 min)
-- Trend: Stable
+- Last 5 plans: 03-01 (2 min), 03-02 (3 min), 03-03 (4 min), 03-04 (4 min)
+- Trend: Stable around 3 min/plan
 
 *Updated after each plan completion*
 
@@ -60,9 +60,9 @@ Recent decisions affecting current work:
 - Three-level confidence system for page classification: high/medium/low (03-01)
 - Thin agent pattern: definitions under 50 lines, behavior in separate instruction files (03-02)
 - CBECC-Res pages highest priority for extraction (most reliable/standardized) (03-02)
-- LangGraph StateGraph for extraction orchestration: clear state management, node-based execution (03-03)
-- Anthropic Files API for image upload: required for structured outputs with vision (03-03)
-- Combined ProjectExtraction schema: single API call for project + envelope (03-03)
+- Claude Code agent architecture: invoke agents via subprocess instead of direct API calls (03-04)
+- Sequential orchestration over LangGraph: simple workflow doesn't need complex graph (03-04)
+- JSON extraction with fallbacks: parse agent responses robustly regardless of format (03-04)
 - Page filtering before extraction: send only schedule/cbecc pages to reduce tokens (03-03)
 
 ### Pending Todos
@@ -75,9 +75,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:12:41Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-02-04T00:34:58Z
+Stopped at: Completed 03-04-PLAN.md (Phase 3 complete)
 Resume file: None
 
 ---
-*Last updated: 2026-02-03 after 03-03 execution*
+*Last updated: 2026-02-04 after 03-04 execution*
