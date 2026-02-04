@@ -85,7 +85,7 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 04-01-PLAN.md — Zones and Windows extractor agents
+- [x] 04-01-PLAN.md — Zones and Windows extractor agents
 - [ ] 04-02-PLAN.md — HVAC and DHW extractor agents
 - [ ] 04-03-PLAN.md — Parallel orchestration with asyncio and merge logic
 - [ ] 04-04-PLAN.md — CLI extract-all command and verbose diagnostics
@@ -137,9 +137,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation | 3/3 | Complete | 2026-02-03 |
 | 2. Document Processing | 1/1 | Complete | 2026-02-03 |
 | 3. Single-Domain Extraction | 4/4 | Complete | 2026-02-04 |
-| 4. Multi-Domain Extraction | 0/4 | Ready | - |
+| 4. Multi-Domain Extraction | 1/4 | In progress | - |
 | 5. Manual Improvement Loop | 0/TBD | Not started | - |
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-04 after Phase 4 planning*
+*Last updated: 2026-02-04 after 04-01 execution*

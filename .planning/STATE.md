@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-03)
 
 **Core value:** Extract building specs from Title 24 PDFs accurately enough to feed EnergyPlus modeling (0.90 F1 target)
-**Current focus:** Phase 3 - Single-Domain Extraction (next)
+**Current focus:** Phase 4 - Multi-Domain Extraction
 
 ## Current Position
 
-Phase: 3 of 6 (Single-Domain Extraction)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-02-04 — Completed 03-04-PLAN.md
+Phase: 4 of 6 (Multi-Domain Extraction)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-02-04 — Completed 04-01-PLAN.md
 
-Progress: [████░░░░░░] ~50%
+Progress: [█████░░░░░] ~55%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 3.2 min
-- Total execution time: 0.43 hours
+- Total plans completed: 9
+- Average duration: 3.4 min
+- Total execution time: 0.53 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [████░░░░░░] ~50%
 | 01-foundation | 3 | 11 min | 3.7 min |
 | 02-document-processing | 1 | 3 min | 3.0 min |
 | 03-single-domain-extraction | 4 | 13 min | 3.2 min |
+| 04-multi-domain-extraction | 1 | 6 min | 6.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (2 min), 03-02 (3 min), 03-03 (4 min), 03-04 (4 min)
-- Trend: Stable around 3 min/plan
+- Last 5 plans: 03-02 (3 min), 03-03 (4 min), 03-04 (4 min), 04-01 (6 min)
+- Trend: Stable around 4 min/plan
 
 *Updated after each plan completion*
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - Sequential orchestration over LangGraph: simple workflow doesn't need complex graph (03-04)
 - JSON extraction with fallbacks: parse agent responses robustly regardless of format (03-04)
 - Page filtering before extraction: send only schedule/cbecc pages to reduce tokens (03-03)
+- Orientation-based wall naming (Zone 1 - N Wall) for consistent linking (04-01)
+- Include glazed doors (SGD) in windows extraction for complete fenestration (04-01)
 
 ### Pending Todos
 
@@ -75,9 +78,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-04T00:34:58Z
-Stopped at: Completed 03-04-PLAN.md (Phase 3 complete)
+Last session: 2026-02-04T04:24:00Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-02-04 after 03-04 execution*
+*Last updated: 2026-02-04 after 04-01 execution*
