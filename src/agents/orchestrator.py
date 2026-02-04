@@ -37,8 +37,7 @@ def invoke_claude_agent(agent_name: str, prompt: str, timeout: int = 300) -> str
     cmd = [
         "claude",
         "--agent", agent_name,
-        "--print",  # Output response to stdout
-        "--no-interactive",
+        "--print",  # Output response to stdout, non-interactive mode
         prompt
     ]
 
