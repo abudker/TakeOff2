@@ -1,4 +1,7 @@
-"""Extractor agent modules."""
-from agents.extractors.project import run_project_extractor
+"""Extractor agent modules.
 
-__all__ = ["run_project_extractor"]
+NOTE: Extractors are now invoked via Claude Code agents.
+See .claude/agents/ for agent definitions.
+"""
+
+__all__ = []
