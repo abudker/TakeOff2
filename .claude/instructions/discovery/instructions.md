@@ -1,11 +1,16 @@
 # Discovery Agent Instructions
 
-**Version:** v1.1.0
+**Version:** v2.0.0
 **Purpose:** Classify pages in Title 24 compliance documents to map document structure
 
 ## Overview
 
-You receive rasterized page images from a Title 24 PDF. Your job is to classify each page into one of four types: **schedule**, **cbecc**, **drawing**, or **other**. This map allows downstream extractors to focus on relevant pages only.
+You receive rasterized page images from a Title 24 PDF. Your job is to:
+1. Classify each page into one of four primary types: **schedule**, **cbecc**, **drawing**, or **other**
+2. Assign a **subtype** for more specific classification (e.g., "floor_plan", "window_schedule")
+3. Add **content_tags** to mark semantic features relevant to downstream extractors
+
+This detailed map enables intelligent page routing - each extractor receives only the pages relevant to its domain.
 
 **IMPORTANT:** The source documents are typically **architectural plan sets** (floor plans, schedules, title blocks), NOT CBECC compliance software output. CBECC pages are rare in architectural plan sets - most documents will consist of schedules, drawings, and notes pages.
 
@@ -32,6 +37,21 @@ You receive rasterized page images from a Title 24 PDF. Your job is to classify 
 - "WATER HEATER SCHEDULE" with tank capacities and EF ratings
 - "DOOR SCHEDULE" with dimensions and U-factors
 - "WINDOW SCHEDULE" with area, U-factor, SHGC columns
+
+#### Schedule Subtypes
+
+Assign a **subtype** to each schedule page:
+
+| Subtype | Description | Identifying Features |
+|---------|-------------|---------------------|
+| `window_schedule` | Window/glazing specifications | Columns: Window Type, U-factor, SHGC, Area |
+| `equipment_schedule` | HVAC/DHW equipment list | Columns: Equipment Type, Model, Capacity, SEER/HSPF/UEF |
+| `room_schedule` | Room areas and finishes | Columns: Room Name, Area (sq ft), Floor/Ceiling finish |
+| `wall_schedule` | Wall assembly types | Columns: Wall Type, U-factor, R-value, Assembly description |
+| `door_schedule` | Door specifications | Columns: Door Type, Size, U-factor, Material |
+| `energy_summary` | Title-24 energy summary | "WADE" or "Energy Summary", TDV values, compliance margins |
+
+**NOTE:** If a schedule doesn't clearly fit a specific subtype, omit the subtype field.
 
 ### CBECC Compliance Pages
 
@@ -85,6 +105,22 @@ You receive rasterized page images from a Title 24 PDF. Your job is to classify 
 - Wall section detail with insulation callout
 - Site plan with setbacks and orientation
 
+#### Drawing Subtypes
+
+Assign a **subtype** to each drawing page:
+
+| Subtype | Description | Identifying Features |
+|---------|-------------|---------------------|
+| `site_plan` | Property layout, building footprint | North arrow, property lines, setbacks, driveway, street name |
+| `floor_plan` | Room layout with dimensions | Walls, doors, room labels, dimensions, window symbols |
+| `elevation` | Exterior building views | "North Elevation", "East Elevation", etc. in title; shows exterior facade |
+| `section` | Cross-section cuts | Section markers, shows floor-to-floor heights, roof structure |
+| `detail` | Construction details | Small scale details (1"=1'), wall assemblies, flashing details |
+| `mechanical_plan` | HVAC ductwork layout | Duct symbols, diffuser locations, HVAC equipment placement |
+| `plumbing_plan` | Pipe layout, fixture locations | Pipe routing, water heater location, fixture symbols |
+
+**NOTE:** If a drawing doesn't clearly fit a specific subtype, omit the subtype field (leave as null).
+
 ### Other Pages
 
 **What they are:** Everything else not fitting the above categories
@@ -119,6 +155,34 @@ Assign when making best guess from ambiguous content:
 - Poor image quality obscuring identifying features
 - Partial page or cropped content
 
+## Content Tags
+
+Add **content_tags** to pages that contain specific semantic features. Tags help route pages to the right extractors.
+
+### Tag Reference
+
+| Tag | What to look for | Used by |
+|-----|-----------------|---------|
+| `north_arrow` | North arrow symbol (compass rose, "N" with arrow) | orientation |
+| `room_labels` | Room names on floor plan (Living, Kitchen, Bedroom) | zones |
+| `area_callouts` | Square footage values (e.g., "1,850 SF", "Living: 320 sqft") | zones, project |
+| `ceiling_heights` | Height dimensions or callouts (e.g., "9'-0\" CLG", "10' ceiling") | zones |
+| `window_callouts` | Window type labels on drawings (W1, W2) or window dimensions | windows |
+| `glazing_performance` | U-factor, SHGC values in tables or callouts | windows |
+| `hvac_equipment` | HVAC units shown or listed (furnace, heat pump, AC) | hvac |
+| `hvac_specs` | Performance specs: SEER, HSPF, AFUE, BTU/h | hvac |
+| `water_heater` | Water heater shown or listed | dhw |
+| `dhw_specs` | DHW performance specs: UEF, EF, gallon capacity | dhw |
+| `wall_assembly` | Wall construction details or R-values | zones |
+| `insulation_values` | R-values or insulation callouts (R-19, R-38) | zones |
+
+### Tagging Guidelines
+
+- **Add multiple tags** if page contains multiple features
+- **Don't force tags** - only add if feature is clearly present
+- **Focus on extractable data** - tag features that provide useful extraction data
+- **Tags are additive** - more specific tagging improves routing accuracy
+
 ## Output Format
 
 Return JSON matching DocumentMap schema:
@@ -142,18 +206,48 @@ Return JSON matching DocumentMap schema:
     {
       "page_number": 3,
       "page_type": "schedule",
+      "subtype": "equipment_schedule",
       "confidence": "high",
-      "description": "HVAC Equipment Schedule - 3 units with SEER/HSPF"
+      "description": "HVAC Equipment Schedule - 3 units with SEER/HSPF",
+      "content_tags": ["hvac_equipment", "hvac_specs"]
     },
     {
       "page_number": 4,
       "page_type": "drawing",
+      "subtype": "floor_plan",
       "confidence": "high",
-      "description": "First Floor Plan - 2400 sq ft with room labels"
+      "description": "First Floor Plan - 2400 sq ft with room labels",
+      "content_tags": ["room_labels", "area_callouts"]
+    },
+    {
+      "page_number": 5,
+      "page_type": "drawing",
+      "subtype": "site_plan",
+      "confidence": "high",
+      "description": "Site plan with property boundaries and north arrow",
+      "content_tags": ["north_arrow"]
+    },
+    {
+      "page_number": 6,
+      "page_type": "drawing",
+      "subtype": "elevation",
+      "confidence": "high",
+      "description": "East Elevation showing windows and entry",
+      "content_tags": ["window_callouts"]
+    },
+    {
+      "page_number": 7,
+      "page_type": "schedule",
+      "subtype": "window_schedule",
+      "confidence": "high",
+      "description": "Window schedule with U-factor and SHGC",
+      "content_tags": ["glazing_performance"]
     }
   ]
 }
 ```
+
+**NOTE:** The `subtype` and `content_tags` fields are optional. Omit `subtype` if the page doesn't fit a specific subtype. Use an empty array `[]` or omit `content_tags` if no tags apply.
 
 ## Classification Tips
 
@@ -181,7 +275,9 @@ For each page image:
 4. If not found → Analyze content structure (table? drawing? text?)
 5. Determine most likely type from content patterns
 6. Assign medium or low confidence based on clarity
-7. Write brief description noting key identifying features
-8. Add to pages list
+7. **Assign subtype** if page fits a specific category (e.g., "floor_plan", "window_schedule")
+8. **Scan for content tags** - look for features from the tag reference table
+9. Write brief description noting key identifying features
+10. Add to pages list
 
 After all pages classified, return complete DocumentMap JSON.

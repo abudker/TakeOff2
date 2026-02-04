@@ -16,14 +16,12 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Water heating system identifier
 
 **Document sources:**
-1. **CBECC-Res output:** "Water Heating" or "DHW System" section header
-2. **Equipment schedule:** System designation
-3. **CF1R-PLB:** System identifier
-4. **Plumbing plans:** System labels
+1. **Equipment schedule:** System designation (PRIMARY SOURCE)
+2. **Plumbing plans:** System labels
+3. **Floor plans:** Water heater location
 
 **Extraction tips:**
-- Use CBECC name if available (e.g., "DHW System 1", "Water Heating")
-- Equipment schedules may use "DHW-1", "WH System"
+- Use equipment schedule names (e.g., "DHW-1", "WH System")
 - For single water heater, system name often matches heater name
 - Keep names consistent with water heater naming
 
@@ -39,9 +37,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Component status for additions/alterations
 
 **Document sources:**
-1. **CBECC-Res output:** Status column or notation
-2. **CF1R form:** Component status section
-3. **Equipment schedule:** Status column if present
+1. **Project scope:** New construction vs alteration (PRIMARY SOURCE)
+2. **Equipment schedule:** Status column if present
+3. **General notes:** Scope of work
 
 **Extraction tips:**
 - Default to "New" for new construction projects
@@ -61,9 +59,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Water heating system configuration type
 
 **Document sources:**
-1. **CBECC-Res output:** System type or configuration
-2. **CF1R-PLB:** System type field
-3. **Plumbing plans:** System layout
+1. **Plumbing plans:** System layout (PRIMARY SOURCE)
+2. **Equipment schedule:** System type column
+3. **Specifications:** System configuration
 
 **Extraction tips:**
 - Common values:
@@ -87,14 +85,12 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Water heater identifier
 
 **Document sources:**
-1. **CBECC-Res output:** Water heater name in DHW section
-2. **Equipment schedule:** Row identifier (WH-1, HPWH-1)
-3. **Plumbing plans:** Equipment tags and labels
-4. **Model number:** May serve as identifier
+1. **Equipment schedule:** Row identifier (WH-1, HPWH-1) (PRIMARY SOURCE)
+2. **Plumbing plans:** Equipment tags and labels
+3. **Model number:** May serve as identifier
 
 **Extraction tips:**
-- Use CBECC name if available (e.g., "Water Heater 1")
-- Equipment schedules use codes like "WH-01", "HPWH-1"
+- Use equipment schedule names (e.g., "WH-01", "HPWH-1")
 - For heat pump water heaters: "HPWH-1" or "Heat Pump WH"
 - Keep names unique across all water heaters
 
@@ -111,10 +107,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Water heater fuel/energy type
 
 **Document sources:**
-1. **CBECC-Res output:** "Fuel Type" or type designation
-2. **Equipment schedule:** Fuel column
-3. **CF1R-PLB:** Water heater type
-4. **Model number:** May indicate fuel type
+1. **Equipment schedule:** Fuel column or type (PRIMARY SOURCE)
+2. **Plumbing plans:** Equipment callout
+3. **Model number:** May indicate fuel type
 
 **Extraction tips:**
 - "Electric Resistance" = Traditional electric tank
@@ -146,10 +141,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Water heater tank/system type
 
 **Document sources:**
-1. **CBECC-Res output:** Tank type or water heater type
-2. **Equipment schedule:** Type column
-3. **CF1R-PLB:** Water heater classification
-4. **Physical description:** "Tankless" or "Storage" noted
+1. **Equipment schedule:** Type column (PRIMARY SOURCE)
+2. **Plumbing plans:** Equipment callout
+3. **Physical description:** "Tankless" or "Storage" noted
 
 **Extraction tips:**
 - "Storage" = Traditional tank with stored hot water
@@ -176,10 +170,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Tank volume in gallons
 
 **Document sources:**
-1. **CBECC-Res output:** "Tank Size" or "Volume"
-2. **Equipment schedule:** Capacity/Volume column
-3. **CF1R-PLB:** Tank volume field
-4. **Model specifications:** Size in model number
+1. **Equipment schedule:** Capacity/Volume column (PRIMARY SOURCE)
+2. **Model specifications:** Size in model number
+3. **Plumbing plans:** Equipment callout with capacity
 
 **Extraction tips:**
 - Units: gallons
@@ -207,10 +200,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Energy Factor (EF) or Uniform Energy Factor (UEF)
 
 **Document sources:**
-1. **CBECC-Res output:** "EF" or "UEF" in DHW section
-2. **Equipment schedule:** Efficiency column
-3. **CF1R-PLB:** Efficiency rating field
-4. **AHRI certification:** Product efficiency rating
+1. **Equipment schedule:** Efficiency column (PRIMARY SOURCE)
+2. **AHRI certification:** Product efficiency rating
+3. **Manufacturer specs:** Product data sheet
 
 **Extraction tips:**
 - UEF is current standard (2017+, replaces EF)
@@ -244,10 +236,9 @@ This guide maps each WaterHeatingSystem and WaterHeater schema field to its sour
 **Description:** Input power/capacity rating
 
 **Document sources:**
-1. **CBECC-Res output:** "Input Rating" or "Input Capacity"
-2. **Equipment schedule:** Input column
-3. **Model specifications:** Power rating
-4. **Electrical panel schedule:** Circuit amperage (for electric)
+1. **Equipment schedule:** Input column (PRIMARY SOURCE)
+2. **Model specifications:** Power rating
+3. **Electrical panel schedule:** Circuit amperage (for electric)
 
 **Extraction tips:**
 - For electric: typically in watts or kW
@@ -298,10 +289,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Interior tank insulation R-value
 
 **Document sources:**
-1. **CBECC-Res output:** Tank insulation field
-2. **Equipment schedule:** Insulation column
-3. **Product specifications:** Tank R-value
-4. **Manufacturer data sheet:** Insulation details
+1. **Equipment schedule:** Insulation column (PRIMARY SOURCE)
+2. **Product specifications:** Tank R-value
+3. **Manufacturer data sheet:** Insulation details
 
 **Extraction tips:**
 - R-value measures thermal resistance of insulation
@@ -327,9 +317,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Added exterior blanket insulation R-value
 
 **Document sources:**
-1. **CBECC-Res output:** External insulation specification
-2. **Equipment schedule:** Blanket insulation column
-3. **Project specifications:** Added insulation details
+1. **Equipment schedule:** Blanket insulation column (PRIMARY SOURCE)
+2. **Project specifications:** Added insulation details
+3. **Energy notes:** Insulation requirements
 
 **Extraction tips:**
 - Additional blanket wrap added to tank
@@ -350,9 +340,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Heat loss during standby (Btuh or %/hr)
 
 **Document sources:**
-1. **CBECC-Res output:** Standby loss specification
-2. **Product specifications:** Standby loss rating
-3. **AHRI data:** Standby performance
+1. **Product specifications:** Standby loss rating (PRIMARY SOURCE)
+2. **AHRI data:** Standby performance
+3. **Equipment schedule:** May show standby loss
 
 **Extraction tips:**
 - Heat lost when water heater is idle
@@ -373,10 +363,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Physical location of water heater
 
 **Document sources:**
-1. **CBECC-Res output:** Location field in DHW section
-2. **Plumbing plans:** Equipment location shown
-3. **CF1R-PLB:** Location specification
-4. **Equipment schedule:** Location column
+1. **Plumbing plans:** Equipment location shown (PRIMARY SOURCE)
+2. **Floor plans:** Water heater symbol and location
+3. **Equipment schedule:** Location column
 
 **Extraction tips:**
 - Affects efficiency (conditioned space best for HPWH)
@@ -407,10 +396,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Rated flow in GPM (tankless units)
 
 **Document sources:**
-1. **CBECC-Res output:** Flow rate for tankless
-2. **Equipment schedule:** GPM column
-3. **Product specifications:** Max flow rate
-4. **CF1R-PLB:** Flow capacity
+1. **Equipment schedule:** GPM column (PRIMARY SOURCE)
+2. **Product specifications:** Max flow rate
+3. **Plumbing plans:** Flow rate callout
 
 **Extraction tips:**
 - Only applicable to tankless/instantaneous units
@@ -436,10 +424,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** First hour delivery rating (gallons)
 
 **Document sources:**
-1. **CBECC-Res output:** "FHR" or "First Hour Rating"
-2. **Equipment schedule:** FHR column
-3. **Product specifications:** First hour capacity
-4. **AHRI certification:** FHR rating
+1. **Equipment schedule:** FHR column (PRIMARY SOURCE)
+2. **Product specifications:** First hour capacity
+3. **AHRI certification:** FHR rating
 
 **Extraction tips:**
 - How much hot water in first hour of use
@@ -465,9 +452,9 @@ Same as input_rating - units should be noted alongside value
 **Description:** Efficiency of heating water (recovery)
 
 **Document sources:**
-1. **CBECC-Res output:** Recovery efficiency field
-2. **Product specifications:** RE rating
-3. **AHRI data:** Recovery efficiency
+1. **Product specifications:** RE rating (PRIMARY SOURCE)
+2. **AHRI data:** Recovery efficiency
+3. **Equipment schedule:** May show recovery efficiency
 
 **Extraction tips:**
 - How efficiently input energy heats water
@@ -493,24 +480,24 @@ Same as input_rating - units should be noted alongside value
 
 | Model | Field | Type | Sources | Can be null? |
 |-------|-------|------|---------|--------------|
-| WaterHeatingSystem | name | string | CBECC, schedule | No |
-| WaterHeatingSystem | status | enum | CBECC, CF1R | Yes |
-| WaterHeatingSystem | system_type | string | CBECC | Yes |
-| WaterHeatingSystem | water_heaters | List[WaterHeater] | CBECC, schedule | No (but can be empty) |
-| WaterHeater | name | string | CBECC, schedule | No |
-| WaterHeater | fuel | enum | CBECC, schedule | Yes |
-| WaterHeater | tank_type | enum | CBECC, schedule | Yes |
-| WaterHeater | volume | float | CBECC, schedule | Yes |
-| WaterHeater | energy_factor | float | CBECC, schedule | Yes |
-| WaterHeater | input_rating | float | CBECC, schedule | Yes |
-| WaterHeater | input_rating_units | string | CBECC, schedule | Yes |
-| WaterHeater | interior_insulation_r_value | float | CBECC, specs | Yes |
-| WaterHeater | exterior_insulation_r_value | float | CBECC, specs | Yes |
-| WaterHeater | standby_loss | float | CBECC, specs | Yes |
-| WaterHeater | tank_location | string | CBECC, plans | Yes |
-| WaterHeater | rated_flow | float | CBECC, schedule | Yes |
-| WaterHeater | first_hour_rating | float | CBECC, schedule | Yes |
-| WaterHeater | recovery_efficiency | float | CBECC, specs | Yes |
+| WaterHeatingSystem | name | string | Equipment schedule | No |
+| WaterHeatingSystem | status | enum | Project scope | Yes |
+| WaterHeatingSystem | system_type | string | Plumbing plans | Yes |
+| WaterHeatingSystem | water_heaters | List[WaterHeater] | Equipment schedule | No (but can be empty) |
+| WaterHeater | name | string | Equipment schedule | No |
+| WaterHeater | fuel | enum | Equipment schedule | Yes |
+| WaterHeater | tank_type | enum | Equipment schedule | Yes |
+| WaterHeater | volume | float | Equipment schedule | Yes |
+| WaterHeater | energy_factor | float | Equipment schedule | Yes |
+| WaterHeater | input_rating | float | Equipment schedule | Yes |
+| WaterHeater | input_rating_units | string | Equipment schedule | Yes |
+| WaterHeater | interior_insulation_r_value | float | Product specs | Yes |
+| WaterHeater | exterior_insulation_r_value | float | Product specs | Yes |
+| WaterHeater | standby_loss | float | Product specs | Yes |
+| WaterHeater | tank_location | string | Plumbing plans | Yes |
+| WaterHeater | rated_flow | float | Equipment schedule | Yes |
+| WaterHeater | first_hour_rating | float | Equipment schedule | Yes |
+| WaterHeater | recovery_efficiency | float | Product specs | Yes |
 
 **Total fields:** 18 (3 required + 15 optional)
 
@@ -519,30 +506,17 @@ Same as input_rating - units should be noted alongside value
 ## Extraction Best Practices
 
 ### Page Reading Order
-1. Start with CBECC-Res DHW section (most standardized format)
-2. Check CF1R-PLB forms for missing fields
-3. Use equipment schedules to fill remaining gaps
-4. Reference plumbing plans for location information
+1. Start with Equipment schedules (water heater specs, efficiency)
+2. Check Plumbing plans (system layout, equipment location)
+3. Use Energy notes/specifications for missing values
+4. Reference Floor plans for equipment locations
 
 ### Common Document Layouts
-
-**CBECC-Res DHW Page:**
-- Header: System name, type
-- Water heater section: Name, fuel, tank type, volume
-- Efficiency: EF/UEF, input rating
-- Location: Tank location specification
-- System configuration: Central, point of use, etc.
 
 **Equipment Schedule:**
 - Columns: Mark, Type, Model, Volume, EF/UEF, Input, Location
 - One row per water heater
 - May have manufacturer specifications
-
-**CF1R-PLB Form:**
-- Water heater type and fuel
-- Efficiency rating (UEF)
-- Tank specifications
-- Compliance calculations
 
 **Plumbing Plans:**
 - Water heater symbol and label
@@ -567,12 +541,12 @@ Before finalizing extraction:
 Document extraction confidence in notes:
 
 **High confidence indicators:**
-- Value from CBECC-Res DHW section
-- Clearly legible, no ambiguity
+- Value from equipment schedule, clearly legible
 - Cross-referenced across multiple pages with agreement
+- Standard format with clear units
 
 **Medium confidence indicators:**
-- Value from equipment schedule only
+- Value from plumbing plan callouts
 - Legible but some interpretation needed
 - Tank type inferred from efficiency
 

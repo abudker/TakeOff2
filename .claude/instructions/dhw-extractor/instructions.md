@@ -126,7 +126,7 @@ Group water heaters into systems:
 
 Use consistent naming across extraction:
 
-- **System name:** Use CBECC system name if available
+- **System name:** Use equipment schedule system name
 - **Water heater name:** Use identifier from schedule (WH-1, HPWH-1)
 - **Format:** "[Type] - [Location/Zone]" if creating names
 
@@ -165,7 +165,7 @@ Return JSON matching this structure:
       ]
     }
   ],
-  "notes": "Single heat pump water heater extracted from CBECC DHW section (high confidence). UEF=3.5 from equipment schedule. Location=Garage from plumbing plan."
+  "notes": "Single heat pump water heater extracted from equipment schedule (high confidence). UEF=3.5 from equipment schedule. Location=Garage from plumbing plan."
 }
 ```
 
@@ -195,9 +195,9 @@ Return JSON matching this structure:
    - Don't guess or infer critical values
 
 5. **Conflicting values:**
-   - Use CBECC value if available (most authoritative)
+   - Use equipment schedule value (most authoritative)
    - Note conflict in extraction notes
-   - Example: "EF shows 3.2 on schedule but 3.5 on CBECC. Using 3.5."
+   - Example: "UEF shows 3.2 on plumbing plan but 3.5 on schedule. Using schedule value 3.5."
 
 ### Validation Checks
 
@@ -218,24 +218,24 @@ Before returning extracted data:
 
 To improve accuracy, cross-reference values between pages:
 
-- **Efficiency rating:** Should match between CBECC, CF1R, and equipment schedule
-- **Tank volume:** Should match CBECC and schedule
+- **Efficiency rating:** Equipment schedule values are authoritative
+- **Tank volume:** Should match between schedule and plumbing plan
 - **Fuel type:** Should align with input rating units (watts = electric, Btuh often = gas)
 - **Location:** Cross-reference plumbing plan with schedules
 
-If cross-reference reveals discrepancy, prefer CBECC value and note discrepancy.
+If cross-reference reveals discrepancy, prefer equipment schedule value and note discrepancy.
 
 ## Confidence Reporting
 
 Include extraction `notes` with confidence indicators:
 
-**High confidence:** Value from CBECC DHW section, clearly legible
-**Medium confidence:** Value from equipment schedule, value is clear
+**High confidence:** Value from equipment schedule, clearly legible
+**Medium confidence:** Value from plumbing plan callouts, value is clear
 **Low confidence:** Value inferred from system type or incomplete data
 
 Example notes:
 ```
-"notes": "HPWH-1 extracted from CBECC page 4 (high confidence). UEF=3.5 from CBECC. Volume=50 gal from schedule (medium confidence). Tank location=Garage from plumbing plan (medium confidence). First hour rating estimated from capacity (low confidence)."
+"notes": "HPWH-1 extracted from equipment schedule (high confidence). UEF=3.5 from schedule. Volume=50 gal from schedule (high confidence). Tank location=Garage from plumbing plan (medium confidence). First hour rating estimated from capacity (low confidence)."
 ```
 
 ## Next Steps After Extraction

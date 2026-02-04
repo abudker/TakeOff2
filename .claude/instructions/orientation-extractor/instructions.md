@@ -1,6 +1,6 @@
 # Orientation Extractor Instructions
 
-**Version:** v2.0.0
+**Version:** v2.2.0
 **Last updated:** 2026-02-04
 
 ## Overview
@@ -70,6 +70,16 @@ Determine what angle the north arrow points relative to the TOP of the page:
 | LEFT | 270° |
 | Upper-left (~315°) | 315° |
 
+**IMPORTANT: Carefully identify which way the arrow points:**
+- Look at the ARROW HEAD (the pointed tip), not the tail
+- Draw an imaginary vertical line straight up from the arrow's base
+- Ask: "Is the arrow head to the LEFT or RIGHT of this vertical line?"
+  - Arrow head LEFT of vertical → angle is 340°-360° (e.g., 345°, 350°)
+  - Arrow head RIGHT of vertical → angle is 0°-30° (e.g., 10°, 15°, 20°)
+  - Arrow pointing straight UP → angle is 0°
+- **Double-check:** If you said "left" but the arrow visually leans toward the right side of the page, you made an error
+- Common error: Confusing the direction. Look at where the TIP points, not the base
+
 **Most site plans have rotated north arrows** (10-45° off vertical). Do NOT assume north = up.
 
 ### Step 3: Identify the Building Front
@@ -82,13 +92,16 @@ Determine what angle the north arrow points relative to the TOP of the page:
 - The facade facing the street is the front
 
 #### For ADUs (Accessory Dwelling Units):
-- Front faces the **entry/main house**, NOT the street
+- Front faces the **entry door direction**, NOT the street
 - ADUs are typically in backyards behind the main house
-- The ADU entry faces toward the main house or the path from the main house
-- Look for:
-  - Entry door symbol on floor plan
-  - Path/walkway from main house to ADU
-  - "ENTRY" label on ADU floor plan
+
+**Finding the ADU entry (in order of reliability):**
+1. **Floor plan door schedule** - Find the main entry door (usually D-01 or D-1, labeled "ENTRY" or the first exterior door)
+2. **Floor plan layout** - Entry is typically near Living Room or Kitchen, not Bedrooms
+3. **Elevation labels** - The elevation showing the entry door indicates which nominal direction the front faces (then measure actual angle)
+4. **Site plan** - Look for walkway/path to ADU (entry faces the access direction)
+
+**CRITICAL:** The entry direction is where someone WALKS OUT of the front door, not where the main house is located. ADU entries often face toward the driveway or access path, which may be to the side of the main house.
 
 **How to identify an ADU:**
 - Document title contains "ADU" or "Accessory Dwelling Unit"
@@ -100,6 +113,30 @@ Determine what angle the north arrow points relative to the TOP of the page:
 **front_drawing_angle = direction you would WALK when exiting the front door**
 
 Imagine standing at the front door, walking straight out. Which direction on the page are you walking?
+
+**For ADUs, use this method:**
+
+**Method A: Use Elevation Labels (Most Reliable)**
+1. Check the elevations sheet for which elevation shows the entry door
+2. **Identifying the entry elevation:**
+   - Look for a covered porch, overhang, or canopy at ground level
+   - The entry side usually has the most prominent architectural features
+   - Look for a human-scale door (not garage doors or utility doors)
+   - The entry door often has steps or a landing
+3. If "North Elevation" shows the entry → front faces nominal North
+4. **CRITICAL: Buildings are often rotated on their lots!** The building's "North" side usually does NOT face page north.
+5. On the site plan, find the ADU footprint and identify the edge that corresponds to the entry (by matching building shape)
+6. Measure the angle THAT SPECIFIC EDGE faces on the site plan - this is front_drawing_angle
+7. Don't assume building "North" = page north. Measure the actual edge direction.
+
+**Method B: Match Floor Plan to Site Plan**
+1. Find the entry door on the floor plan (D-01, D-1, or door near Living Room)
+2. Note the building shape and which edge has the entry
+3. On the site plan, find the ADU footprint and match the shape
+4. Identify which edge on the site plan corresponds to the entry edge
+5. Measure that edge's outward direction on the site plan
+
+**CRITICAL:** Measure angles ON THE SITE PLAN, not on the floor plan. Floor plans are often rotated for presentation.
 
 | You Walk Toward | front_drawing_angle |
 |-----------------|---------------------|
@@ -118,23 +155,29 @@ Imagine standing at the front door, walking straight out. Which direction on the
 front_orientation = (front_drawing_angle - north_arrow_angle + 360) % 360
 ```
 
-**Example 1: Chamberlin Circle (Single-Family)**
+**Example 1: Single-Family Home with Rotated North**
 - North arrow points ~17° (slightly right of up)
 - Front faces street on right side of drawing → front_drawing_angle ≈ 90°
 - front_orientation = (90 - 17 + 360) % 360 = 73°
 
-**Example 2: Lamb ADU**
-- North arrow points ~22° (upper-right on drawing)
-- ADU entry faces toward main house (upper-left on drawing) → front_drawing_angle ≈ 315°? No...
-- Actually: entry faces toward access path from street, which is upper-right
-- front_drawing_angle ≈ 44° (toward the path/access)
-- front_orientation = (44 - 22 + 360) % 360 = 22°
+**Example 2: ADU with East-Facing Entry**
+- North arrow points ~340° (slightly left of up) on site plan
+- "East Elevation" shows entry door with covered porch → front faces nominal East
+- On site plan, find ADU and measure which edge faces ~90° from north arrow
+- That edge faces RIGHT on the site plan → front_drawing_angle ≈ 90°
+- front_orientation = (90 - 340 + 360) % 360 = 110° (ESE)
 
-**Example 3: Martinez ADU**
+**Example 3: ADU with West-Facing Entry**
 - North arrow points straight up → north_arrow_angle ≈ 0°
-- ADU entry faces toward main house/Wyoming Street (left side of drawing)
+- ADU entry faces toward main house/access path (left side of drawing)
 - front_drawing_angle ≈ 284° (WNW direction on drawing)
 - front_orientation = (284 - 0 + 360) % 360 = 284°
+
+**Example 4: ADU with North-Facing Entry**
+- North arrow points ~20° (slightly right of up)
+- "North Elevation" shows entry with covered porch/overhang → front faces nominal North
+- On site plan, the ADU's north edge faces UPPER-RIGHT → front_drawing_angle ≈ 40°
+- front_orientation = (40 - 20 + 360) % 360 = 20° (NNE)
 
 ### Step 6: Sanity Check
 
@@ -183,6 +226,10 @@ front_orientation = Z°
 ❌ "Street runs north-south, so front_orientation = 0° or 180°"
 ✓ Measure perpendicular outward from the front facade, not along the street.
 
+### Mistake 5: Floor Plan Rotation
+❌ "Entry is on right side of floor plan, so front faces right on site plan (90°)"
+✓ Floor plans are often rotated for presentation. Match the building footprint shape to the site plan and measure on the site plan. The site plan shows true orientation.
+
 ## Output Format
 
 ```json
@@ -192,7 +239,7 @@ front_orientation = Z°
   "north_arrow_page": 3,
   "front_direction": "ENE",
   "confidence": "high",
-  "reasoning": "north_arrow_angle = 17° (points upper-right). front_drawing_angle = 90° (front faces right toward Chamberlin Cir). Calculation: (90 - 17 + 360) % 360 = 73°",
+  "reasoning": "north_arrow_angle = 17° (points upper-right). front_drawing_angle = 90° (front faces right toward street). Calculation: (90 - 17 + 360) % 360 = 73°",
   "notes": "Single-family home. Front faces street."
 }
 ```

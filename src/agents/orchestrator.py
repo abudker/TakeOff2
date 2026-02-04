@@ -43,6 +43,104 @@ logger = logging.getLogger(__name__)
 EXTRACTION_SEMAPHORE = asyncio.Semaphore(3)
 
 
+def get_relevant_pages_for_domain(domain: str, document_map: DocumentMap) -> List[int]:
+    """
+    Select relevant pages for a specific extraction domain using intelligent routing.
+
+    Uses subtypes and content tags when available, with fallback to coarse page types
+    for backwards compatibility with older discovery cache formats.
+
+    Args:
+        domain: Domain name (orientation, zones, windows, hvac, dhw, project)
+        document_map: Document structure from discovery phase
+
+    Returns:
+        Sorted list of relevant page numbers
+    """
+    relevant = set()
+
+    if domain == "orientation":
+        # Priority: site plans with north arrow, then floor plans/elevations
+        relevant.update(document_map.site_plan_pages)
+        relevant.update(document_map.floor_plan_pages)
+        relevant.update(document_map.elevation_pages)
+        relevant.update(document_map.pages_with_tag("north_arrow"))
+
+    elif domain == "zones":
+        # Need floor plans for room layout, sections for heights, energy summary
+        relevant.update(document_map.floor_plan_pages)
+        relevant.update(document_map.section_pages)
+        relevant.update(document_map.detail_pages)  # Wall assemblies
+        relevant.update(document_map.energy_summary_pages)
+        relevant.update(document_map.room_schedule_pages)
+        relevant.update(document_map.wall_schedule_pages)
+        relevant.update(document_map.pages_with_any_tag([
+            "room_labels", "area_callouts", "ceiling_heights",
+            "wall_assembly", "insulation_values"
+        ]))
+
+    elif domain == "windows":
+        # Window schedules are primary, elevations show placement
+        relevant.update(document_map.window_schedule_pages)
+        relevant.update(document_map.elevation_pages)
+        relevant.update(document_map.floor_plan_pages)
+        relevant.update(document_map.energy_summary_pages)
+        relevant.update(document_map.pages_with_any_tag([
+            "glazing_performance", "window_callouts"
+        ]))
+
+    elif domain == "hvac":
+        # Equipment schedules are primary, mechanical plans show layout
+        relevant.update(document_map.equipment_schedule_pages)
+        relevant.update(document_map.mechanical_plan_pages)
+        relevant.update(document_map.energy_summary_pages)
+        relevant.update(document_map.pages_with_any_tag([
+            "hvac_equipment", "hvac_specs"
+        ]))
+
+    elif domain == "dhw":
+        # Equipment schedules and plumbing plans
+        relevant.update(document_map.equipment_schedule_pages)
+        relevant.update(document_map.plumbing_plan_pages)
+        relevant.update(document_map.energy_summary_pages)
+        relevant.update(document_map.pages_with_any_tag([
+            "water_heater", "dhw_specs"
+        ]))
+
+    elif domain == "project":
+        # Project info comes from schedules, CBECC, and first few drawings
+        relevant.update(document_map.schedule_pages)
+        relevant.update(document_map.cbecc_pages)
+        relevant.update(document_map.energy_summary_pages)
+        # Include site plan and floor plan for project context
+        relevant.update(document_map.site_plan_pages)
+        relevant.update(document_map.floor_plan_pages[:3] if document_map.floor_plan_pages else [])
+
+    # Fallback for old cache format (no subtypes/tags populated)
+    if not relevant:
+        logger.debug(f"No subtype/tag matches for {domain}, using fallback routing")
+        # Legacy routing based on coarse page types
+        if domain in ("hvac", "dhw"):
+            # Original behavior: schedules + CBECC only
+            relevant.update(document_map.schedule_pages)
+            relevant.update(document_map.cbecc_pages)
+        elif domain in ("windows", "zones"):
+            # Original behavior: schedules + CBECC + all drawings
+            relevant.update(document_map.schedule_pages)
+            relevant.update(document_map.cbecc_pages)
+            relevant.update(document_map.drawing_pages)
+        elif domain == "orientation":
+            # Original behavior: first 7 drawing pages
+            relevant.update(document_map.drawing_pages[:7] if document_map.drawing_pages else [])
+        elif domain == "project":
+            # Original behavior: schedules + CBECC + first 5 drawings
+            relevant.update(document_map.schedule_pages)
+            relevant.update(document_map.cbecc_pages)
+            relevant.update(document_map.drawing_pages[:5] if document_map.drawing_pages else [])
+
+    return sorted(relevant)
+
+
 def invoke_claude_agent(agent_name: str, prompt: str, timeout: int = 300) -> str:
     """
     Invoke a Claude Code agent via subprocess.
@@ -231,6 +329,9 @@ def run_orientation_extraction(
     """
     Run orientation-extractor agent to extract building front orientation.
 
+    Uses intelligent routing to select site plans, floor plans, and elevations
+    (pages with north arrows).
+
     Args:
         page_images: List of all page image paths
         document_map: Document structure from discovery phase
@@ -241,25 +342,25 @@ def run_orientation_extraction(
     Raises:
         RuntimeError: If extraction agent fails
     """
-    # Filter to drawing pages (site plans, floor plans contain north arrows)
-    relevant_page_numbers = set(document_map.drawing_pages)
+    # Use intelligent routing for orientation-relevant pages
+    relevant_page_numbers = get_relevant_pages_for_domain("orientation", document_map)
 
-    # If no drawing pages, fall back to first few pages
+    # If no pages found via routing, fall back to first few pages
     if not relevant_page_numbers:
-        relevant_page_numbers = set(range(1, min(6, len(page_images) + 1)))
+        relevant_page_numbers = list(range(1, min(6, len(page_images) + 1)))
 
     # Filter page images to relevant ones (page_images are 0-indexed)
     relevant_images = [
         page_images[page_num - 1]
-        for page_num in sorted(relevant_page_numbers)
+        for page_num in relevant_page_numbers
         if page_num <= len(page_images)
     ]
 
-    logger.info(f"Running orientation extraction on {len(relevant_images)} pages: {sorted(relevant_page_numbers)}")
+    logger.info(f"Running orientation extraction on {len(relevant_images)} pages: {relevant_page_numbers}")
 
     # Build prompt with page paths
     page_list = "\n".join([
-        f"- Page {sorted(relevant_page_numbers)[i]}: {p}"
+        f"- Page {relevant_page_numbers[i]}: {p}"
         for i, p in enumerate(relevant_images)
     ])
 
@@ -330,6 +431,8 @@ def run_project_extraction(
     """
     Run project-extractor agent to extract building specifications.
 
+    Uses intelligent routing to select relevant pages based on subtypes and tags.
+
     Args:
         page_images: List of all page image paths
         document_map: Document structure from discovery phase
@@ -342,30 +445,24 @@ def run_project_extraction(
         RuntimeError: If extraction agent fails
         ValueError: If no relevant pages found
     """
-    # Filter to relevant pages (schedule + cbecc pages)
-    relevant_page_numbers = set(document_map.schedule_pages + document_map.cbecc_pages)
-
-    # Also include drawing pages for orientation info (site plan, floor plan)
-    # Drawing pages contain north arrow, front orientation, building layout
-    if document_map.drawing_pages:
-        drawing_subset = document_map.drawing_pages[:5]  # First 5 drawing pages
-        relevant_page_numbers = relevant_page_numbers.union(set(drawing_subset))
+    # Use intelligent routing for project-relevant pages
+    relevant_page_numbers = get_relevant_pages_for_domain("project", document_map)
 
     if not relevant_page_numbers:
-        raise ValueError("No schedule or CBECC pages found for extraction")
+        raise ValueError("No relevant pages found for project extraction")
 
     # Filter page images to relevant ones (page_images are 0-indexed)
     relevant_images = [
         page_images[page_num - 1]
-        for page_num in sorted(relevant_page_numbers)
+        for page_num in relevant_page_numbers
         if page_num <= len(page_images)
     ]
 
-    logger.info(f"Extracting from {len(relevant_images)} relevant pages: {sorted(relevant_page_numbers)}")
+    logger.info(f"Project extraction using {len(relevant_images)} relevant pages: {relevant_page_numbers}")
 
     # Build prompt with document map and relevant page paths
     page_list = "\n".join([
-        f"- Page {sorted(relevant_page_numbers)[i]}: {p}"
+        f"- Page {relevant_page_numbers[i]}: {p}"
         for i, p in enumerate(relevant_images)
     ])
 
@@ -519,6 +616,9 @@ def build_domain_prompt(
     """
     Build extraction prompt for a specific domain.
 
+    Uses intelligent page routing based on subtypes and content tags
+    when available, with automatic fallback for older cache formats.
+
     Args:
         domain: Domain name (zones, windows, hvac, dhw)
         page_images: List of all page image paths
@@ -528,13 +628,10 @@ def build_domain_prompt(
     Returns:
         Formatted prompt string for the extractor agent
     """
-    # Filter to relevant pages (schedule + CBECC for all domains)
-    relevant_pages = sorted(set(document_map.schedule_pages + document_map.cbecc_pages))
+    # Use intelligent routing to select relevant pages
+    relevant_pages = get_relevant_pages_for_domain(domain, document_map)
 
-    # Windows and zones also benefit from drawing pages
-    if domain in ("windows", "zones"):
-        drawing_subset = document_map.drawing_pages or []
-        relevant_pages = sorted(set(relevant_pages + drawing_subset))
+    logger.info(f"Routing {domain}: {len(relevant_pages)} pages selected: {relevant_pages}")
 
     # Build page list with paths
     page_list = "\n".join([

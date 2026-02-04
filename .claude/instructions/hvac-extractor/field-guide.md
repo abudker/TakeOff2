@@ -16,14 +16,12 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** HVAC system identifier
 
 **Document sources:**
-1. **CBECC-Res output:** "HVAC System" section header, system name
-2. **Equipment schedule:** Row identifier (HP-1, RTU-1, AHU-1)
-3. **Mechanical plans:** Equipment tags and labels
-4. **CF1R-MCH:** System designation
+1. **Equipment schedule:** Row identifier (HP-1, RTU-1, AHU-1) (PRIMARY SOURCE)
+2. **Mechanical plans:** Equipment tags and labels
+3. **Floor plans:** HVAC equipment location and labels
 
 **Extraction tips:**
-- Use CBECC name if available (e.g., "HVAC System 1", "Heat Pump - Zone 1")
-- Equipment schedules use codes like "HP-01", "RTU-1"
+- Use equipment schedule names (e.g., "HP-01", "RTU-1")
 - Keep names consistent across heating/cooling/distribution
 - For ductless: "Mini Split - [Area]" or "MSHP-1"
 
@@ -40,9 +38,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Component status for additions/alterations
 
 **Document sources:**
-1. **CBECC-Res output:** Status column or notation
-2. **CF1R form:** Component status section
-3. **Equipment schedule:** Status column if present
+1. **Project scope:** New construction vs alteration (PRIMARY SOURCE)
+2. **Equipment schedule:** Status column if present
+3. **General notes:** Scope of work
 
 **Extraction tips:**
 - Default to "New" for new construction projects
@@ -62,10 +60,10 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Primary HVAC system type
 
 **Document sources:**
-1. **CBECC-Res output:** System type field, usually prominent
-2. **Equipment schedule:** Type column or equipment description
-3. **CF1R-MCH:** Heating/cooling system type
-4. **Model number:** Can indicate type (e.g., XR15 = heat pump)
+1. **Equipment schedule:** Type column or equipment description (PRIMARY SOURCE)
+2. **Mechanical plans:** Equipment callouts
+3. **Model number:** Can indicate type (e.g., XR15 = heat pump)
+4. **Energy notes:** System type requirements
 
 **Extraction tips:**
 - Heat Pump: Provides both heating and cooling (air-source most common)
@@ -96,9 +94,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Heating system sub-type
 
 **Document sources:**
-1. **CBECC-Res output:** Heating system type specification
-2. **Equipment schedule:** Heat pump model classification
-3. **CF1R-MCH:** Heating equipment type
+1. **Equipment schedule:** Heat pump model classification (PRIMARY SOURCE)
+2. **Mechanical plans:** Equipment type designation
+3. **Specifications:** Heating equipment type
 
 **Extraction tips:**
 - Match cooling system_type for heat pumps
@@ -120,10 +118,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Heating Seasonal Performance Factor
 
 **Document sources:**
-1. **CBECC-Res output:** "HSPF" in mechanical section
-2. **Equipment schedule:** HSPF or HSPF2 column
-3. **CF1R-MCH:** Heating efficiency field
-4. **Manufacturer specs:** Product data sheet
+1. **Equipment schedule:** HSPF or HSPF2 column (PRIMARY SOURCE)
+2. **Manufacturer specs:** Product data sheet
+3. **Energy notes:** Efficiency requirements
 
 **Extraction tips:**
 - HSPF = Heating efficiency for heat pumps
@@ -149,9 +146,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Heating capacity at 47F outdoor temperature (Btuh)
 
 **Document sources:**
-1. **CBECC-Res output:** "Heating Capacity" or "Cap @ 47F"
-2. **Equipment schedule:** Heating capacity column
-3. **Manufacturer specs:** Rating at standard conditions
+1. **Equipment schedule:** Heating capacity column (PRIMARY SOURCE)
+2. **Manufacturer specs:** Rating at standard conditions
+3. **Mechanical plans:** Equipment callout with capacity
 
 **Extraction tips:**
 - 47F is the standard rating point for heat pumps
@@ -177,9 +174,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Heating capacity at 17F outdoor temperature (Btuh)
 
 **Document sources:**
-1. **CBECC-Res output:** "Cap @ 17F" or "Low Temp Capacity"
-2. **Equipment schedule:** Low temperature rating column
-3. **Manufacturer specs:** Cold climate rating
+1. **Equipment schedule:** Low temperature rating column (PRIMARY SOURCE)
+2. **Manufacturer specs:** Cold climate rating
+3. **Specifications:** Extended capacity data
 
 **Extraction tips:**
 - 17F is the cold temperature rating point
@@ -203,9 +200,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Backup electric strip heating capacity (Btuh)
 
 **Document sources:**
-1. **CBECC-Res output:** "Aux Heating" or "Backup Heat"
-2. **Equipment schedule:** Strip heat or electric backup rating
-3. **Model specifications:** Built-in backup heater size
+1. **Equipment schedule:** Strip heat or electric backup rating (PRIMARY SOURCE)
+2. **Model specifications:** Built-in backup heater size
+3. **Electrical panel schedule:** Backup heater circuit
 
 **Extraction tips:**
 - Electric resistance backup for cold temperatures
@@ -231,9 +228,9 @@ This guide maps each HVACSystem, HeatPumpHeating, HeatPumpCooling, and Distribut
 **Description:** Whether heating is delivered through ductwork
 
 **Document sources:**
-1. **CBECC-Res output:** System type or distribution type
+1. **Mechanical plans:** Presence of duct runs (PRIMARY SOURCE)
 2. **Equipment schedule:** Ductless vs ducted notation
-3. **Mechanical plans:** Presence of duct runs
+3. **System type:** Infer from equipment type
 
 **Extraction tips:**
 - true = Central ducted system
@@ -269,10 +266,9 @@ Same as HeatPumpHeating system_type
 **Description:** Seasonal Energy Efficiency Ratio (new standard)
 
 **Document sources:**
-1. **CBECC-Res output:** "SEER2" in mechanical section
-2. **Equipment schedule:** SEER2 column (or SEER for older docs)
-3. **CF1R-MCH:** Cooling efficiency field
-4. **AHRI certification:** Product efficiency rating
+1. **Equipment schedule:** SEER2 column (or SEER for older docs) (PRIMARY SOURCE)
+2. **AHRI certification:** Product efficiency rating
+3. **Energy notes:** Efficiency requirements
 
 **Extraction tips:**
 - SEER2 is the current standard (2023+)
@@ -298,9 +294,9 @@ Same as HeatPumpHeating system_type
 **Description:** Energy Efficiency Ratio at 95F (new standard)
 
 **Document sources:**
-1. **CBECC-Res output:** "EER2" field
-2. **Equipment schedule:** EER2 column
-3. **CF1R-MCH:** EER efficiency field
+1. **Equipment schedule:** EER2 column (PRIMARY SOURCE)
+2. **Manufacturer specs:** Product data sheet
+3. **AHRI certification:** Efficiency rating
 
 **Extraction tips:**
 - EER2 is efficiency at peak conditions (95F)
@@ -326,9 +322,9 @@ Same as HeatPumpHeating system_type
 **Description:** Airflow per ton of cooling capacity
 
 **Document sources:**
-1. **CBECC-Res output:** "CFM/ton" or airflow specification
-2. **Equipment schedule:** Airflow rating
-3. **Commissioning report:** Measured airflow
+1. **Equipment schedule:** Airflow rating (PRIMARY SOURCE)
+2. **Mechanical plans:** Airflow specifications
+3. **Commissioning report:** Measured airflow (if available)
 
 **Extraction tips:**
 - CFM = Cubic Feet per Minute
@@ -353,9 +349,9 @@ Same as HeatPumpHeating system_type
 **Description:** Refrigerant charge verification status
 
 **Document sources:**
-1. **CBECC-Res output:** Charge verification field
-2. **CF1R-MCH:** Refrigerant charge section
-3. **Installation certificate:** Charge verification method
+1. **Equipment schedule:** Charge verification notes (PRIMARY SOURCE)
+2. **Specifications:** Installation requirements
+3. **Energy notes:** Verification requirements
 
 **Extraction tips:**
 - Title 24 requires charge verification for new systems
@@ -389,9 +385,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Distribution system identifier
 
 **Document sources:**
-1. **CBECC-Res output:** Distribution system name
-2. **Mechanical plans:** Duct system designation
-3. **CF1R-MCH:** Duct system identifier
+1. **Mechanical plans:** Duct system designation (PRIMARY SOURCE)
+2. **Equipment schedule:** Distribution system name
+3. **Floor plans:** Duct routing
 
 **Extraction tips:**
 - May match HVAC system name or be separate
@@ -410,9 +406,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Duct location/configuration type
 
 **Document sources:**
-1. **CBECC-Res output:** "Duct Location" or "Distribution Type"
-2. **CF1R-MCH:** Duct system specification
-3. **Mechanical plans:** Duct routing through building
+1. **Mechanical plans:** Duct routing through building (PRIMARY SOURCE)
+2. **Section drawings:** Duct location visible
+3. **Equipment schedule:** Distribution type notes
 
 **Extraction tips:**
 - Indicates where ducts are located
@@ -442,9 +438,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Duct leakage as percentage of system airflow
 
 **Document sources:**
-1. **CBECC-Res output:** "Duct Leakage" percentage
-2. **CF1R-MCH:** Leakage test results
-3. **Duct test report:** Measured leakage
+1. **Duct test report:** Measured leakage (if available)
+2. **Energy notes:** Leakage requirements
+3. **Specifications:** Duct sealing standards
 
 **Extraction tips:**
 - Express as percentage (not decimal): 4% not 0.04
@@ -471,9 +467,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Duct insulation R-value
 
 **Document sources:**
-1. **CBECC-Res output:** "Duct R-value" or "Insulation"
-2. **CF1R-MCH:** Duct insulation specification
-3. **Mechanical specifications:** Duct insulation notes
+1. **Mechanical specifications:** Duct insulation notes (PRIMARY SOURCE)
+2. **Energy notes:** Insulation requirements
+3. **Equipment schedule:** Duct insulation R-value
 
 **Extraction tips:**
 - R-value measures thermal resistance
@@ -500,9 +496,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Total supply duct surface area (sq ft)
 
 **Document sources:**
-1. **CBECC-Res output:** "Supply Duct Area"
-2. **Mechanical calculations:** Duct surface area takeoff
-3. **Duct design report:** Supply system sizing
+1. **Mechanical calculations:** Duct surface area takeoff (PRIMARY SOURCE)
+2. **Duct design report:** Supply system sizing
+3. **Mechanical plans:** Duct dimensions for calculation
 
 **Extraction tips:**
 - Surface area of supply ducts (delivers conditioned air to rooms)
@@ -523,9 +519,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Representative supply duct diameter (inches)
 
 **Document sources:**
-1. **CBECC-Res output:** "Supply Duct Size"
-2. **Mechanical plans:** Duct sizing annotations
-3. **Equipment schedule:** Duct connections
+1. **Mechanical plans:** Duct sizing annotations (PRIMARY SOURCE)
+2. **Equipment schedule:** Duct connections
+3. **Duct layout drawings:** Size callouts
 
 **Extraction tips:**
 - Round duct diameter in inches
@@ -550,9 +546,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Total return duct surface area (sq ft)
 
 **Document sources:**
-1. **CBECC-Res output:** "Return Duct Area"
-2. **Mechanical calculations:** Return system takeoff
-3. **Duct design report:** Return sizing
+1. **Mechanical calculations:** Return system takeoff (PRIMARY SOURCE)
+2. **Duct design report:** Return sizing
+3. **Mechanical plans:** Return duct dimensions
 
 **Extraction tips:**
 - Surface area of return ducts (brings air back to unit)
@@ -572,9 +568,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Representative return duct diameter (inches)
 
 **Document sources:**
-1. **CBECC-Res output:** "Return Duct Size"
-2. **Mechanical plans:** Return duct annotations
-3. **Equipment specifications:** Return plenum size
+1. **Mechanical plans:** Return duct annotations (PRIMARY SOURCE)
+2. **Equipment specifications:** Return plenum size
+3. **Duct layout drawings:** Size callouts
 
 **Extraction tips:**
 - Return ducts are typically larger than supply (lower velocity)
@@ -599,9 +595,9 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 **Description:** Whether system has a bypass duct
 
 **Document sources:**
-1. **CBECC-Res output:** Bypass duct specification
-2. **Mechanical plans:** Bypass duct shown
-3. **Equipment schedule:** Bypass damper noted
+1. **Mechanical plans:** Bypass duct shown (PRIMARY SOURCE)
+2. **Equipment schedule:** Bypass damper noted
+3. **Duct layout drawings:** Bypass routing
 
 **Extraction tips:**
 - Bypass ducts relieve pressure when zones close
@@ -619,33 +615,33 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 
 | Model | Field | Type | Sources | Can be null? |
 |-------|-------|------|---------|--------------|
-| HVACSystem | name | string | CBECC, schedule | No |
-| HVACSystem | status | enum | CBECC, CF1R | Yes |
-| HVACSystem | system_type | enum | CBECC, schedule | Yes |
-| HVACSystem | heating | HeatPumpHeating | CBECC, schedule | Yes |
-| HVACSystem | cooling | HeatPumpCooling | CBECC, schedule | Yes |
-| HVACSystem | distribution | DistributionSystem | CBECC, plans | Yes |
-| HeatPumpHeating | system_type | string | CBECC | Yes |
-| HeatPumpHeating | hspf | float | CBECC, schedule | Yes |
-| HeatPumpHeating | capacity_47 | float | CBECC, schedule | Yes |
-| HeatPumpHeating | capacity_17 | float | CBECC, schedule | Yes |
-| HeatPumpHeating | auxiliary_heating_capacity | float | CBECC, schedule | Yes |
-| HeatPumpHeating | ducted | boolean | CBECC, system type | Yes |
-| HeatPumpCooling | system_type | string | CBECC | Yes |
-| HeatPumpCooling | seer2 | float | CBECC, schedule | Yes |
-| HeatPumpCooling | eer2 | float | CBECC, schedule | Yes |
-| HeatPumpCooling | cfm_per_ton | float | CBECC, schedule | Yes |
-| HeatPumpCooling | ac_charge | string | CBECC, CF1R | Yes |
-| HeatPumpCooling | ducted | boolean | CBECC, system type | Yes |
-| DistributionSystem | name | string | CBECC, plans | No |
-| DistributionSystem | system_type | string | CBECC | Yes |
-| DistributionSystem | percent_leakage | float | CBECC, CF1R | Yes |
-| DistributionSystem | insulation_r_value | float | CBECC, CF1R | Yes |
-| DistributionSystem | supply_area | float | CBECC, calcs | Yes |
-| DistributionSystem | supply_diameter | float | CBECC, plans | Yes |
-| DistributionSystem | return_area | float | CBECC, calcs | Yes |
-| DistributionSystem | return_diameter | float | CBECC, plans | Yes |
-| DistributionSystem | bypass_duct | boolean | CBECC, plans | Yes |
+| HVACSystem | name | string | Equipment schedule | No |
+| HVACSystem | status | enum | Project scope | Yes |
+| HVACSystem | system_type | enum | Equipment schedule | Yes |
+| HVACSystem | heating | HeatPumpHeating | Equipment schedule | Yes |
+| HVACSystem | cooling | HeatPumpCooling | Equipment schedule | Yes |
+| HVACSystem | distribution | DistributionSystem | Mechanical plans | Yes |
+| HeatPumpHeating | system_type | string | Equipment schedule | Yes |
+| HeatPumpHeating | hspf | float | Equipment schedule | Yes |
+| HeatPumpHeating | capacity_47 | float | Equipment schedule | Yes |
+| HeatPumpHeating | capacity_17 | float | Equipment schedule | Yes |
+| HeatPumpHeating | auxiliary_heating_capacity | float | Equipment schedule | Yes |
+| HeatPumpHeating | ducted | boolean | Mechanical plans | Yes |
+| HeatPumpCooling | system_type | string | Equipment schedule | Yes |
+| HeatPumpCooling | seer2 | float | Equipment schedule | Yes |
+| HeatPumpCooling | eer2 | float | Equipment schedule | Yes |
+| HeatPumpCooling | cfm_per_ton | float | Equipment schedule | Yes |
+| HeatPumpCooling | ac_charge | string | Specifications | Yes |
+| HeatPumpCooling | ducted | boolean | Mechanical plans | Yes |
+| DistributionSystem | name | string | Mechanical plans | No |
+| DistributionSystem | system_type | string | Mechanical plans | Yes |
+| DistributionSystem | percent_leakage | float | Test results | Yes |
+| DistributionSystem | insulation_r_value | float | Specifications | Yes |
+| DistributionSystem | supply_area | float | Mechanical calcs | Yes |
+| DistributionSystem | supply_diameter | float | Mechanical plans | Yes |
+| DistributionSystem | return_area | float | Mechanical calcs | Yes |
+| DistributionSystem | return_diameter | float | Mechanical plans | Yes |
+| DistributionSystem | bypass_duct | boolean | Mechanical plans | Yes |
 
 **Total fields:** 27 (2 required + 25 optional)
 
@@ -654,29 +650,23 @@ Same as HeatPumpHeating ducted field. Should match for heat pump systems.
 ## Extraction Best Practices
 
 ### Page Reading Order
-1. Start with CBECC-Res mechanical section (most standardized format)
-2. Check CF1R-MCH forms for missing fields
-3. Use equipment schedules to fill remaining gaps
-4. Reference mechanical plans for system layout and duct routing
+1. Start with Equipment schedules (system specs, efficiency ratings)
+2. Check Mechanical plans (system layout, duct routing)
+3. Use Energy notes/specifications for missing values
+4. Reference Floor plans for equipment locations
 
 ### Common Document Layouts
-
-**CBECC-Res Mechanical Page:**
-- Header: System name, type
-- Heating section: HSPF, capacities, aux heat
-- Cooling section: SEER2, EER2, CFM/ton
-- Distribution section: Duct location, leakage, R-value
 
 **Equipment Schedule:**
 - Columns: Mark, Type, Model, Capacity, SEER2, HSPF, Voltage
 - One row per unit
 - May have separate heating and cooling schedules
 
-**CF1R-MCH Form:**
-- Heating system type and efficiency
-- Cooling system type and efficiency
-- Duct system specifications
-- Compliance calculations
+**Mechanical Plans:**
+- Equipment locations and callouts
+- Duct routing and sizing
+- Zone connections
+- System designations
 
 ### Quality Checks
 
@@ -694,12 +684,12 @@ Before finalizing extraction:
 Document extraction confidence in notes:
 
 **High confidence indicators:**
-- Value from CBECC-Res mechanical summary
-- Clearly legible, no ambiguity
+- Value from equipment schedule, clearly legible
 - Cross-referenced across multiple pages with agreement
+- Standard format with clear units
 
 **Medium confidence indicators:**
-- Value from equipment schedule only
+- Value from mechanical plan callouts
 - Legible but some interpretation needed
 - Unit conversion applied
 

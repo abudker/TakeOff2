@@ -21,6 +21,7 @@ from agents.orchestrator import (
     run_discovery,
     invoke_claude_agent_async,
     extract_json_from_response,
+    get_relevant_pages_for_domain,
 )
 from schemas.discovery import DocumentMap
 
@@ -112,25 +113,24 @@ async def run_orientation_async(
     document_map: DocumentMap
 ) -> Dict:
     """Run orientation extraction asynchronously."""
-    # Filter to drawing pages
-    relevant_page_numbers = set(document_map.drawing_pages)
-    if not relevant_page_numbers:
-        relevant_page_numbers = set(range(1, min(6, len(page_images) + 1)))
+    # Use intelligent routing to select relevant pages
+    relevant_page_numbers = get_relevant_pages_for_domain("orientation", document_map)
 
-    # Limit to first 5 drawing pages for speed
-    relevant_page_numbers = set(sorted(relevant_page_numbers)[:5])
+    # Fallback if routing returns nothing
+    if not relevant_page_numbers:
+        relevant_page_numbers = list(range(1, min(6, len(page_images) + 1)))
 
     relevant_images = [
         page_images[page_num - 1]
-        for page_num in sorted(relevant_page_numbers)
+        for page_num in relevant_page_numbers
         if page_num <= len(page_images)
     ]
 
-    logger.info(f"[{eval_id}] Running orientation on pages {sorted(relevant_page_numbers)}")
+    logger.info(f"[{eval_id}] Running orientation on pages {relevant_page_numbers}")
 
     # Build prompt
     page_list = "\n".join([
-        f"- Page {sorted(relevant_page_numbers)[i]}: {p}"
+        f"- Page {relevant_page_numbers[i]}: {p}"
         for i, p in enumerate(relevant_images)
     ])
 
@@ -155,7 +155,7 @@ Then analyze the provided pages and return JSON with this structure:
   "north_arrow_page": null,
   "front_direction": "N",
   "confidence": "high",
-  "reasoning": "Explanation of how orientation was determined",
+  "reasoning": "DETAILED step-by-step: north_arrow_angle = X° (which way arrow points on page, LEFT or RIGHT of vertical). front_drawing_angle = Y° (which way front faces on page). Calculation: (Y - X + 360) % 360 = Z°. Include any uncertainty about arrow direction or entry identification.",
   "notes": "Additional context"
 }}
 
@@ -184,7 +184,7 @@ Focus on:
             "confidence": json_data.get("confidence", "unknown"),
             "north_arrow_found": json_data.get("north_arrow_found", False),
             "north_arrow_page": json_data.get("north_arrow_page"),
-            "reasoning": json_data.get("reasoning", "")[:200],
+            "reasoning": json_data.get("reasoning", ""),  # Full reasoning for debugging
         }
     except Exception as e:
         logger.error(f"[{eval_id}] Error: {e}")

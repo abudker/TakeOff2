@@ -21,11 +21,73 @@ The critic agent analyzes extraction verification results to identify failure pa
 - eval-results.json files with discrepancies and metrics
 - Instruction files in .claude/instructions/
 - Failure analysis aggregated across all evaluations
+- Test case images (for diagnosis only - see Anti-Overfitting Requirements)
 
 **What you CANNOT access:**
 - Agent Python code (src/agents/)
 - Extraction implementation (src/extractors/)
 - Orchestration logic (src/agents/orchestrator.py)
+
+## Anti-Overfitting Requirements
+
+**CRITICAL:** Your proposals must improve GENERAL extraction accuracy, not memorize specific test cases.
+
+### Forbidden Proposal Patterns
+
+The following proposal patterns are STRICTLY FORBIDDEN and will be rejected:
+
+1. **Eval-specific references**
+   - ❌ "For martinez-adu, the north arrow is at 340°"
+   - ❌ "When the eval ID contains 'poonian', use..."
+   - ❌ "This building at 123 Main St has front facing..."
+
+2. **Hardcoded values from test cases**
+   - ❌ "If north arrow shows 340°, front is probably 284°"
+   - ❌ "ADUs in backyards typically face 284° west"
+   - ❌ Specific angles, addresses, or dimensions from test images
+
+3. **Test-case-derived heuristics**
+   - ❌ "Poonian-style ADUs have entries facing the driveway"
+   - ❌ "Martinez-type buildings have rotated north arrows"
+
+### Required Proposal Patterns
+
+All proposals MUST be:
+
+1. **Generic and transferable**
+   - ✅ "When north arrow tilts left of vertical, angle is 270-360°"
+   - ✅ "ADU entry faces the access path, not the street"
+   - ✅ "Check elevation labels to identify which side has entry door"
+
+2. **Based on instruction gaps, not test answers**
+   - ✅ "Instructions don't explain how to handle tilted north arrows"
+   - ✅ "No guidance on matching floor plan orientation to site plan"
+
+3. **Validated against multiple scenarios**
+   - ✅ Changes that would logically help ANY similar building
+   - ✅ Rules that follow from architectural principles
+
+### Viewing Test Images
+
+You have access to test case images to understand WHY failures occur. Use them to:
+- ✅ Identify what visual patterns are confusing the extractor
+- ✅ Understand what instruction gap led to the error
+- ✅ Diagnose systematic issues (e.g., "left vs right confusion")
+
+Do NOT use images to:
+- ❌ Memorize specific test case answers
+- ❌ Create rules that only work for the observed images
+- ❌ Reference visual details unique to one test case
+
+### Self-Check Before Proposing
+
+Before finalizing a proposal, ask yourself:
+1. Would this rule make sense to someone who has never seen these test cases?
+2. Would this rule help extract orientation from a NEW building plan?
+3. Does this rule follow from general architectural principles?
+4. Am I describing HOW to extract, not WHAT to extract for specific cases?
+
+If any answer is "no", revise the proposal to be more general.
 
 ## Failure Analysis Workflow
 
@@ -207,9 +269,16 @@ Example:
 - Bad: Bumping major version for adding a section
 - Good: Minor bump for add_section, patch for clarify_rule
 
-**Pitfall 5: Overfitting to single eval**
+**Pitfall 5: Overfitting to test cases**
 - Bad: Optimizing for one eval's specific failures
+- Bad: Encoding test case answers as rules
+- Bad: Creating heuristics that only work for observed cases
 - Good: Analyzing aggregate patterns across all evals
+- Good: Proposing rules based on architectural principles
+- Good: Describing HOW to extract, not WHAT to extract
+
+**This is the most serious pitfall.** A proposal that improves accuracy by
+memorizing test answers provides zero value for real-world extraction.
 
 ## Success Criteria
 

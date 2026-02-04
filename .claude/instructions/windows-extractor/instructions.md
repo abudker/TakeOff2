@@ -107,9 +107,8 @@ Focus extraction efforts on these page types (in order of reliability):
 
 **Where to find:**
 1. Window schedule columns
-2. CBECC fenestration summary
-3. Product specification notes
-4. CF1R form fenestration section
+2. Product specification notes
+3. Energy notes
 
 ### 5. Assigning Windows to Wall Orientations
 
@@ -117,6 +116,7 @@ Focus extraction efforts on these page types (in order of reliability):
 - Schedule may show "Location: N Wall" or "Wall: North"
 - Floor plan shows window position on which exterior wall
 - Match window to the wall it's physically located on
+- Use the north arrow on the site plan to determine true orientation
 
 **Step 2: Calculate ACTUAL window azimuth for rotated buildings**
 If the building has a front_orientation (e.g., 73° for NE-facing):
@@ -268,11 +268,11 @@ Return JSON with fenestration **nested under wall orientations**:
     {
       "field_path": "house_walls.north.fenestration[0].u_factor",
       "severity": "medium",
-      "reason": "U-factor from CBECC summary, not per-window specification",
+      "reason": "U-factor from window schedule, not per-window specification",
       "source_page": 3
     }
   ],
-  "notes": "Window data from schedule on page 4. Performance values from CBECC fenestration section. SGD1 is sliding glass door. W1 multiplier indicates 2 identical windows on north wall."
+  "notes": "Window data from schedule on page 4. Performance values from window schedule. SGD1 is sliding glass door. W1 multiplier indicates 2 identical windows on north wall."
 }
 ```
 
@@ -283,15 +283,15 @@ Return JSON with fenestration **nested under wall orientations**:
 
 ### Common Extraction Issues
 
-1. **Schedule vs CBECC mismatch:**
+1. **Schedule vs floor plan mismatch:**
    - Window counts or areas may differ
-   - Use schedule for individual window details
-   - Use CBECC for totals and verification
+   - Use schedule for dimensions and performance values
+   - Use floor plan for counts and locations
    - Note discrepancy in extraction notes
 
 2. **Missing performance values:**
    - Schedule may only show dimensions
-   - Check CBECC for U-factor and SHGC
+   - Check energy notes for requirements
    - May need to use prescriptive defaults:
      - U-factor: 0.30 (Title 24 prescriptive)
      - SHGC: 0.23 (coastal zones), 0.25 (inland)
@@ -316,7 +316,7 @@ Return JSON with fenestration **nested under wall orientations**:
 - 270 = West (afternoon sun)
 
 **If front orientation specified:**
-- CBECC may show orientations relative to front
+- Documents may show orientations relative to front
 - Add front orientation offset to get true azimuth
 - Example: Front = 45 degrees (NE), "Front Wall" window azimuth = 45
 
@@ -340,7 +340,7 @@ To improve accuracy:
 3. **Performance consistency:**
    - All windows same manufacturer often have same U-factor/SHGC
    - Different values may indicate different products
-   - Verify against CBECC fenestration summary
+   - Verify against window schedule totals
 
 4. **Wall area check:**
    - Total window area per wall should not exceed wall area
@@ -352,8 +352,8 @@ Include extraction notes with confidence levels:
 
 **High confidence:**
 - Complete window schedule with all columns
-- CBECC fenestration section matches
 - Clear marks and dimensions
+- Performance values in schedule
 
 **Medium confidence:**
 - Missing performance values (used defaults)
@@ -362,12 +362,12 @@ Include extraction notes with confidence levels:
 
 **Low confidence:**
 - Window counts from floor plan only
-- Performance values from general notes
+- Performance values from energy notes
 - Ambiguous wall assignments
 
 Example notes:
 ```
-"3 window types from schedule (high confidence). U-factor 0.30 and SHGC 0.23 from CBECC for all windows (high confidence). Wall assignments inferred from floor plan orientation (medium confidence). SGD1 sliding glass door area calculated from 6'x6'8\" dims (medium confidence)."
+"3 window types from schedule (high confidence). U-factor 0.30 and SHGC 0.23 from window schedule (high confidence). Wall assignments inferred from floor plan orientation (medium confidence). SGD1 sliding glass door area calculated from 6'x6'8\" dims (medium confidence)."
 ```
 
 ## Glazed Door Handling

@@ -147,14 +147,14 @@ Before returning extracted data, validate against schemas:
 
 Include an extraction `notes` field with:
 
-**High confidence:** Field found on CBECC or CF1R page, clearly legible
-**Medium confidence:** Field found on schedule page, value is clear
+**High confidence:** Field found on schedule or title block, clearly legible
+**Medium confidence:** Field found on floor plan annotation, value is clear
 **Low confidence:** Field found on hand-written drawing, OCR uncertain
 **Inferred:** Value calculated from other fields (e.g., WWR from window_area / CFA)
 
 Example notes:
 ```
-"notes": "climate_zone=12 from CBECC page (high confidence). fenestration_u_factor=0.32 area-weighted from window schedule (medium confidence). bedrooms=2 counted from floor plan (low confidence, verify)."
+"notes": "climate_zone=12 from energy notes (high confidence). fenestration_u_factor=0.32 area-weighted from window schedule (medium confidence). bedrooms=2 counted from floor plan (low confidence, verify)."
 ```
 
 ### 8. Output Format
@@ -164,27 +164,27 @@ Return JSON matching this structure:
 ```json
 {
   "project": {
-    "run_id": "User",
-    "run_title": "Title 24 Analysis",
-    "address": "4720 Chamberlin Cir ADU",
-    "city": "Elk Grove",
+    "run_id": null,
+    "run_title": "123 Example Street ADU",
+    "address": "123 Example Street ADU",
+    "city": "Sacramento",
     "climate_zone": 12,
     "fuel_type": "All Electric",
     "house_type": "Single Family",
     "dwelling_units": 1,
     "stories": 1,
     "bedrooms": 1,
-    "front_orientation": 73
+    "front_orientation": 45
   },
   "envelope": {
-    "conditioned_floor_area": 320.0,
-    "window_area": 64.0,
-    "window_to_floor_ratio": 0.20,
-    "exterior_wall_area": 612.0,
-    "slab_floor_area": 320.0,
-    "fenestration_u_factor": 0.313,
+    "conditioned_floor_area": 450.0,
+    "window_area": 72.0,
+    "window_to_floor_ratio": 0.16,
+    "exterior_wall_area": 680.0,
+    "slab_floor_area": 450.0,
+    "fenestration_u_factor": 0.30,
     "underground_wall_area": 0,
-    "exposed_slab_floor_area": 64.0,
+    "exposed_slab_floor_area": 72.0,
     "below_grade_floor_area": 0,
     "exposed_below_grade_floor_area": 0,
     "addition_conditioned_floor_area": 0
@@ -193,11 +193,11 @@ Return JSON matching this structure:
     {
       "field_path": "project.front_orientation",
       "severity": "medium",
-      "reason": "Front orientation from CBECC header. Verify against site plan north arrow.",
+      "reason": "Front orientation calculated from site plan north arrow. Verify entry direction.",
       "source_page": 3
     }
   ],
-  "notes": "Project values from CBECC page 3. Front orientation = 73 degrees (NE facing). Slab-on-grade foundation."
+  "notes": "Project values from title block and schedules. Front orientation = 45 degrees (NE facing). Slab-on-grade foundation."
 }
 ```
 
@@ -211,9 +211,9 @@ Return JSON matching this structure:
    - Provide best-effort extraction with disclaimer
 
 2. **Conflicting values:**
-   - Use CBECC value if available (most authoritative)
+   - Use schedule value if available (most authoritative)
    - Note conflict in extraction notes
-   - Example: "CFA shows 800 sf on floor plan but 825 sf on CBECC form. Using 825 sf."
+   - Example: "CFA shows 800 sf on floor plan but 825 sf on area schedule. Using schedule value 825 sf."
 
 3. **Missing pages:**
    - Check if DocumentMap indicates missing page types
@@ -235,12 +235,12 @@ If extracted data fails schema validation:
 
 To improve accuracy, cross-reference values between pages:
 
-- **Conditioned Floor Area:** Should match between CBECC form, floor plan area calculation, and wall schedule context
-- **Window Area:** Should match between window schedule total and CBECC fenestration summary
-- **Climate Zone:** Should be consistent across all forms
+- **Conditioned Floor Area:** Should match between floor plan area callouts and area schedule
+- **Window Area:** Should match between window schedule total and calculated sum
+- **Climate Zone:** Should be consistent across energy notes and title block
 - **Fuel Type:** Should align with equipment schedules (gas furnace → Natural Gas or Mixed)
 
-If cross-reference reveals discrepancy, prefer CBECC/CF1R value and note discrepancy.
+If cross-reference reveals discrepancy, prefer schedule value and note discrepancy.
 
 ## Next Steps After Extraction
 
@@ -327,15 +327,15 @@ Before completing extraction, verify ALL these fields are present in your output
 
 ### Non-Extractable Fields
 
-The following fields CANNOT be extracted from architectural plans - they are CBECC software outputs, test results, or compliance calculations. Leave them as `null`:
+The following fields CANNOT be extracted from architectural plans - they are CBECC software outputs, test results, or compliance calculations. Use the defaults shown:
 
 **CBECC Metadata (software-generated):**
-- `run_id` - CBECC software ID
-- `run_title` - CBECC analysis title (use project address instead if needed)
-- `run_number` - CBECC iteration number
-- `run_scope` - CBECC scope classification
-- `standards_version` - Title 24 version from CBECC
-- `all_orientations` - CBECC rotation analysis flag
+- `run_id` - Use `null` (CBECC software ID)
+- `run_title` - Use the **project address** as the value
+- `run_number` - Use `0` (CBECC iteration number)
+- `run_scope` - Use `null` (CBECC scope classification)
+- `standards_version` - Use `null` (Title 24 version from CBECC)
+- `all_orientations` - Use `false` (CBECC rotation analysis flag)
 
 **Test Results (require physical testing):**
 - `infiltration_ach50` - Blower door test result

@@ -192,3 +192,44 @@ Before submitting a proposal, verify:
 - [ ] affected_error_types contains valid values
 - [ ] affected_domains contains valid values
 - [ ] JSON is valid and parseable
+
+## Anti-Overfitting Validation
+
+Before submitting, verify your proposal passes these checks:
+
+### Automatic Rejection Criteria
+
+A proposal will be REJECTED if it contains:
+
+- [ ] Any eval ID (e.g., "martinez-adu", "poonian-adu", "chamberlin")
+- [ ] Specific addresses from test cases
+- [ ] Hardcoded angle values derived from test ground truth
+- [ ] References to specific test image contents
+- [ ] Rules that only apply to the observed test cases
+
+### Generalization Check
+
+The proposed_change field must:
+
+- [ ] Describe a GENERAL principle, not a specific case
+- [ ] Be applicable to buildings the critic has never seen
+- [ ] Follow from architectural/engineering logic
+- [ ] Not encode test answers in any form
+
+### Example: Good vs Bad
+
+**Bad proposal (overfitting):**
+```
+"For ADUs where the north arrow points 340° left of up and the
+entry is on the east side of the floor plan, the front_orientation
+is approximately 110°."
+```
+This encodes a specific test case answer (340° north, 110° result).
+
+**Good proposal (generalizable):**
+```
+"When the north arrow tilts LEFT of vertical (pointing upper-left),
+the north_arrow_angle is between 270° and 360°. A common mistake is
+reading '20° left of up' as 20° instead of 340°."
+```
+This describes a general visual interpretation rule.

@@ -43,8 +43,9 @@ def build_orientation_analysis(results: List[Dict]) -> Dict:
     # Build discrepancy patterns
     discrepancies = []
     for r in failures:
+        eval_id = r["eval_id"]
         discrepancies.append({
-            "eval_id": r["eval_id"],
+            "eval_id": eval_id,
             "field": "front_orientation",
             "expected": r["expected"],
             "extracted": r["predicted"],
@@ -54,6 +55,11 @@ def build_orientation_analysis(results: List[Dict]) -> Dict:
             "north_arrow_found": r.get("north_arrow_found"),
             "north_arrow_page": r.get("north_arrow_page"),
             "reasoning": r.get("reasoning", ""),
+            # Image paths for critic to examine (diagnosis only, not for memorization)
+            "image_paths": [
+                f"evals/{eval_id}/preprocessed/plans/page-{i:03d}.png"
+                for i in range(1, 8)  # Pages 1-7
+            ],
         })
 
     return {
@@ -79,6 +85,9 @@ def format_analysis_for_critic(analysis: Dict) -> str:
 
     if analysis["discrepancies"]:
         output.append("## Failures\n")
+        output.append("**You may examine the source images to understand WHY these failed.**")
+        output.append("**Use images for diagnosis only - do NOT encode test-specific answers.**\n")
+
         for d in analysis["discrepancies"]:
             output.append(f"### {d['eval_id']}")
             output.append(f"- Expected: {d['expected']}°")
@@ -86,7 +95,11 @@ def format_analysis_for_critic(analysis: Dict) -> str:
             output.append(f"- Error: {d['error_degrees']:.1f}°")
             output.append(f"- Confidence: {d['confidence']}")
             output.append(f"- North arrow: {'found' if d['north_arrow_found'] else 'NOT FOUND'} (page {d['north_arrow_page']})")
-            output.append(f"- Reasoning: {d['reasoning'][:300]}...")
+            output.append(f"- Reasoning: {d['reasoning'][:2000]}{'...' if len(d['reasoning']) > 2000 else ''}")
+            # Include image paths for critic to examine
+            image_paths = d.get("image_paths", [])
+            if image_paths:
+                output.append(f"- **Source images:** {', '.join(image_paths)}")
             output.append("")
 
     return "\n".join(output)
@@ -103,6 +116,16 @@ def invoke_orientation_critic(analysis: Dict) -> str:
         instructions_content = instructions_path.read_text()
 
     prompt = f"""You are the critic agent analyzing orientation extraction failures.
+
+**CRITICAL ANTI-OVERFITTING RULE:**
+You may examine test images to understand WHY failures occur, but you must NOT:
+- Propose rules that encode specific test case answers
+- Reference eval IDs, addresses, or specific angles from test cases
+- Create heuristics that only work for the observed test images
+
+Your proposals must be GENERAL principles that would help extract orientation
+from ANY building plan, not just these test cases. See the "Anti-Overfitting
+Requirements" section in your instructions for detailed guidance.
 
 ## Analysis Summary
 
@@ -128,6 +151,10 @@ Focus on:
 3. Ambiguity in identifying the "front" of the building
 4. Issues with elevation labels vs true compass directions
 
+You can examine source images listed for each failure to diagnose the issue.
+Use images to understand WHAT visual pattern confused the extractor - NOT to
+memorize the correct answers.
+
 Propose ONE specific, targeted change to the instructions that addresses the root cause.
 
 Return a JSON proposal:
@@ -147,6 +174,8 @@ Return a JSON proposal:
 ```
 
 Be specific and targeted. Small, focused changes are better than large rewrites.
+Remember: your proposal will be REJECTED if it contains eval IDs, specific
+addresses, or hardcoded angle values from test cases.
 """
 
     cmd = [

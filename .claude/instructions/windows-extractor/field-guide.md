@@ -16,10 +16,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Window name/identifier
 
 **Document sources:**
-1. **Window schedule:** Mark or ID column (W1, W2, A, B)
+1. **Window schedule:** Mark or ID column (W1, W2, A, B) (PRIMARY SOURCE)
 2. **Floor plans:** Window callout marks
-3. **CBECC-Res output:** Fenestration component names
-4. **Door schedule:** For glazed doors (SGD1, D1)
+3. **Door schedule:** For glazed doors (SGD1, D1)
 
 **Common labels in documents:**
 - "Mark", "ID", "Window", "Type"
@@ -46,10 +45,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Parent wall name
 
 **Document sources:**
-1. **Window schedule:** Location or Wall column
-2. **CBECC-Res output:** Parent wall reference
-3. **Floor plans:** Window position on wall
-4. **Inferred:** From azimuth/orientation match
+1. **Window schedule:** Location or Wall column (PRIMARY SOURCE)
+2. **Floor plans:** Window position on wall
+3. **Inferred:** From azimuth/orientation match
 
 **Common labels in documents:**
 - "Location", "Wall", "Parent", "Orientation"
@@ -81,10 +79,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Construction status
 
 **Document sources:**
-1. **Window schedule:** Status column
-2. **CBECC-Res output:** Component status
-3. **Project scope:** Infer from project type
-4. **Notes:** "New windows" or "Replace existing"
+1. **Project scope:** Infer from project type (PRIMARY SOURCE)
+2. **Window schedule:** Status column
+3. **Notes:** "New windows" or "Replace existing"
 
 **Common labels in documents:**
 - "Status", "Condition", "Type"
@@ -108,9 +105,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Orientation in degrees from true north
 
 **Document sources:**
-1. **CBECC-Res output:** Azimuth column in fenestration list
+1. **Floor plans:** Building orientation + window position (PRIMARY SOURCE)
 2. **Window schedule:** Orientation or Azimuth column
-3. **Floor plans:** Building orientation + window position
+3. **Site plan:** North arrow for true orientation
 4. **Inferred:** From wall orientation
 
 **Common labels in documents:**
@@ -119,7 +116,7 @@ This guide maps each WindowComponent schema field to its source location in Titl
 - Degrees: "0", "90", "180", "270"
 
 **Extraction tips:**
-- CBECC may show degrees directly
+- Calculate from north arrow on site plan
 - Cardinal directions convert to degrees
 - If only wall known, use wall orientation
 - North = 0, East = 90, South = 180, West = 270
@@ -149,10 +146,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Window height in feet
 
 **Document sources:**
-1. **Window schedule:** Height or Size column
+1. **Window schedule:** Height or Size column (PRIMARY SOURCE)
 2. **Elevations:** Vertical window dimensions
-3. **CBECC-Res output:** Fenestration dimensions
-4. **Product specs:** Nominal sizes
+3. **Product specs:** Nominal sizes
 
 **Common labels in documents:**
 - "Height", "H", "HT"
@@ -185,10 +181,9 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Window width in feet
 
 **Document sources:**
-1. **Window schedule:** Width or Size column
+1. **Window schedule:** Width or Size column (PRIMARY SOURCE)
 2. **Floor plans:** Horizontal window dimensions
-3. **CBECC-Res output:** Fenestration dimensions
-4. **Elevations:** Horizontal dimensions
+3. **Elevations:** Horizontal dimensions
 
 **Common labels in documents:**
 - "Width", "W", "WD"
@@ -221,9 +216,8 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Number of identical windows
 
 **Document sources:**
-1. **Window schedule:** Quantity or Qty column
+1. **Window schedule:** Quantity or Qty column (PRIMARY SOURCE)
 2. **Floor plans:** Count of same window mark
-3. **CBECC-Res output:** Count per type
 
 **Common labels in documents:**
 - "Qty", "Quantity", "Count", "#"
@@ -252,9 +246,8 @@ This guide maps each WindowComponent schema field to its source location in Titl
 **Description:** Window area in square feet
 
 **Document sources:**
-1. **Window schedule:** Area column (per unit or total)
-2. **CBECC-Res output:** Fenestration area
-3. **Calculated:** Height x Width x Multiplier
+1. **Window schedule:** Area column (per unit or total) (PRIMARY SOURCE)
+2. **Calculated:** Height x Width x Multiplier
 
 **Common labels in documents:**
 - "Area (sf)", "Area", "Sq Ft", "SF"
@@ -286,10 +279,9 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 **Description:** Thermal transmittance (U-factor)
 
 **Document sources:**
-1. **Window schedule:** U-Factor or U-Value column
-2. **CBECC-Res output:** Fenestration performance section
-3. **Product specifications:** Manufacturer ratings
-4. **CF1R form:** Fenestration requirements
+1. **Window schedule:** U-Factor or U-Value column (PRIMARY SOURCE)
+2. **Product specifications:** Manufacturer ratings
+3. **Energy notes:** Fenestration requirements
 
 **Common labels in documents:**
 - "U-Factor", "U-Value", "Uw", "U"
@@ -329,10 +321,9 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 **Description:** Solar Heat Gain Coefficient
 
 **Document sources:**
-1. **Window schedule:** SHGC column
-2. **CBECC-Res output:** Fenestration performance section
-3. **Product specifications:** Manufacturer ratings
-4. **CF1R form:** Fenestration requirements
+1. **Window schedule:** SHGC column (PRIMARY SOURCE)
+2. **Product specifications:** Manufacturer ratings
+3. **Energy notes:** Fenestration requirements
 
 **Common labels in documents:**
 - "SHGC", "Solar Heat Gain", "SHG"
@@ -371,10 +362,9 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 **Description:** External shading description
 
 **Document sources:**
-1. **Window schedule:** Shading or Notes column
-2. **CBECC-Res output:** Overhang/shading section
-3. **Elevations:** Overhang depths shown
-4. **Floor plans:** Covered areas/porches
+1. **Elevations:** Overhang depths shown (PRIMARY SOURCE)
+2. **Window schedule:** Shading or Notes column
+3. **Floor plans:** Covered areas/porches
 
 **Common labels in documents:**
 - "Shading", "Overhang", "Shade", "Exterior Shade"
@@ -406,10 +396,10 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 ## Extraction Best Practices
 
 ### Page Reading Order
-1. Start with window schedule (complete list)
-2. Check CBECC fenestration section (performance values)
-3. Use floor plans for counts and locations
-4. Reference elevations for dimensions confirmation
+1. Start with Window schedule (complete list with dimensions and performance)
+2. Use Floor plans for counts and locations/orientations
+3. Reference Elevations for dimensions confirmation and shading
+4. Check Energy notes for performance requirements
 
 ### Common Document Layouts
 
@@ -421,11 +411,6 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 | W2   | 4'x5'      | 1   | 0.30     | 0.23 | South    | Operable |
 | SGD  | 6'x6'8"    | 1   | 0.28     | 0.22 | West     | Sliding |
 ```
-
-**CBECC Fenestration Section:**
-- Component Name | Wall | Area | U-Factor | SHGC | Azimuth
-- Totals row with aggregate values
-- May group by wall orientation
 
 **Floor Plan Window Callouts:**
 - Window marks in circles or symbols
@@ -464,17 +449,17 @@ Exclude:
 
 | Field | Type | Required | Sources | Default |
 |-------|------|----------|---------|---------|
-| name | string | Yes | Schedule mark | - |
-| wall | string | Link | Schedule, inferred | - |
-| status | enum | No | Schedule, project | "New" |
-| azimuth | float | No | CBECC, schedule, inferred | Wall orientation |
-| height | float | No | Schedule, CBECC | - |
-| width | float | No | Schedule, CBECC | - |
+| name | string | Yes | Window schedule | - |
+| wall | string | Link | Schedule, floor plan | - |
+| status | enum | No | Project scope | "New" |
+| azimuth | float | No | Site plan, floor plan | Wall orientation |
+| height | float | No | Window schedule | - |
+| width | float | No | Window schedule | - |
 | multiplier | int | No | Schedule quantity | 1 |
 | area | float | No | Schedule, calculated | h x w x mult |
-| u_factor | float | No | Schedule, CBECC | 0.30 |
-| shgc | float | No | Schedule, CBECC | 0.23 |
-| exterior_shade | string | No | Schedule, elevations | null |
+| u_factor | float | No | Window schedule | 0.30 |
+| shgc | float | No | Window schedule | 0.23 |
+| exterior_shade | string | No | Elevations, schedule | null |
 
 **Total WindowComponent fields:** 11 (1 required + 10 optional)
 

@@ -13,34 +13,22 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 
 ### run_title
 **Type:** string (required)
-**Description:** CBECC analysis run title (NOT the project name or address)
+**Description:** Project title / run identifier
 
-**CRITICAL DISTINCTION:**
-- `run_title` = The analysis run title in CBECC software
-- This is NOT the project name, address, or owner name
-- If CBECC shows "Title 24 Analysis" as the run title, use that exact string
+**NOTE:** This is a CBECC software field. Without CBECC forms, use the project address as run_title.
 
 **Document sources:**
-1. **CBECC-Res output:** Look for "Run Title:", "Analysis Title:", or header label (PRIMARY SOURCE)
-2. **CF1R form:** May show run identifier
-3. **NOT from:** Title block project name, address, or owner name
+1. **Title block:** Project name or address
+2. **Cover page:** Project title
 
 **Extraction tips:**
-- Look specifically for CBECC analysis naming, not project identification
-- Common values: "Title 24 Analysis", "Compliance Analysis", "Energy Analysis"
-- If not explicitly found, check CBECC header for analysis identifier
-- Do NOT substitute project address or building name
+- Use the street address (e.g., "123 Main Street ADU") as the run_title
+- This field is excluded from evaluation since CBECC will not be available
 
 **Example values:**
-- "Title 24 Analysis" (common default)
-- "Compliance Run 1"
-- "Energy Analysis"
-- "T24 Analysis"
-
-**Common mistakes to avoid:**
-- Using address ("4720 Chamberlin Cir") as run_title - WRONG
-- Using project name ("Smith ADU") as run_title - WRONG
-- Using owner name - WRONG
+- "123 Main Street ADU"
+- "456 Oak Avenue"
+- "789 Elm Court"
 
 ---
 
@@ -49,10 +37,9 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Street address of the building
 
 **Document sources:**
-1. **Cover page:** Title block address field
-2. **CBECC-Res output:** Project location section
-3. **CF1R form:** "Project Address" or "Site Address" field
-4. **Drawing title blocks:** Below project name
+1. **Cover page / Title block:** Address field (PRIMARY SOURCE)
+2. **Drawing title blocks:** Below project name
+3. **Site plan:** Property address annotation
 
 **Extraction tips:**
 - Include street number and name only (not city/state/zip)
@@ -71,10 +58,9 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** City name
 
 **Document sources:**
-1. **Cover page:** Title block, usually with address
-2. **CBECC-Res output:** Project location section
-3. **CF1R form:** Address section
-4. **Jurisdiction field:** Sometimes shown as "City of [Name]"
+1. **Cover page / Title block:** Usually with address (PRIMARY SOURCE)
+2. **Jurisdiction field:** Sometimes shown as "City of [Name]"
+3. **Site plan:** Property location
 
 **Extraction tips:**
 - Extract city name only, no state or zip
@@ -93,9 +79,9 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** California climate zone
 
 **Document sources:**
-1. **CBECC-Res output:** Usually prominent near top, labeled "Climate Zone" or "CZ"
-2. **CF1R form:** Header section, "Climate Zone: XX"
-3. **Weather data section:** May reference "CZ 12" or similar
+1. **Energy notes / Title block:** Climate zone often noted (PRIMARY SOURCE)
+2. **Cover page:** May show "Climate Zone: XX" or "CZ XX"
+3. **General notes:** Energy compliance notes often include climate zone
 
 **Extraction tips:**
 - Always shown as number 1-16 (California standard)
@@ -122,10 +108,10 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Primary fuel type for building systems
 
 **Document sources:**
-1. **CBECC-Res output:** May explicitly state "Fuel Type: All Electric"
-2. **Equipment schedules:** Check HVAC and water heater fuel sources
-3. **Mechanical schedules:** Heating and cooling equipment specifications
-4. **Energy budget section:** May categorize by fuel type
+1. **Equipment schedules:** Check HVAC and water heater fuel sources (PRIMARY SOURCE)
+2. **Mechanical schedules:** Heating and cooling equipment specifications
+3. **Energy notes:** May explicitly state fuel type
+4. **Plumbing plans:** Water heater type indicates fuel
 
 **Extraction tips:**
 - "All Electric": No gas service, all equipment is electric
@@ -148,14 +134,13 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Building type classification
 
 **Document sources:**
-1. **CBECC-Res output:** "Building Type" or "Dwelling Type" field
-2. **CF1R form:** Building classification section
-3. **Project description:** May state "single family dwelling" or "ADU"
+1. **Cover page / Title block:** Project description (PRIMARY SOURCE)
+2. **Project description:** May state "single family dwelling" or "ADU"
+3. **General notes:** Building classification
 
 **Extraction tips:**
 - ADUs are typically "Single Family" (each unit is separate dwelling)
 - "Multi Family" is for apartment buildings, duplexes, condos
-- Look for explicit classification on CBECC or CF1R
 - When in doubt for ADU projects, use "Single Family"
 
 **Example values:**
@@ -169,8 +154,8 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Number of dwelling units in building
 
 **Document sources:**
-1. **CBECC-Res output:** "Number of Dwelling Units" field
-2. **CF1R form:** Building description section
+1. **Cover page / Title block:** Project description (PRIMARY SOURCE)
+2. **Floor plans:** Count separate units
 3. **Project description:** May state "1 DU" or "single unit"
 
 **Extraction tips:**
@@ -191,10 +176,10 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Number of stories/floors
 
 **Document sources:**
-1. **CBECC-Res output:** "Number of Stories" field
-2. **CF1R form:** Building description
-3. **Elevation drawings:** Count floors visible in elevation
-4. **Floor plans:** Multiple plan sheets indicate multiple stories
+1. **Elevation drawings:** Count floors visible in elevation (PRIMARY SOURCE)
+2. **Floor plans:** Multiple plan sheets indicate multiple stories
+3. **Section drawings:** Clearly show story count
+4. **Cover page:** Project description may state story count
 
 **Extraction tips:**
 - Count above-grade stories only (not basement unless finished)
@@ -213,10 +198,9 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Number of bedrooms
 
 **Document sources:**
-1. **CBECC-Res output:** "Number of Bedrooms" field
-2. **CF1R form:** Building description
-3. **Floor plans:** Count rooms labeled "Bedroom", "BR", "BD"
-4. **Room schedule:** May list bedrooms
+1. **Floor plans:** Count rooms labeled "Bedroom", "BR", "BD" (PRIMARY SOURCE)
+2. **Room schedule:** May list bedrooms
+3. **Cover page:** Project description may state bedroom count
 
 **Extraction tips:**
 - Count only designated bedrooms (not dens, offices, or flex spaces)
@@ -238,16 +222,15 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Conditioned floor area in square feet (heated/cooled space)
 
 **Document sources:**
-1. **CBECC-Res output:** "Conditioned Floor Area" or "CFA", prominently displayed
-2. **CF1R form:** Envelope summary section
-3. **Floor plans:** Area calculations, dimension annotations
-4. **Area schedule:** Building area table
+1. **Floor plans:** Area calculations, dimension annotations (PRIMARY SOURCE)
+2. **Area schedule:** Building area table
+3. **Cover page / Title block:** May state total area
+4. **Energy notes:** May show conditioned floor area
 
 **Extraction tips:**
-- Labeled "CFA", "Conditioned Floor Area", "Heated Floor Area"
+- Labeled "CFA", "Conditioned Floor Area", "Heated Floor Area", or just "Area"
 - Units should be square feet (sf or ft²)
 - Does NOT include garage, unconditioned porch, or attic
-- CBECC value is most authoritative (calculated by software)
 - Typical ADU range: 400-1200 sf
 
 **Example values:**
@@ -256,7 +239,7 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 - 650.5 sf
 
 **Cross-reference check:**
-- Compare CBECC value with floor plan dimensions
+- Compare stated area with calculated floor plan dimensions
 - If discrepancy > 5%, note in confidence report
 
 ---
@@ -266,17 +249,16 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Total window area in square feet
 
 **Document sources:**
-1. **Window schedule:** Total area at bottom of schedule
-2. **CBECC-Res output:** Fenestration summary section
-3. **CF1R form:** Window/glazing area field
-4. **Door and window schedule:** Combined table with totals
+1. **Window schedule:** Total area at bottom of schedule (PRIMARY SOURCE)
+2. **Door and window schedule:** Combined table with totals
+3. **Floor plans:** Window callouts with sizes
+4. **Elevations:** Window dimensions visible
 
 **Extraction tips:**
 - Look for "Total Glazing Area", "Total Window Area", "Fenestration Area"
 - Units: square feet (sf or ft²)
 - Sum of all windows and glazed doors
 - May need to calculate from individual window areas if no total
-- CBECC fenestration summary is most reliable
 
 **Example values:**
 - 120.0 sf
@@ -293,16 +275,14 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 **Description:** Window-to-wall ratio or window-to-floor ratio (WWR/WFR)
 
 **Document sources:**
-1. **CBECC-Res output:** "WWR" or "Window-to-Floor Ratio"
-2. **CF1R form:** Fenestration percentage field
-3. **Energy compliance summary:** Glazing percentage
+1. **Calculated:** window_area / conditioned_floor_area (PRIMARY METHOD)
+2. **Energy notes:** May show WWR or glazing percentage
 
 **Extraction tips:**
 - Labeled "WWR", "Window-to-Floor Ratio", "Glazing Ratio"
 - Should be decimal 0.0-1.0 (15% = 0.15)
 - Typical residential range: 0.12-0.25 (12%-25%)
-- Can calculate if missing: window_area / conditioned_floor_area
-- CBECC value preferred over manual calculation
+- Usually calculated: window_area / conditioned_floor_area
 
 **Example values:**
 - 0.15 (15% glazing, common for energy efficient)
@@ -322,17 +302,16 @@ Example: 120 sf / 800 sf = 0.15
 **Description:** Total exterior wall area in square feet
 
 **Document sources:**
-1. **Wall schedule:** Total exterior wall area
-2. **CBECC-Res output:** Envelope summary, "Exterior Wall Area"
-3. **CF1R form:** Wall area field
-4. **Envelope assembly table:** Wall type areas summed
+1. **Wall schedule:** Total exterior wall area (PRIMARY SOURCE)
+2. **Calculated:** Perimeter x wall height from floor plans and sections
+3. **Envelope assembly table:** Wall type areas summed
 
 **Extraction tips:**
 - Look for "Exterior Wall Area", "Above-Grade Wall Area"
 - Units: square feet (sf or ft²)
 - Excludes interior walls and foundation walls (below grade)
 - May be shown by wall type (north wall, south wall, etc.) - sum them
-- CBECC envelope summary most reliable
+- Can calculate from perimeter dimensions x ceiling height
 
 **Example values:**
 - 1200.0 sf
@@ -349,10 +328,9 @@ Example: 120 sf / 800 sf = 0.15
 **Description:** Area-weighted average U-factor for all fenestration
 
 **Document sources:**
-1. **Window schedule:** U-factor column, area-weighted average at bottom
-2. **CBECC-Res output:** Fenestration summary, "Average U-Factor"
-3. **CF1R form:** Window performance section
-4. **Product specifications:** Window manufacturer U-factor ratings
+1. **Window schedule:** U-factor column, area-weighted average at bottom (PRIMARY SOURCE)
+2. **Product specifications:** Window manufacturer U-factor ratings
+3. **Energy notes:** May show required or specified U-factor
 
 **Extraction tips:**
 - Labeled "U-Factor", "U-Value", "Overall U-Factor"
@@ -386,14 +364,14 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Front wall azimuth in degrees from true north
 
 **Document sources:**
-1. **CBECC-Res output:** "Front:" or "Front Orientation:" field
-2. **Site plan:** North arrow with building orientation
-3. **CF1R form:** Orientation field
+1. **Site plan:** North arrow with building orientation (PRIMARY SOURCE)
+2. **Floor plan:** North arrow and building layout
+3. **Elevations:** Direction labels (North Elev, South Elev) help confirm
 
 **Extraction tips:**
 - 0 = North, 90 = East, 180 = South, 270 = West
-- CBECC shows this prominently for multi-orientation analysis
-- May show "Front: 73°" meaning NE-facing
+- Calculate from north arrow angle and building/street orientation
+- See orientation-extractor instructions for detailed calculation method
 
 **Example values:**
 - 0 (north-facing)
@@ -407,8 +385,8 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Below-grade wall area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** Envelope summary, "Underground Wall Area"
-2. **CF1R form:** Wall area section
+1. **Foundation plan:** Below-grade wall details
+2. **Section drawings:** Show below-grade conditions
 
 **Extraction tips:**
 - For slab-on-grade construction (no basement): use 0
@@ -426,8 +404,9 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Slab-on-grade floor area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** Envelope summary
-2. **Foundation plan:** Slab perimeter area
+1. **Foundation plan:** Slab perimeter area (PRIMARY SOURCE)
+2. **Floor plans:** Building footprint dimensions
+3. **Section drawings:** Foundation type visible
 
 **Extraction tips:**
 - For homes entirely on slab: slab_floor_area ≈ conditioned_floor_area
@@ -440,7 +419,7 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Exposed slab perimeter area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Exposed Slab" section
+1. **Foundation plan:** Slab edge details
 2. **Foundation details:** Slab edge exposure
 
 **Extraction tips:**
@@ -481,12 +460,14 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Whether PV credit is available for compliance
 
 **Document sources:**
-1. **CBECC-Res output:** Compliance summary, PV section
-2. **CF1R form:** Solar/PV section
+1. **Site plan:** PV panel layout if present
+2. **Electrical plans:** Solar system specifications
+3. **Energy notes:** Solar/PV requirements
 
 **Extraction tips:**
 - true if building has or plans for solar PV
 - May show as checkbox or Y/N
+- NOTE: This is often a compliance calculation field - use null if not shown
 
 ---
 
@@ -506,12 +487,13 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Whether HVAC uses zonal control
 
 **Document sources:**
-1. **CBECC-Res output:** HVAC section
-2. **Mechanical schedule:** Zone control equipment
+1. **Mechanical plans:** HVAC zone layout
+2. **Equipment schedule:** Zone control equipment
 
 **Extraction tips:**
 - true if multiple thermostats/zones
 - false for single-zone systems (typical ADU)
+- NOTE: This is often a CBECC classification field - use null if not shown
 
 ---
 
@@ -520,12 +502,13 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** Air changes per hour at 50 Pa (blower door test)
 
 **Document sources:**
-1. **CBECC-Res output:** Infiltration section
-2. **CF1R form:** Air tightness
+1. **Energy notes:** Air tightness requirements
+2. **Testing results:** Blower door test (post-construction)
 
 **Extraction tips:**
 - Title 24 2022 requires ≤5 ACH50 for new construction
 - Common values: 3-5 ACH50
+- NOTE: This is a test result field - use null unless test results provided
 
 ---
 
@@ -535,7 +518,7 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 
 **Extraction tips:**
 - Calculated from ACH50 × Volume / 60
-- May be shown directly in CBECC
+- NOTE: This is a test result field - use null unless test results provided
 
 ---
 
@@ -544,35 +527,37 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 **Description:** QII certification status
 
 **Document sources:**
-1. **CBECC-Res output:** QII checkbox
-2. **CF1R form:** QII certification section
+1. **Energy notes:** QII certification requirements
+2. **Specifications:** Insulation installation standards
 
 **Extraction tips:**
 - true if QII certified
 - false if standard installation (most projects)
+- NOTE: This is a certification field - use null if not specified
 
 ---
 
 ## Extraction Best Practices
 
 ### Page Reading Order
-1. Start with CBECC-Res pages (most standardized format)
-2. Check CF1R forms for missing fields
-3. Use schedules to fill remaining gaps
-4. Reference drawings for counts (bedrooms, stories)
+1. Start with Cover page / Title block (project info, address, climate zone)
+2. Check Schedule pages (window, equipment, wall schedules for technical data)
+3. Use Floor plans for room counts, areas, layout
+4. Reference Elevations/Sections for story count, wall heights
 
 ### Common Document Layouts
 
-**CBECC-Res Output Page:**
-- Header: Project name, address, climate zone
-- Building Summary: Stories, bedrooms, dwelling units, fuel type
-- Envelope Summary: CFA, wall area, window area, WWR
-- Fenestration Details: U-factor, SHGC by window
+**Cover Page / Title Block:**
+- Project name, address, city
+- Climate zone (often in energy notes)
+- Project description (ADU, single-family, etc.)
+- Architect/engineer information
 
-**CF1R Form:**
-- Top section: Project info, address, city, climate zone
-- Middle section: Building type, area, stories
-- Bottom section: Envelope compliance, U-factors
+**Floor Plan:**
+- Room labels with names (Bedroom, Living Room, etc.)
+- Area callouts or dimensions for calculating area
+- Window and door marks referencing schedules
+- North arrow for orientation
 
 **Window Schedule:**
 - Columns: Mark, Quantity, Width, Height, Area, U-Factor, SHGC
@@ -600,14 +585,14 @@ Before finalizing extraction:
 Document extraction confidence in notes:
 
 **High confidence indicators:**
-- Value from CBECC-Res or CF1R form
-- Clearly legible, no ambiguity
+- Value from schedule or title block, clearly legible
 - Cross-referenced across multiple pages with agreement
+- Standard format with clear units
 
 **Medium confidence indicators:**
-- Value from schedule or drawing
+- Value from floor plan annotation
 - Legible but some interpretation needed
-- Calculated from other fields
+- Calculated from other fields (e.g., WWR from window_area / CFA)
 
 **Low confidence indicators:**
 - Hand-written value, OCR uncertain
@@ -623,36 +608,36 @@ Include specific notes for low-confidence fields so verifier can double-check.
 
 | Field | Type | Sources | Default if Missing |
 |-------|------|---------|-------------------|
-| run_id | string | CBECC header | null |
-| run_title | string | CBECC "Run Title:" (NOT project name) | - |
-| address | string | Cover, CBECC, CF1R | - |
-| city | string | Cover, CBECC, CF1R | - |
-| climate_zone | int 1-16 | CBECC, CF1R | - |
-| fuel_type | enum | CBECC, equipment | - |
-| house_type | enum | CBECC, CF1R | - |
-| dwelling_units | int ≥1 | CBECC, CF1R | 1 |
-| stories | int ≥1 | CBECC, elevations | - |
-| bedrooms | int ≥0 | CBECC, floor plans | - |
-| front_orientation | float 0-360 | CBECC "Front:" | null |
-| conditioned_floor_area | float >0 | CBECC, CF1R | - |
-| window_area | float ≥0 | Window schedule, CBECC | - |
-| window_to_floor_ratio | float 0-1 | CBECC, calculate | - |
-| exterior_wall_area | float ≥0 | Wall schedule, CBECC | - |
-| fenestration_u_factor | float >0 | Window schedule, CBECC | null |
-| underground_wall_area | float ≥0 | CBECC envelope | 0 |
-| slab_floor_area | float ≥0 | CBECC envelope | null |
-| exposed_slab_floor_area | float ≥0 | CBECC envelope | 0 |
-| below_grade_floor_area | float ≥0 | CBECC envelope | 0 |
-| exposed_below_grade_floor_area | float ≥0 | CBECC envelope | 0 |
-| addition_conditioned_floor_area | float ≥0 | CBECC | 0 |
-| pv_credit_available | boolean | CBECC compliance | null |
-| pv_generation_max_credit | float ≥0 | CBECC PV section | null |
-| credit_available_for_pv | float ≥0 | CBECC compliance | null |
-| final_pv_credit | float ≥0 | CBECC compliance | null |
-| zonal_control | boolean | CBECC HVAC | null |
-| infiltration_ach50 | float >0 | CBECC infiltration | null |
-| infiltration_cfm50 | float >0 | CBECC infiltration | null |
-| quality_insulation_installation | boolean | CBECC, CF1R | null |
+| run_id | string | (CBECC only) | null |
+| run_title | string | Use project address | address value |
+| address | string | Cover, title block | - |
+| city | string | Cover, title block | - |
+| climate_zone | int 1-16 | Energy notes, cover | - |
+| fuel_type | enum | Equipment schedules | - |
+| house_type | enum | Cover, project description | - |
+| dwelling_units | int ≥1 | Cover, floor plans | 1 |
+| stories | int ≥1 | Elevations, floor plans | - |
+| bedrooms | int ≥0 | Floor plans | - |
+| front_orientation | float 0-360 | Site plan, north arrow | null |
+| conditioned_floor_area | float >0 | Floor plans, area schedule | - |
+| window_area | float ≥0 | Window schedule | - |
+| window_to_floor_ratio | float 0-1 | Calculate from above | - |
+| exterior_wall_area | float ≥0 | Wall schedule, calculated | - |
+| fenestration_u_factor | float >0 | Window schedule | null |
+| underground_wall_area | float ≥0 | Foundation plan | 0 |
+| slab_floor_area | float ≥0 | Foundation plan | null |
+| exposed_slab_floor_area | float ≥0 | Foundation details | 0 |
+| below_grade_floor_area | float ≥0 | Foundation plan | 0 |
+| exposed_below_grade_floor_area | float ≥0 | Foundation plan | 0 |
+| addition_conditioned_floor_area | float ≥0 | Project scope | 0 |
+| pv_credit_available | boolean | (CBECC calculation) | null |
+| pv_generation_max_credit | float ≥0 | (CBECC calculation) | null |
+| credit_available_for_pv | float ≥0 | (CBECC calculation) | null |
+| final_pv_credit | float ≥0 | (CBECC calculation) | null |
+| zonal_control | boolean | (CBECC classification) | null |
+| infiltration_ach50 | float >0 | (Test result) | null |
+| infiltration_cfm50 | float >0 | (Test result) | null |
+| quality_insulation_installation | boolean | (Certification) | null |
 
 **Total fields:** 30 (ProjectInfo + EnvelopeInfo)
 

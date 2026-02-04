@@ -130,23 +130,20 @@ For each HVAC system, extract duct/distribution data:
 
 Connect systems to thermal zones:
 
-1. **CBECC zone assignments:**
+1. **Equipment schedule notes:**
+   - May indicate "Serves: All Conditioned" or specific areas
    - Look for "Zone: Living Zone" or "Serves: Zone 1"
+
+2. **Mechanical plans:**
+   - Show duct runs to different rooms/zones
    - Multiple zones may share one system
    - Or multiple systems may serve one zone (zoned system)
-
-2. **Equipment schedule notes:**
-   - May indicate "Serves: All Conditioned" or specific areas
-
-3. **Mechanical plans:**
-   - Show duct runs to different rooms/zones
 
 ### 8. Naming Conventions for Deduplication
 
 Use consistent naming across extraction:
 
-- **Primary name:** Use CBECC system name if available
-- **Fallback:** Equipment schedule designation (HP-1, RTU-1)
+- **Primary name:** Equipment schedule designation (HP-1, RTU-1)
 - **Format:** "[Type] - [Zone/Area]" if creating names
 
 Examples:
@@ -195,7 +192,7 @@ Return JSON matching this structure:
       }
     }
   ],
-  "notes": "Single heat pump system extracted from CBECC mechanical summary (high confidence). SEER2=16.0 and HSPF=9.5 from equipment schedule. Duct leakage 4% from compliance form."
+  "notes": "Single heat pump system extracted from equipment schedule (high confidence). SEER2=16.0 and HSPF=9.5 from equipment schedule. Duct leakage 4% assumed per typical verified installation."
 }
 ```
 
@@ -224,9 +221,9 @@ Return JSON matching this structure:
    - May have multiple indoor units (capacity adds up)
 
 5. **Conflicting values:**
-   - Use CBECC value if available (most authoritative)
+   - Use equipment schedule value (most authoritative)
    - Note conflict in extraction notes
-   - Example: "SEER2 shows 15 on schedule but 16 on CBECC. Using 16."
+   - Example: "SEER2 shows 15 on mechanical plan but 16 on schedule. Using schedule value 16."
 
 ### Validation Checks
 
@@ -246,24 +243,24 @@ Before returning extracted data:
 
 To improve accuracy, cross-reference values between pages:
 
-- **Capacity:** Should match between CBECC, equipment schedule, and mechanical plan
-- **Efficiency ratings:** CBECC should match equipment schedule
-- **Duct leakage:** CBECC compliance section should match CF1R
+- **Capacity:** Should match between equipment schedule and mechanical plan callouts
+- **Efficiency ratings:** Equipment schedule values are authoritative
+- **Duct leakage:** May be specified in energy notes or testing requirements
 - **System type:** Should be consistent across all references
 
-If cross-reference reveals discrepancy, prefer CBECC value and note discrepancy.
+If cross-reference reveals discrepancy, prefer equipment schedule value and note discrepancy.
 
 ## Confidence Reporting
 
 Include extraction `notes` with confidence indicators:
 
-**High confidence:** Value from CBECC mechanical summary, clearly legible
-**Medium confidence:** Value from equipment schedule, value is clear
-**Low confidence:** Value inferred from mechanical plan or incomplete data
+**High confidence:** Value from equipment schedule, clearly legible
+**Medium confidence:** Value from mechanical plan callouts, value is clear
+**Low confidence:** Value inferred from system type or incomplete data
 
 Example notes:
 ```
-"notes": "HP-1 extracted from CBECC page 5 (high confidence). SEER2=16.0 from CBECC. HSPF=9.5 area-weighted from schedule (medium confidence). Duct leakage 4% from CF1R-MCH (high confidence). Auxiliary heating capacity estimated from system size (low confidence, verify)."
+"notes": "HP-1 extracted from equipment schedule (high confidence). SEER2=16.0 from schedule. HSPF=9.5 from schedule (high confidence). Duct leakage assumed 4% verified (medium confidence). Auxiliary heating capacity estimated from system size (low confidence, verify)."
 ```
 
 ## Next Steps After Extraction

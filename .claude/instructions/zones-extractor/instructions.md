@@ -71,6 +71,7 @@ Focus extraction efforts on these page types (in order of reliability):
 - For simple buildings (ADUs), entire building may be one zone
 
 **Step 2: Extract zone names**
+- For ADU projects, use "ADU" as the zone name
 - Standard naming: "Zone 1", "Living Zone", "Bedroom Zone"
 - May be single zone for small buildings (entire ADU = one zone)
 - Multi-zone for larger buildings with different HVAC areas
@@ -212,7 +213,6 @@ Before returning extracted data, validate:
 
 **Optional fields:**
 - Most numeric fields can be null if not found
-- Prefer extracting from CBECC over leaving null
 - Document missing fields in notes
 
 **Inference when allowed:**
@@ -228,7 +228,7 @@ Return JSON matching this **orientation-based** structure:
 {
   "house_walls": {
     "north": {
-      "gross_wall_area": 136.0,
+      "gross_wall_area": 150.0,
       "azimuth": 0.0,
       "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
@@ -238,12 +238,12 @@ Return JSON matching this **orientation-based** structure:
         {
           "name": "D1",
           "door_type": "Entry",
-          "area": 19.0
+          "area": 21.0
         }
       ]
     },
     "east": {
-      "gross_wall_area": 170.0,
+      "gross_wall_area": 180.0,
       "azimuth": 90.0,
       "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
@@ -252,7 +252,7 @@ Return JSON matching this **orientation-based** structure:
       "opaque_doors": []
     },
     "south": {
-      "gross_wall_area": 136.0,
+      "gross_wall_area": 150.0,
       "azimuth": 180.0,
       "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
@@ -261,7 +261,7 @@ Return JSON matching this **orientation-based** structure:
       "opaque_doors": []
     },
     "west": {
-      "gross_wall_area": 170.0,
+      "gross_wall_area": 180.0,
       "azimuth": 270.0,
       "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
@@ -274,18 +274,18 @@ Return JSON matching this **orientation-based** structure:
     "conditioned_zones": [
       {
         "name": "ADU",
-        "floor_area": 320.0,
+        "floor_area": 450.0,
         "ceiling_height": 8.5,
-        "volume": 2720.0,
+        "volume": 3825.0,
         "stories": 1,
-        "exterior_wall_area": 612.0,
-        "ceiling_below_attic_area": 320.0,
+        "exterior_wall_area": 660.0,
+        "ceiling_below_attic_area": 450.0,
         "cathedral_ceiling_area": 0.0,
-        "slab_floor_area": 320.0
+        "slab_floor_area": 450.0
       }
     ],
     "unconditioned_zones": [],
-    "total_conditioned_floor_area": 320.0
+    "total_conditioned_floor_area": 450.0
   },
   "ceilings": [
     {
@@ -293,7 +293,7 @@ Return JSON matching this **orientation-based** structure:
       "ceiling_type": "Below Attic",
       "zone": "ADU",
       "status": "New",
-      "area": 320.0,
+      "area": 450.0,
       "construction_type": "R-38 Roof Rafter"
     }
   ],
@@ -302,8 +302,8 @@ Return JSON matching this **orientation-based** structure:
       "name": "Slab 1",
       "zone": "ADU",
       "status": "New",
-      "area": 320.0,
-      "perimeter": 72.0,
+      "area": 450.0,
+      "perimeter": 85.0,
       "edge_insulation_r_value": null,
       "carpeted_fraction": 0.8,
       "heated": false
@@ -319,8 +319,8 @@ Return JSON matching this **orientation-based** structure:
     {
       "field_path": "thermal_boundary.conditioned_zones[0].floor_area",
       "severity": "medium",
-      "reason": "Conditioned area from CBECC (320 sf). Computed footprint from dimensions is 340 sf (6.25% difference). Using CBECC value.",
-      "source_page": 3
+      "reason": "Conditioned area from floor plan (450 sf). Computed footprint from dimensions is 460 sf (2.2% difference). Using stated value.",
+      "source_page": 2
     },
     {
       "field_path": "slab_floors[0].edge_insulation_r_value",
@@ -329,7 +329,7 @@ Return JSON matching this **orientation-based** structure:
       "source_page": null
     }
   ],
-  "notes": "Single zone ADU. Wall gross areas from CBECC page 3. Foundation type: slab-on-grade. Garage not modeled / not in scope per plans."
+  "notes": "Single zone ADU. Wall gross areas calculated from perimeter x ceiling height. Foundation type: slab-on-grade."
 }
 ```
 
@@ -338,8 +338,8 @@ Return JSON matching this **orientation-based** structure:
 ### Common Extraction Issues
 
 1. **Multiple zone naming schemes:**
-   - CBECC may use "Conditioned Zone 1" while plans say "Living Area"
-   - Use CBECC naming as authoritative
+   - Plans may use "Living Area" while schedules say "Zone 1"
+   - For ADU projects, use "ADU" as the zone name
    - Note alternate names in extraction notes
 
 2. **Wall-zone linking ambiguity:**
@@ -369,7 +369,7 @@ Convert cardinal directions to degrees:
 - West (W): 270 degrees
 - Northwest (NW): 315 degrees
 
-If CBECC shows orientation relative to front, add front orientation offset.
+If orientation is relative to front, add front orientation offset.
 
 ## Cross-Referencing Strategy
 
@@ -396,12 +396,12 @@ To improve accuracy:
 Include extraction notes with confidence levels:
 
 **High confidence:**
-- Zone data from CBECC zone summary table
-- Wall data from CBECC wall component list
+- Zone data from floor plan area callouts
+- Wall areas from wall schedule
 - Clear numeric values with units
 
 **Medium confidence:**
-- Wall areas calculated from dimensions
+- Wall areas calculated from perimeter x height
 - Orientations derived from cardinal labels
 - Zone type inferred from room names
 
@@ -412,7 +412,7 @@ Include extraction notes with confidence levels:
 
 Example notes:
 ```
-"Zone 1 data from CBECC page 3 (high confidence). Wall areas from CBECC wall list (high confidence). Framing factor assumed 0.25 (medium - not specified). Door areas estimated from door schedule (medium)."
+"Zone floor area from floor plan callout (high confidence). Wall areas calculated from perimeter x ceiling height (medium confidence). Framing factor assumed 0.25 (medium - not specified). Door areas from door schedule (high confidence)."
 ```
 
 ## Next Steps After Extraction

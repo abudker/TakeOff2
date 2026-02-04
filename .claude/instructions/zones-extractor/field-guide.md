@@ -16,18 +16,17 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Zone name/identifier
 
 **Document sources:**
-1. **CBECC-Res output:** "Zones" or "Conditioned Zones" section, first column
+1. **Floor plans:** Area labels or zone boundary annotations (PRIMARY SOURCE)
 2. **Room schedules:** Zone designation column
-3. **Floor plans:** Area labels or zone boundary annotations
-4. **HVAC schedules:** Zone assignment column
+3. **HVAC schedules:** Zone assignment column
 
 **Common labels in documents:**
 - "Zone Name", "Zone", "Thermal Zone"
 - "Conditioned Zone 1", "Zone 1", "Living Zone"
 
 **Extraction tips:**
-- CBECC names are authoritative - use exact spelling
-- Single-zone buildings often just have "Zone 1" or "Conditioned Zone 1"
+- For ADU projects, use "ADU" as the zone name
+- Single-zone buildings often just have one conditioned zone
 - Multi-zone buildings may name by function: "Living Zone", "Bedroom Zone"
 - Garage zones typically named "Garage" or "Unconditioned Zone"
 
@@ -44,7 +43,7 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Thermal conditioning classification
 
 **Document sources:**
-1. **CBECC-Res output:** Zone type column or designation
+1. **Floor plans:** Room types indicate conditioning (PRIMARY SOURCE)
 2. **Room schedules:** Conditioning status column
 3. **Mechanical schedules:** Served zone designations
 
@@ -72,9 +71,9 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Construction status for Title 24 compliance
 
 **Document sources:**
-1. **CBECC-Res output:** Status column in zone list
-2. **Project scope:** Addition vs new construction designation
-3. **CF1R form:** Project type section
+1. **Project scope:** Addition vs new construction designation (PRIMARY SOURCE)
+2. **Cover page:** Project type (new construction, addition, alteration)
+3. **General notes:** Scope of work
 
 **Common labels in documents:**
 - "Status", "Construction Status", "Component Status"
@@ -101,17 +100,16 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Zone floor area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Floor Area", "Zone Area" column in zone summary
+1. **Floor plans:** Area calculations, dimension annotations (PRIMARY SOURCE)
 2. **Room schedules:** Area column, sum rooms in zone
-3. **Floor plans:** Area calculations, dimension annotations
-4. **CF1R form:** Zone area breakdown
+3. **Area schedule:** Building area breakdown
 
 **Common labels in documents:**
 - "Floor Area (sf)", "Area", "Zone Area", "CFA"
 - "Sq Ft", "SF", "ft2"
 
 **Extraction tips:**
-- Use CBECC value as authoritative (calculated by software)
+- Use stated area if shown on plans
 - Units should be square feet
 - For multi-zone, each zone has separate floor area
 - Sum of zone floor areas should approximate total CFA
@@ -134,10 +132,10 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Ceiling height in feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Ceiling Height" or "Height" in zone data
+1. **Section drawings:** Vertical dimensions (PRIMARY SOURCE)
 2. **Room schedules:** Height column
 3. **Wall schedules:** Wall height (implies ceiling height)
-4. **Section drawings:** Vertical dimensions
+4. **Elevations:** Floor-to-floor heights
 
 **Common labels in documents:**
 - "Ceiling Height", "Clg Ht", "Height", "Room Height"
@@ -163,9 +161,9 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Number of stories within the zone
 
 **Document sources:**
-1. **CBECC-Res output:** "Stories" or "Number of Stories" in zone data
+1. **Section drawings:** Floor count visible (PRIMARY SOURCE)
 2. **Floor plans:** Multiple floor plan sheets for same zone
-3. **Section drawings:** Floor count visible
+3. **Elevations:** Story count visible
 
 **Common labels in documents:**
 - "Stories", "Floors", "Number of Stories"
@@ -187,16 +185,15 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Description:** Zone volume in cubic feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Volume" column in zone summary
-2. **Calculated:** floor_area x ceiling_height
+1. **Calculated:** floor_area x ceiling_height (PRIMARY METHOD)
+2. **Room schedules:** May show volume directly
 
 **Common labels in documents:**
 - "Volume (cf)", "Vol", "Zone Volume"
 - "Cu Ft", "CF", "ft3"
 
 **Extraction tips:**
-- CBECC usually calculates this automatically
-- If not shown, calculate: floor_area x ceiling_height
+- Usually calculated: floor_area x ceiling_height
 - Vaulted ceilings may have higher volume than simple calculation
 - Used for infiltration calculations
 
@@ -218,9 +215,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Total exterior wall area for the zone in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Ext Wall Area" in zone summary
+1. **Calculated:** Perimeter x height from floor plans and sections (PRIMARY METHOD)
 2. **Wall schedules:** Sum of wall areas assigned to zone
-3. **Calculated:** Perimeter x height
+3. **Area schedule:** May show wall area breakdown
 
 **Common labels in documents:**
 - "Exterior Wall Area", "Ext Wall", "Wall Area"
@@ -244,9 +241,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Total door area in exterior walls of this zone
 
 **Document sources:**
-1. **CBECC-Res output:** "Door Area" in zone summary
-2. **Door schedules:** Sum of exterior door areas for zone
-3. **Floor plans:** Count and size of exterior doors
+1. **Door schedules:** Sum of exterior door areas for zone (PRIMARY SOURCE)
+2. **Floor plans:** Count and size of exterior doors
+3. **Elevations:** Door sizes visible
 
 **Common labels in documents:**
 - "Door Area", "Ext Door Area", "Exterior Door Area"
@@ -269,7 +266,7 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Ceiling area below attic space in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Ceiling Below Attic" in zone summary
+1. **Section drawings:** Shows ceiling type relative to roof (PRIMARY SOURCE)
 2. **Ceiling schedules:** Attic ceiling assembly areas
 3. **Roof/ceiling plans:** Area with attic above
 
@@ -295,9 +292,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Cathedral/vaulted ceiling area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Cathedral Ceiling" in zone summary
+1. **Section drawings:** Areas with exposed roof structure (PRIMARY SOURCE)
 2. **Ceiling schedules:** Vaulted ceiling assembly areas
-3. **Section drawings:** Areas with exposed roof structure
+3. **Floor plans:** May indicate vaulted areas
 
 **Common labels in documents:**
 - "Cathedral Ceiling", "Vaulted Ceiling", "Exposed Ceiling"
@@ -321,9 +318,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Slab-on-grade floor area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Slab Floor" in zone summary
-2. **Foundation plans:** Slab area dimensions
-3. **Floor schedules:** Slab assembly areas
+1. **Foundation plans:** Slab area dimensions (PRIMARY SOURCE)
+2. **Section drawings:** Foundation type visible
+3. **Floor plans:** Building footprint = slab area for slab-on-grade
 
 **Common labels in documents:**
 - "Slab Floor Area", "Slab on Grade", "SOG Area"
@@ -347,7 +344,7 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Floor area exposed to exterior in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Exterior Floor" or "Raised Floor" in zone summary
+1. **Section drawings:** Shows floor exposure conditions (PRIMARY SOURCE)
 2. **Foundation plans:** Raised floor areas
 3. **Floor schedules:** Floor over unconditioned space
 
@@ -375,16 +372,15 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Wall name/identifier
 
 **Document sources:**
-1. **CBECC-Res output:** Wall list, name/ID column
+1. **Floor plans:** Wall position determines name (N/E/S/W Wall) (PRIMARY SOURCE)
 2. **Wall schedules:** Wall mark or identifier column
-3. **Floor plans:** Wall callout labels
+3. **Elevations:** Confirm wall orientations
 
 **Common labels in documents:**
 - "Wall Name", "Wall ID", "Mark", "Wall"
 - "N Wall", "Wall-1", "ExtWall-N"
 
 **Extraction tips:**
-- Use CBECC identifiers when available
 - Include orientation in name: "N Wall", "Zone 1 - South"
 - Include zone reference for multi-zone: "Zone 1 - N Wall"
 - Keep names consistent for deduplication
@@ -402,7 +398,7 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Parent zone name
 
 **Document sources:**
-1. **CBECC-Res output:** Zone column in wall list
+1. **Floor plans:** Wall position relative to zones (PRIMARY SOURCE)
 2. **Wall schedules:** Zone assignment column
 3. **Inferred:** From wall name if zone not explicit
 
@@ -427,9 +423,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Construction status
 
 **Document sources:**
-1. **CBECC-Res output:** Status column in wall list
+1. **Project scope:** Infer from project type (PRIMARY SOURCE)
 2. **Wall schedules:** Construction status
-3. **Project scope:** Infer from project type
+3. **General notes:** Scope of work
 
 **Common labels in documents:**
 - "Status", "Construction Status"
@@ -453,9 +449,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Wall construction assembly type
 
 **Document sources:**
-1. **CBECC-Res output:** "Construction" or "Assembly" column
-2. **Wall schedules:** Wall type or assembly column
-3. **Construction details:** Wall section details
+1. **Wall schedules:** Wall type or assembly column (PRIMARY SOURCE)
+2. **Construction details:** Wall section details
+3. **Energy notes:** Insulation requirements
 
 **Common labels in documents:**
 - "Construction Type", "Wall Type", "Assembly"
@@ -480,8 +476,8 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Wall orientation in degrees from true north
 
 **Document sources:**
-1. **CBECC-Res output:** "Orientation" or "Azimuth" column
-2. **Floor plans:** Building layout with north arrow
+1. **Floor plans:** Building layout with north arrow (PRIMARY SOURCE)
+2. **Site plan:** Building orientation relative to true north
 3. **Inferred:** From cardinal direction in wall name
 
 **Common labels in documents:**
@@ -490,7 +486,7 @@ Example: 800 sf x 9 ft = 7200 cf
 
 **Extraction tips:**
 - 0 = North, 90 = East, 180 = South, 270 = West
-- CBECC may show degrees or cardinal
+- Calculate from north arrow on site plan
 - Convert cardinal to degrees if needed
 - If front orientation specified, walls may be relative
 
@@ -519,9 +515,9 @@ Example: 800 sf x 9 ft = 7200 cf
 **Description:** Gross wall area in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** "Area" column in wall list
+1. **Calculated:** Length x height from floor plans and sections (PRIMARY METHOD)
 2. **Wall schedules:** Gross area column
-3. **Calculated:** Length x height from plans
+3. **Area schedule:** May show wall area breakdown
 
 **Common labels in documents:**
 - "Area (sf)", "Gross Area", "Wall Area"
@@ -551,9 +547,9 @@ Example: 30 ft x 9.33 ft = 280 sf
 **Description:** Window area in this wall in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** Window area column per wall
-2. **Window schedules:** Windows by wall or orientation
-3. **Floor plans:** Window marks and sizes per wall
+1. **Window schedules:** Windows by wall or orientation (PRIMARY SOURCE)
+2. **Floor plans:** Window marks and sizes per wall
+3. **Elevations:** Window sizes visible per wall
 
 **Common labels in documents:**
 - "Window Area", "Glazing Area", "Fenestration"
@@ -577,9 +573,9 @@ Example: 30 ft x 9.33 ft = 280 sf
 **Description:** Door area in this wall in square feet
 
 **Document sources:**
-1. **CBECC-Res output:** Door area column per wall
-2. **Door schedules:** Doors by wall or location
-3. **Floor plans:** Door marks and sizes per wall
+1. **Door schedules:** Doors by wall or location (PRIMARY SOURCE)
+2. **Floor plans:** Door marks and sizes per wall
+3. **Elevations:** Door sizes visible per wall
 
 **Common labels in documents:**
 - "Door Area", "Ext Door Area"
@@ -604,8 +600,8 @@ Example: 30 ft x 9.33 ft = 280 sf
 **Description:** Wall tilt angle from vertical in degrees
 
 **Document sources:**
-1. **CBECC-Res output:** "Tilt" column if non-standard
-2. **Elevations:** Sloped wall detail
+1. **Elevations:** Sloped wall detail (PRIMARY SOURCE)
+2. **Section drawings:** Wall angle visible
 
 **Common labels in documents:**
 - "Tilt (deg)", "Tilt Angle", "Wall Tilt"
@@ -628,9 +624,9 @@ Example: 30 ft x 9.33 ft = 280 sf
 **Description:** Fraction of wall area that is framing
 
 **Document sources:**
-1. **CBECC-Res output:** "Framing Factor" or "FF" column
+1. **Wall schedules:** May show framing specifications
 2. **Construction details:** Framing assumptions
-3. **Default:** 0.25 for standard wood frame
+3. **Default:** 0.25 for standard wood frame (use if not specified)
 
 **Common labels in documents:**
 - "Framing Factor", "FF", "Frame Fraction"
@@ -653,22 +649,24 @@ Example: 30 ft x 9.33 ft = 280 sf
 ## Extraction Best Practices
 
 ### Page Reading Order
-1. Start with CBECC-Res pages (zone summaries most complete)
-2. Check wall schedules for component details
-3. Use floor plans for verification
-4. Reference elevations for heights
+1. Start with Floor plans (room layout, dimensions, north arrow)
+2. Check Section drawings (ceiling heights, wall heights)
+3. Use Wall/Assembly schedules for construction types
+4. Reference Elevations for verification
 
 ### Common Document Layouts
 
-**CBECC-Res Zone Summary:**
-- Zone name | Type | Floor Area | Height | Volume | Ext Wall Area
-- Row per zone with all metrics
-- Totals row at bottom
+**Floor Plan:**
+- Room labels with names (Bedroom, Living Room, etc.)
+- Area callouts or dimensions for calculating area
+- Window and door marks
+- North arrow for orientation
 
-**CBECC-Res Wall List:**
-- Wall Name | Zone | Construction | Orientation | Area | Window | Door
-- Row per wall component
-- Grouped by zone or orientation
+**Section Drawing:**
+- Ceiling heights labeled
+- Wall heights visible
+- Foundation type shown
+- Roof/ceiling type visible
 
 **Wall Schedule:**
 - Mark | Type | Construction | R-Value | Area | Notes
@@ -700,19 +698,19 @@ Before finalizing extraction:
 
 | Field | Type | Required | Sources | Default |
 |-------|------|----------|---------|---------|
-| name | string | Yes | CBECC, schedules | - |
-| zone_type | enum | No | CBECC, inference | "Conditioned" |
-| status | enum | No | CBECC, project scope | "New" |
-| floor_area | float | No | CBECC, plans | - |
-| ceiling_height | float | No | CBECC, schedules | 8.0 |
-| stories | int | No | CBECC, plans | 1 |
-| volume | float | No | CBECC, calculated | area x height |
-| exterior_wall_area | float | No | CBECC, wall sum | - |
-| exterior_wall_door_area | float | No | CBECC, door schedule | - |
-| ceiling_below_attic_area | float | No | CBECC | - |
-| cathedral_ceiling_area | float | No | CBECC | 0.0 |
-| slab_floor_area | float | No | CBECC, foundation | - |
-| exterior_floor_area | float | No | CBECC | 0.0 |
+| name | string | Yes | Floor plans, project type | - |
+| zone_type | enum | No | Room types, inference | "Conditioned" |
+| status | enum | No | Project scope | "New" |
+| floor_area | float | No | Floor plans, area schedule | - |
+| ceiling_height | float | No | Section drawings | 8.0 |
+| stories | int | No | Section/elevations | 1 |
+| volume | float | No | Calculated | area x height |
+| exterior_wall_area | float | No | Calculated, wall sum | - |
+| exterior_wall_door_area | float | No | Door schedule | - |
+| ceiling_below_attic_area | float | No | Section drawings | - |
+| cathedral_ceiling_area | float | No | Section drawings | 0.0 |
+| slab_floor_area | float | No | Foundation plan | - |
+| exterior_floor_area | float | No | Section drawings | 0.0 |
 
 **Total ZoneInfo fields:** 13 (1 required + 12 optional)
 
@@ -720,16 +718,16 @@ Before finalizing extraction:
 
 | Field | Type | Required | Sources | Default |
 |-------|------|----------|---------|---------|
-| name | string | Yes | CBECC, wall schedule | - |
-| zone | string | Link | CBECC, inferred | - |
-| status | enum | No | CBECC, project scope | "New" |
-| construction_type | string | No | CBECC, wall schedule | - |
-| orientation | float | No | CBECC, cardinal | - |
-| area | float | No | CBECC, wall schedule | - |
-| window_area | float | No | CBECC, windows | 0.0 |
-| door_area | float | No | CBECC, doors | 0.0 |
-| tilt | float | No | CBECC | 90.0 |
-| framing_factor | float | No | CBECC, default | 0.25 |
+| name | string | Yes | Floor plan orientation | - |
+| zone | string | Link | Floor plan, inferred | - |
+| status | enum | No | Project scope | "New" |
+| construction_type | string | No | Wall schedule | - |
+| orientation | float | No | Site plan, north arrow | - |
+| area | float | No | Calculated | - |
+| window_area | float | No | Window schedule | 0.0 |
+| door_area | float | No | Door schedule | 0.0 |
+| tilt | float | No | Elevations | 90.0 |
+| framing_factor | float | No | Wall schedule, default | 0.25 |
 
 **Total WallComponent fields:** 10 (1 required + 9 optional)
 
