@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 
 ## Current Position
 
-Phase: 4 of 6 (Multi-Domain Extraction)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-02-04 - Completed 04-04-PLAN.md
+Phase: 5 of 6 (Manual Improvement Loop)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-04 - Completed 05-01-PLAN.md
 
-Progress: [███████░░░] ~70%
+Progress: [████████░░] ~75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 3.3 min
-- Total execution time: 0.70 hours
+- Total plans completed: 13
+- Average duration: 3.4 min
+- Total execution time: 0.77 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [███████░░░] ~70%
 | 02-document-processing | 1 | 3 min | 3.0 min |
 | 03-single-domain-extraction | 4 | 13 min | 3.2 min |
 | 04-multi-domain-extraction | 4 | 17 min | 4.25 min |
+| 05-manual-improvement-loop | 1 | 5 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (6 min), 04-02 (6 min), 04-03 (3 min), 04-04 (2 min)
-- Trend: Phase 4 complete, averaging 4.25 min/plan
+- Last 5 plans: 04-02 (6 min), 04-03 (3 min), 04-04 (2 min), 05-01 (5 min)
+- Trend: Phase 5 started, averaging 5.0 min/plan so far
 
 *Updated after each plan completion*
 
@@ -76,6 +77,11 @@ Recent decisions affecting current work:
 - Name-based deduplication keeps first occurrence, logs conflict (04-03)
 - Extraction continues with partial results if one domain fails (04-03)
 - Verbose flag shows per-domain status, retry count, and conflicts (04-04)
+- Critic operates implementation-blind: analyzes verification results only, not code (05-01)
+- Domain extraction from field_path: walls[0].name -> walls, project.run_id -> project (05-01)
+- Proposals target ONE instruction file (Phase 5 manual, one at a time) (05-01)
+- Version bump rules: add_section/modify_section=minor, clarify_rule=patch (05-01)
+- Critic invoked via subprocess (claude --agent critic) not direct API (05-01)
 
 ### Pending Todos
 
@@ -87,9 +93,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-04T04:34:30Z
-Stopped at: Completed 04-04-PLAN.md (Phase 4 Complete)
+Last session: 2026-02-04T05:14:24Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-02-04 after 04-04 execution*
+*Last updated: 2026-02-04 after 05-01 execution*
