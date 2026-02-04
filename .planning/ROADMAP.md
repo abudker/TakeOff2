@@ -100,12 +100,13 @@ Plans:
   3. Proposals include clear rationale and expected impact
   4. User can manually apply a proposal, re-run extraction/eval, and measure improvement
   5. At least one iteration demonstrates measurable F1 improvement
-**Plans**: TBD
+**Plans**: 4 plans in 4 waves
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
-- [ ] 05-03: TBD
+- [ ] 05-01-PLAN.md — Critic agent and failure analysis foundation
+- [ ] 05-02-PLAN.md — Interactive review and proposal application
+- [ ] 05-03-PLAN.md — CLI integration and iteration tracking
+- [ ] 05-04-PLAN.md — End-to-end verification (checkpoint)
 
 ### Phase 6: Automated Improvement Loop
 **Goal**: Full automation of improvement loop to reach 0.90 F1 target
@@ -138,8 +139,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Document Processing | 1/1 | Complete | 2026-02-03 |
 | 3. Single-Domain Extraction | 4/4 | Complete | 2026-02-04 |
 | 4. Multi-Domain Extraction | 4/4 | Complete | 2026-02-04 |
-| 5. Manual Improvement Loop | 0/TBD | Not started | - |
+| 5. Manual Improvement Loop | 0/4 | Planned | - |
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-04 after Phase 4 execution*
+*Last updated: 2026-02-04 after Phase 5 planning*
