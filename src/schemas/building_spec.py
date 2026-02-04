@@ -4,7 +4,7 @@ Comprehensive schema covering all fields needed for EnergyPlus modeling
 from California Title 24 compliance documents.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from enum import Enum
 
 
@@ -324,6 +324,30 @@ class HVACSystem(BaseModel):
 
 
 # ============================================================================
+# Extraction Metadata
+# ============================================================================
+
+class ExtractionConflict(BaseModel):
+    """A conflict between extractor outputs."""
+    field: str = Field(description="Field name with conflict")
+    item_name: Optional[str] = Field(default=None, description="Array item name if applicable")
+    source_extractor: str = Field(description="First extractor that reported value")
+    reported_value: Any = Field(description="Value from first extractor")
+    conflicting_extractor: str = Field(description="Second extractor with different value")
+    conflicting_value: Any = Field(description="Value from second extractor")
+    resolution: str = Field(default="flagged_for_review", description="Resolution status")
+
+
+class ExtractionStatus(BaseModel):
+    """Per-domain extraction status."""
+    domain: str = Field(description="Domain name: project, zones, windows, hvac, dhw")
+    status: str = Field(description="success, partial, failed")
+    error: Optional[str] = Field(default=None, description="Error message if failed")
+    retry_count: int = Field(default=0, description="Number of retries attempted")
+    items_extracted: int = Field(default=0, description="Number of items extracted")
+
+
+# ============================================================================
 # Complete Building Spec
 # ============================================================================
 
@@ -351,3 +375,7 @@ class BuildingSpec(BaseModel):
     # Systems
     hvac_systems: List[HVACSystem] = Field(default_factory=list)
     water_heating_systems: List[WaterHeatingSystem] = Field(default_factory=list)
+
+    # Extraction metadata
+    extraction_status: Dict[str, ExtractionStatus] = Field(default_factory=dict, description="Per-domain extraction status")
+    conflicts: List[ExtractionConflict] = Field(default_factory=list, description="Conflicts between extractors")
