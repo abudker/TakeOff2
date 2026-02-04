@@ -1,11 +1,16 @@
 # Zones Extractor Instructions
 
-**Version:** v1.0.0
-**Last updated:** 2026-02-04
+**Version:** v2.0.0
+**Last updated:** 2026-02-03
 
 ## Overview
 
-The zones extractor extracts thermal zone data (ZoneInfo) and wall components (WallComponent) from Title 24 compliance documentation. Zones define the conditioned spaces in a building, while walls are the exterior envelope components associated with each zone.
+The zones extractor extracts **orientation-based** wall and thermal boundary data from Title 24 compliance documentation. This version outputs data in TakeoffSpec format, organizing walls by cardinal orientation (North/East/South/West) with fenestration nested under each wall.
+
+**Key difference from v1:** Instead of outputting flat `walls[]` and `zones[]` lists, this extractor outputs:
+- `house_walls`: Walls organized by orientation (north, east, south, west)
+- `thermal_boundary`: Conditioned vs unconditioned zones
+- `flags`: Uncertainty tracking for every assumption
 
 ## Extraction Workflow
 
@@ -69,66 +74,83 @@ Focus extraction efforts on these page types (in order of reliability):
 - Volume (often calculated: area x height)
 - Wall area totals per zone
 
-### 4. Wall Component Extraction
+### 4. Wall Component Extraction (Orientation-Based)
 
 **Step 1: Locate wall definitions**
 - CBECC "Exterior Walls" or "Wall Components" section
 - Wall schedules on schedule pages
-- Each wall listed with name, zone, orientation, area
+- Each wall listed with orientation/azimuth and area
 
-**Step 2: Extract wall properties**
-- Name/identifier (e.g., "N Wall", "Zone 1 - North Wall")
-- Parent zone (critical for linking)
-- Construction type (e.g., "R-21 Wood Frame Wall")
-- Orientation in degrees (0=N, 90=E, 180=S, 270=W)
-- Gross area (before window/door deductions)
-- Window area in this wall
-- Door area in this wall
+**Step 2: Group walls by cardinal orientation**
+CBECC often lists walls by azimuth. Group them into cardinal directions:
+- **North (N):** Azimuth 315-360 or 0-45 degrees
+- **East (E):** Azimuth 45-135 degrees
+- **South (S):** Azimuth 135-225 degrees
+- **West (W):** Azimuth 225-315 degrees
 
-**Step 3: Link walls to zones**
-- Each wall must reference a valid zone name
-- If zone not specified, infer from wall name (e.g., "Zone 1 - N Wall" -> Zone 1)
-- If still unclear, use "Zone 1" as default for single-zone buildings
+**Step 3: Extract wall properties per orientation**
+For each cardinal direction, extract:
+- `gross_wall_area`: Total wall area before deductions (sq ft)
+- `net_wall_area`: Wall area after window/door deductions (sq ft)
+- `azimuth`: True azimuth in degrees (use midpoint if rotated)
+- `construction_type`: e.g., "R-21 Wood Frame Wall"
+- `framing_factor`: Framing fraction (default 0.25 if not specified)
+- `status`: New, Existing, or Altered
+- `fenestration`: Leave empty - windows-extractor will populate this
+- `opaque_doors`: Extract non-glazed doors in this wall
+
+**Step 4: Handle rotated buildings**
+If the building is not aligned to cardinal directions:
+- Use the closest cardinal direction for each wall
+- Set azimuth to the actual value from CBECC
+- Example: Front = 45° (NE) → use "north" slot with azimuth = 45
 
 ### 5. Naming Conventions
 
-**Zone names:**
+**Zone names (in thermal_boundary):**
 - Use exact names from CBECC when available
 - Common patterns: "Zone 1", "Conditioned Zone 1", "Living Zone"
 - Keep consistent with other extractors for deduplication
 
-**Wall names:**
-- Include zone reference if multi-zone: "Zone 1 - N Wall"
-- Include orientation: "North Wall", "N Wall", "Wall N"
-- Or use CBECC identifiers directly: "Wall-1", "ExtWall-N"
+**Orientation keys (in house_walls):**
+- Use lowercase cardinal directions: `north`, `east`, `south`, `west`
+- These are JSON keys, not names
+
+**Door names (in opaque_doors):**
+- Descriptive names: "Entry Door", "Garage Door", "Side Door"
+- Or use door schedule marks: "D1", "D2"
 
 **Consistency requirement:**
-- Wall.zone field must exactly match a ZoneInfo.name
-- Use identical strings for later schema assembly
+- Zone names in `thermal_boundary.conditioned_zones` must be unique
+- The orchestrator transforms orientation keys to wall names (e.g., "north" → "N Wall")
 
 ### 6. Data Validation
 
 Before returning extracted data, validate:
 
-**ZoneInfo constraints:**
+**OrientationWall constraints (house_walls.{direction}):**
+- `gross_wall_area`: Float >= 0 (total wall area in sq ft)
+- `net_wall_area`: Float >= 0 (should be <= gross_wall_area)
+- `azimuth`: Float 0-360 (0=N, 90=E, 180=S, 270=W)
+- `construction_type`: Non-empty string if specified
+- `fenestration`: Leave empty (windows-extractor populates)
+- `opaque_doors`: List of non-glazed doors
+
+**ConditionedZone constraints (thermal_boundary.conditioned_zones):**
 - `name`: Non-empty string (required)
-- `zone_type`: "Conditioned", "Unconditioned", or "Plenum"
-- `floor_area`: Float >= 0 (typically 200-5000 for residential zones)
+- `floor_area`: Float >= 0 (typically 200-5000 for residential)
 - `ceiling_height`: Float > 0 (typically 8-12 ft)
 - `volume`: Float >= 0 (should approximate area x height)
-
-**WallComponent constraints:**
-- `name`: Non-empty string (required)
-- `zone`: Must match an extracted zone name
-- `orientation`: 0-360 degrees (0=N, 90=E, 180=S, 270=W)
-- `area`: Float >= 0 (gross wall area in sf)
-- `window_area`: Float >= 0 (should not exceed wall area)
-- `door_area`: Float >= 0
+- `exterior_wall_area`: Float >= 0 (sum of wall areas)
 
 **Cross-validation:**
-- Sum of wall areas for a zone should approximate zone's exterior_wall_area
-- Window areas in walls should sum to zone's total window area
+- Sum of house_walls gross areas ≈ thermal_boundary zone exterior_wall_area
 - Zone volume should be close to floor_area x ceiling_height
+- total_conditioned_floor_area should match sum of zone floor_areas
+
+**Uncertainty flags:**
+- Add a flag for every assumption or uncertain value
+- Use severity levels: high (likely wrong), medium (uncertain), low (minor)
 
 ### 7. Handling Missing Data
 
@@ -146,55 +168,109 @@ Before returning extracted data, validate:
 - Orientation can be derived from "North Wall" label (0 degrees)
 - Status defaults to "New" if not specified
 
-### 8. Output Format
+### 8. Output Format (TakeoffSpec)
 
-Return JSON matching this structure:
+Return JSON matching this **orientation-based** structure:
 
 ```json
 {
-  "zones": [
-    {
-      "name": "Zone 1",
-      "zone_type": "Conditioned",
-      "status": "New",
-      "floor_area": 800.0,
-      "ceiling_height": 9.0,
-      "stories": 1,
-      "volume": 7200.0,
-      "exterior_wall_area": 1100.0,
-      "exterior_wall_door_area": 40.0,
-      "ceiling_below_attic_area": 800.0,
-      "cathedral_ceiling_area": 0.0,
-      "slab_floor_area": 800.0
-    }
-  ],
-  "walls": [
-    {
-      "name": "Zone 1 - N Wall",
-      "zone": "Zone 1",
-      "status": "New",
+  "house_walls": {
+    "north": {
+      "gross_wall_area": 280.0,
+      "net_wall_area": 240.0,
+      "azimuth": 0.0,
       "construction_type": "R-21 Wood Frame",
-      "orientation": 0.0,
-      "area": 280.0,
-      "window_area": 40.0,
-      "door_area": 0.0,
-      "tilt": 90.0,
-      "framing_factor": 0.25
+      "framing_factor": 0.25,
+      "status": "New",
+      "fenestration": [],
+      "opaque_doors": []
     },
+    "east": {
+      "gross_wall_area": 180.0,
+      "net_wall_area": 160.0,
+      "azimuth": 90.0,
+      "construction_type": "R-21 Wood Frame",
+      "framing_factor": 0.25,
+      "status": "New",
+      "fenestration": [],
+      "opaque_doors": []
+    },
+    "south": {
+      "gross_wall_area": 280.0,
+      "net_wall_area": 199.0,
+      "azimuth": 180.0,
+      "construction_type": "R-21 Wood Frame",
+      "framing_factor": 0.25,
+      "status": "New",
+      "fenestration": [],
+      "opaque_doors": [
+        {
+          "name": "Entry Door",
+          "door_type": "Entry",
+          "area": 21.0,
+          "u_factor": null
+        }
+      ]
+    },
+    "west": {
+      "gross_wall_area": 180.0,
+      "net_wall_area": 180.0,
+      "azimuth": 270.0,
+      "construction_type": "R-21 Wood Frame",
+      "framing_factor": 0.25,
+      "status": "New",
+      "fenestration": [],
+      "opaque_doors": []
+    }
+  },
+  "thermal_boundary": {
+    "conditioned_zones": [
+      {
+        "name": "Zone 1",
+        "floor_area": 800.0,
+        "ceiling_height": 9.0,
+        "volume": 7200.0,
+        "stories": 1,
+        "exterior_wall_area": 920.0,
+        "ceiling_below_attic_area": 800.0,
+        "cathedral_ceiling_area": 0.0,
+        "slab_floor_area": 800.0
+      }
+    ],
+    "unconditioned_zones": [],
+    "total_conditioned_floor_area": 800.0
+  },
+  "ceilings": [
     {
-      "name": "Zone 1 - S Wall",
+      "name": "Ceiling 1",
+      "ceiling_type": "Below Attic",
       "zone": "Zone 1",
       "status": "New",
-      "construction_type": "R-21 Wood Frame",
-      "orientation": 180.0,
-      "area": 280.0,
-      "window_area": 60.0,
-      "door_area": 21.0,
-      "tilt": 90.0,
-      "framing_factor": 0.25
+      "area": 800.0,
+      "construction_type": "R-38 Ceiling"
     }
   ],
-  "notes": "Single zone building. Zone data from CBECC page 3. Wall orientations derived from cardinal labels. Framing factor assumed 0.25 standard."
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "Zone 1",
+      "status": "New",
+      "area": 800.0,
+      "perimeter": 116.0,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "flags": [
+    {
+      "field_path": "house_walls.north.framing_factor",
+      "severity": "low",
+      "reason": "Framing factor not specified, used standard 0.25",
+      "source_page": null
+    }
+  ],
+  "notes": "Single zone building. Wall data from CBECC page 3. Walls organized by cardinal orientation."
 }
 ```
 

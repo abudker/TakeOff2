@@ -476,6 +476,74 @@
                 display: none;
             }
         }
+
+        /* JSON Raw Data Sections */
+        .json-section {
+            margin-bottom: 1rem;
+        }
+
+        .json-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .json-header:hover {
+            background: rgba(78, 159, 255, 0.15);
+        }
+
+        .json-toggle {
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            width: 1rem;
+        }
+
+        .json-size {
+            margin-left: auto;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .json-content {
+            background: var(--bg-card);
+            border-radius: 0 0 8px 8px;
+            padding: 1rem;
+            margin-top: -4px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .json-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .json-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .json-content::-webkit-scrollbar-thumb {
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        .json-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
     </style>
 </head>
 <body>
@@ -658,9 +726,54 @@
             </table>
         </div>
         {% endif %}
+
+        <!-- Raw Data Section -->
+        {% if extracted_data or ground_truth_data %}
+        <div class="section">
+            <h2>Raw Data</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                Complete JSON data for debugging and review. Click headers to expand/collapse.
+            </p>
+
+            {% if extracted_data %}
+            <div class="json-section">
+                <div class="json-header" onclick="toggleJson('extracted-json')">
+                    <span class="json-toggle" id="extracted-json-toggle">▶</span>
+                    <span>Extracted JSON</span>
+                    <span class="json-size">{{ extracted_data | length }} chars</span>
+                </div>
+                <pre class="json-content" id="extracted-json" style="display: none;">{{ extracted_data }}</pre>
+            </div>
+            {% endif %}
+
+            {% if ground_truth_data %}
+            <div class="json-section">
+                <div class="json-header" onclick="toggleJson('ground-truth-json')">
+                    <span class="json-toggle" id="ground-truth-json-toggle">▶</span>
+                    <span>Ground Truth JSON</span>
+                    <span class="json-size">{{ ground_truth_data | length }} chars</span>
+                </div>
+                <pre class="json-content" id="ground-truth-json" style="display: none;">{{ ground_truth_data }}</pre>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 
     <script>
+        // JSON toggle function
+        function toggleJson(id) {
+            const content = document.getElementById(id);
+            const toggle = document.getElementById(id + '-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
         // Pagination state
         const ROWS_PER_PAGE = 50;
         let currentPage = 1;

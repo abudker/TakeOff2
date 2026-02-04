@@ -21,6 +21,8 @@ class EvalReport:
     history: Optional[List[Dict[str, Any]]] = None
     timestamp: Optional[str] = None
     all_fields: Optional[List[Dict[str, Any]]] = None
+    extracted_data: Optional[str] = None  # JSON string of extracted data
+    ground_truth_data: Optional[str] = None  # JSON string of ground truth
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -36,6 +38,8 @@ class EvalReport:
             "history": self.history,
             "timestamp": self.timestamp,
             "all_fields": self.all_fields,
+            "extracted_data": self.extracted_data,
+            "ground_truth_data": self.ground_truth_data,
         }
 
     def render_html(self, template_dir: Optional[Path] = None) -> str:
@@ -86,6 +90,8 @@ def generate_html_report(
     iteration: Optional[int] = None,
     history: Optional[List[Dict[str, Any]]] = None,
     all_fields: Optional[List[Dict[str, Any]]] = None,
+    extracted_data: Optional[str] = None,
+    ground_truth_data: Optional[str] = None,
 ) -> Path:
     """
     Convenience function to generate and save an HTML report.
@@ -98,6 +104,8 @@ def generate_html_report(
         iteration: Optional iteration number
         history: Optional list of historical metrics for trend display
         all_fields: Optional list of all field comparisons (matches and mismatches)
+        extracted_data: Optional JSON string of extracted data for raw view
+        ground_truth_data: Optional JSON string of ground truth for raw view
 
     Returns:
         Path to saved HTML file
@@ -109,5 +117,7 @@ def generate_html_report(
         iteration=iteration,
         history=history,
         all_fields=all_fields,
+        extracted_data=extracted_data,
+        ground_truth_data=ground_truth_data,
     )
     return report.save_html(output_path)

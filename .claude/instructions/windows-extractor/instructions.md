@@ -1,11 +1,13 @@
 # Windows Extractor Instructions
 
-**Version:** v1.0.0
-**Last updated:** 2026-02-04
+**Version:** v2.0.0
+**Last updated:** 2026-02-03
 
 ## Overview
 
-The windows extractor extracts fenestration data (WindowComponent) from Title 24 compliance documentation. Fenestration includes windows, glazed doors, skylights, and other transparent or translucent building elements that affect thermal and daylighting performance.
+The windows extractor extracts fenestration data **nested under parent wall orientations** from Title 24 compliance documentation. Fenestration includes windows, glazed doors, skylights, and other transparent or translucent building elements.
+
+**Key difference from v1:** Instead of outputting a flat `windows[]` list, this extractor outputs fenestration nested under `house_walls.{orientation}.fenestration[]`. This matches the CBECC document structure and ensures correct window-to-wall matching.
 
 ## Extraction Workflow
 
@@ -92,26 +94,28 @@ Focus extraction efforts on these page types (in order of reliability):
 3. Product specification notes
 4. CF1R form fenestration section
 
-### 5. Linking Windows to Walls
+### 5. Assigning Windows to Wall Orientations
 
-**Explicit linking:**
-- Schedule shows "Location: N Wall" or "Wall: North"
-- CBECC shows "Parent: Zone 1 - N Wall"
+**Step 1: Determine orientation from CBECC or schedule**
+- CBECC shows "Parent: North Wall" or azimuth value
+- Schedule may show "Location: N" or wall reference
+- Use azimuth to determine cardinal direction:
+  - 315-360° or 0-45° → `north`
+  - 45-135° → `east`
+  - 135-225° → `south`
+  - 225-315° → `west`
 
-**Orientation-based linking:**
-- Window azimuth matches wall orientation
-- 0 degrees (North) -> North wall
-- 180 degrees (South) -> South wall
-- Floor plan shows window on specific wall
+**Step 2: Place in correct orientation slot**
+- Add window to `house_walls.{orientation}.fenestration[]`
+- Example: Window with azimuth 180° → `house_walls.south.fenestration[]`
 
-**If wall names from zones-extractor available:**
-- Match window's wall field to WallComponent.name
-- Use same naming convention for consistency
+**Step 3: Handle ambiguous assignments**
+If orientation is unclear:
+- Check floor plan for window locations
+- Use CBECC wall parent references
+- Add an uncertainty flag with severity "medium"
 
-**Default behavior:**
-- If wall cannot be determined, use orientation label
-- "North Wall", "South Wall", etc.
-- Document uncertainty in notes
+**Important:** The orchestrator merges fenestration into walls from zones-extractor. Your output should only include `house_walls.{orientation}.fenestration[]` arrays.
 
 ### 6. Naming Conventions
 
@@ -133,21 +137,26 @@ Focus extraction efforts on these page types (in order of reliability):
 
 Before returning extracted data, validate:
 
-**WindowComponent constraints:**
+**FenestrationEntry constraints:**
 - `name`: Non-empty string (required)
-- `wall`: Should reference extracted wall name
-- `azimuth`: 0-360 degrees
+- `fenestration_type`: "Window", "Sliding Glass Door", "French Door", etc.
 - `height`: Float > 0, typically 2-8 ft
 - `width`: Float > 0, typically 1-10 ft
-- `multiplier`: Integer >= 1
+- `multiplier`: Integer >= 1 (default 1)
 - `area`: Float >= 0, should match h x w x multiplier
 - `u_factor`: Float > 0, typically 0.20-0.50
 - `shgc`: Float 0-1, typically 0.20-0.40
+- `overhang_depth`: Float >= 0 if overhang exists
 
 **Cross-validation:**
-- Sum of window areas should match total window area
-- Window areas per wall should not exceed wall area
-- U-factor and SHGC should be within typical ranges
+- Sum of fenestration areas per orientation should be reasonable for wall size
+- U-factor and SHGC should be within Title 24 typical ranges
+- All windows on same wall should have consistent performance values (usually same product)
+
+**Uncertainty flags:**
+- Add a flag if orientation assignment is uncertain
+- Add a flag if performance values are from defaults rather than spec
+- Add a flag if multiplier was inferred from schedule vs explicitly stated
 
 ### 8. Handling Missing Data
 
@@ -164,55 +173,81 @@ Before returning extracted data, validate:
 - Azimuth from wall orientation
 - Status from project scope
 
-### 9. Output Format
+### 9. Output Format (TakeoffSpec)
 
-Return JSON matching this structure:
+Return JSON with fenestration **nested under wall orientations**:
 
 ```json
 {
-  "windows": [
-    {
-      "name": "W1",
-      "wall": "Zone 1 - N Wall",
-      "status": "New",
-      "azimuth": 0.0,
-      "height": 4.0,
-      "width": 3.0,
-      "multiplier": 2,
-      "area": 24.0,
-      "u_factor": 0.30,
-      "shgc": 0.23,
-      "exterior_shade": null
+  "house_walls": {
+    "north": {
+      "fenestration": [
+        {
+          "name": "W1",
+          "fenestration_type": "Window",
+          "status": "New",
+          "height": 4.0,
+          "width": 3.0,
+          "multiplier": 2,
+          "area": 24.0,
+          "u_factor": 0.30,
+          "shgc": 0.23,
+          "exterior_shade": null,
+          "overhang_depth": null
+        }
+      ]
     },
-    {
-      "name": "W2",
-      "wall": "Zone 1 - S Wall",
-      "status": "New",
-      "azimuth": 180.0,
-      "height": 5.0,
-      "width": 4.0,
-      "multiplier": 1,
-      "area": 20.0,
-      "u_factor": 0.30,
-      "shgc": 0.23,
-      "exterior_shade": "4ft overhang"
+    "east": {
+      "fenestration": []
     },
+    "south": {
+      "fenestration": [
+        {
+          "name": "W2",
+          "fenestration_type": "Window",
+          "status": "New",
+          "height": 5.0,
+          "width": 4.0,
+          "multiplier": 1,
+          "area": 20.0,
+          "u_factor": 0.30,
+          "shgc": 0.23,
+          "exterior_shade": "4ft overhang",
+          "overhang_depth": 4.0
+        }
+      ]
+    },
+    "west": {
+      "fenestration": [
+        {
+          "name": "SGD1",
+          "fenestration_type": "Sliding Glass Door",
+          "status": "New",
+          "height": 6.67,
+          "width": 6.0,
+          "multiplier": 1,
+          "area": 40.0,
+          "u_factor": 0.28,
+          "shgc": 0.22,
+          "exterior_shade": null,
+          "overhang_depth": null
+        }
+      ]
+    }
+  },
+  "flags": [
     {
-      "name": "SGD1",
-      "wall": "Zone 1 - W Wall",
-      "status": "New",
-      "azimuth": 270.0,
-      "height": 6.67,
-      "width": 6.0,
-      "multiplier": 1,
-      "area": 40.0,
-      "u_factor": 0.28,
-      "shgc": 0.22,
-      "exterior_shade": null
+      "field_path": "house_walls.north.fenestration[0].u_factor",
+      "severity": "medium",
+      "reason": "U-factor from CBECC summary, not per-window specification",
+      "source_page": 3
     }
   ],
   "notes": "Window data from schedule on page 4. Performance values from CBECC fenestration section. SGD1 is sliding glass door. W1 multiplier indicates 2 identical windows on north wall."
 }
+```
+
+**Important:** Only include the `fenestration` array under each orientation. The zones-extractor populates wall geometry (gross_wall_area, azimuth, etc.). The orchestrator merges both outputs.
 ```
 
 ## Error Handling

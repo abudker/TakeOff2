@@ -1,11 +1,13 @@
 # Project Extractor Instructions
 
-**Version:** v1.0.0
+**Version:** v2.0.0
 **Last updated:** 2026-02-03
 
 ## Overview
 
-The project extractor extracts building project metadata (ProjectInfo) and envelope characteristics (EnvelopeInfo) from Title 24 compliance documentation. This is the first extraction domain, establishing the pattern for later zone, window, and HVAC extraction.
+The project extractor extracts building project metadata (TakeoffProjectInfo) and envelope characteristics from Title 24 compliance documentation. This is the first extraction domain, establishing project context for later zone, window, and HVAC extraction.
+
+**Key addition in v2:** The project extractor now also captures basic thermal boundary information that helps other extractors understand the building's conditioned vs unconditioned spaces.
 
 ## Extraction Workflow
 
@@ -201,3 +203,75 @@ The extracted JSON will be:
 4. Fed back into self-improvement loop
 
 Extraction accuracy target: F1 >= 0.90 across all fields.
+
+## Required Fields Checklist
+
+Before completing extraction, verify ALL these fields are present in your output JSON. **Do NOT omit any field** - include all fields even if the value is null or zero.
+
+### ProjectInfo - ALL Fields Required in Output
+
+| Field | Type | If Not Found | Notes |
+|-------|------|--------------|-------|
+| run_id | string | null | Check CBECC header for "Run ID" or "User" |
+| run_title | string | null | Project name from CBECC or title block |
+| run_number | integer | 0 | Iteration number, usually 0 for initial run |
+| run_scope | string | null | "Newly Constructed", "Addition", "Alteration" |
+| address | string | null | Full street address |
+| city | string | null | City name |
+| climate_zone | integer | null | CZ 1-16 from CF1R or CBECC |
+| fuel_type | enum | null | "All Electric", "Natural Gas", "Mixed" |
+| house_type | enum | null | "Single Family" or "Multi Family" |
+| dwelling_units | integer | 1 | Number of units (1 for typical SFR) |
+| stories | integer | null | Number of above-grade stories |
+| bedrooms | integer | null | Bedroom count from floor plan |
+| all_orientations | boolean | false | Check CBECC settings for rotation analysis |
+| attached_garage | boolean | false | Check floor plans for garage |
+| front_orientation | float | null | Azimuth degrees 0-360 from CBECC or site plan |
+
+### EnvelopeInfo - ALL Fields Required in Output
+
+| Field | Type | If Not Found | Notes |
+|-------|------|--------------|-------|
+| conditioned_floor_area | float | null | CFA in sq ft from CBECC summary |
+| window_area | float | null | Total fenestration area in sq ft |
+| window_to_floor_ratio | float | null | WWR = window_area / CFA (0.0-1.0) |
+| fenestration_u_factor | float | null | Area-weighted U-factor from CBECC |
+| exterior_wall_area | float | null | Above-grade exterior walls in sq ft |
+| underground_wall_area | float | 0 | Below-grade walls in sq ft (0 if none) |
+| slab_floor_area | float | null | Slab-on-grade floor in sq ft |
+| exposed_slab_floor_area | float | 0 | Perimeter slab exposure in sq ft |
+| below_grade_floor_area | float | 0 | Basement floor in sq ft (0 if slab) |
+| exposed_below_grade_floor_area | float | 0 | Basement perimeter exposure (0 if slab) |
+| addition_conditioned_floor_area | float | 0 | Addition CFA (0 for new construction) |
+| pv_credit_available | boolean | null | From CBECC compliance summary |
+| pv_generation_max_credit | float | null | PV generation credit kWh |
+| credit_available_for_pv | float | null | Compliance credit value |
+| final_pv_credit | float | null | Final adjusted PV credit |
+| zonal_control | boolean | null | HVAC zoning from equipment section |
+| infiltration_ach50 | float | null | Air changes/hour at 50 Pa |
+| infiltration_cfm50 | float | null | CFM at 50 Pa blower door |
+| quality_insulation_installation | boolean | null | QII certification |
+
+### Critical Instructions
+
+1. **Never omit a field** - Include ALL fields listed above in your JSON output
+2. **Use null for unknown values** - If a field cannot be found, use `null` (not omission)
+3. **Use 0 for zero values** - For numeric fields that can be zero (basement areas for slab homes), use `0` not `null`
+4. **Use false for absent features** - For booleans like attached_garage, use `false` if no garage exists
+5. **Double-check before returning** - Verify your output JSON contains all 14 ProjectInfo fields and all 19 EnvelopeInfo fields
+
+### Where to Find Commonly Missed Fields
+
+| Field | Primary Source | Secondary Source |
+|-------|----------------|------------------|
+| run_id | CBECC header "Run ID:" or "User:" | First page header |
+| run_number | CBECC header "Run #:" | Usually 0 |
+| run_scope | CBECC "Scope:" field | CF1R project type |
+| all_orientations | CBECC settings | Usually false |
+| attached_garage | Floor plan | Title block notes |
+| front_orientation | CBECC "Front:" field | Site plan north arrow |
+| underground_wall_area | CBECC envelope summary | 0 for slab-on-grade |
+| slab_floor_area | CBECC envelope summary | Often = CFA for single-story |
+| exposed_slab_floor_area | CBECC envelope summary | Perimeter calculation |
+| below_grade_floor_area | CBECC envelope summary | 0 for no basement |
+| addition_conditioned_floor_area | CBECC summary | 0 for new construction |

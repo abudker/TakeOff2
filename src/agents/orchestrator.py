@@ -29,6 +29,13 @@ from schemas.building_spec import (
     WindowComponent, HVACSystem, WaterHeatingSystem,
     ExtractionConflict, ExtractionStatus
 )
+from schemas.takeoff_spec import (
+    TakeoffSpec, TakeoffProjectInfo, HouseWalls, OrientationWall,
+    FenestrationEntry, ThermalBoundary, ConditionedZone,
+    CeilingEntry, SlabEntry, HVACSystemEntry, DHWSystem,
+    UncertaintyFlag, AssumptionEntry
+)
+from schemas.transform import transform_takeoff_to_building_spec
 
 logger = logging.getLogger(__name__)
 
@@ -602,7 +609,194 @@ def merge_extractions(
     return spec, conflicts, extraction_status
 
 
-def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dict:
+def merge_to_takeoff_spec(
+    project_data: Dict[str, Any],
+    domain_extractions: Dict[str, Tuple[Optional[Dict[str, Any]], ExtractionStatus]]
+) -> Tuple[TakeoffSpec, List[UncertaintyFlag]]:
+    """
+    Merge domain extractions into an orientation-based TakeoffSpec.
+
+    This function handles the new orientation-based output from extractors:
+    - zones-extractor outputs house_walls and thermal_boundary
+    - windows-extractor outputs fenestration nested under wall orientations
+    - hvac/dhw extractors output system entries
+
+    Args:
+        project_data: Dict with 'project' and 'envelope' from project-extractor
+        domain_extractions: Dict mapping domain to (data, status) tuples
+
+    Returns:
+        Tuple of (TakeoffSpec, flags list)
+    """
+    flags: List[UncertaintyFlag] = []
+
+    # Build project info
+    proj_dict = project_data.get("project", {})
+    env_dict = project_data.get("envelope", {})
+
+    project = TakeoffProjectInfo(
+        run_id=proj_dict.get("run_id"),
+        run_title=proj_dict.get("run_title"),
+        run_number=proj_dict.get("run_number"),
+        run_scope=proj_dict.get("run_scope"),
+        address=proj_dict.get("address"),
+        city=proj_dict.get("city"),
+        climate_zone=proj_dict.get("climate_zone"),
+        standards_version=proj_dict.get("standards_version"),
+        fuel_type=proj_dict.get("fuel_type"),
+        house_type=proj_dict.get("house_type"),
+        dwelling_units=proj_dict.get("dwelling_units"),
+        stories=proj_dict.get("stories"),
+        bedrooms=proj_dict.get("bedrooms"),
+        front_orientation=proj_dict.get("front_orientation"),
+        all_orientations=proj_dict.get("all_orientations", False),
+        conditioned_floor_area=env_dict.get("conditioned_floor_area"),
+        window_area=env_dict.get("window_area"),
+        window_to_floor_ratio=env_dict.get("window_to_floor_ratio"),
+        exterior_wall_area=env_dict.get("exterior_wall_area"),
+        attached_garage=proj_dict.get("attached_garage", False),
+    )
+
+    # Initialize TakeoffSpec components
+    house_walls = HouseWalls()
+    thermal_boundary = ThermalBoundary()
+    ceilings: List[CeilingEntry] = []
+    slab_floors: List[SlabEntry] = []
+    hvac_systems: List[HVACSystemEntry] = []
+    dhw_systems: List[DHWSystem] = []
+
+    # Merge zones data (house_walls and thermal_boundary)
+    zones_data, _ = domain_extractions.get("zones", (None, None))
+    if zones_data:
+        # Handle orientation-based house_walls output
+        if "house_walls" in zones_data:
+            hw = zones_data["house_walls"]
+            if "north" in hw and hw["north"]:
+                house_walls.north = OrientationWall.model_validate(hw["north"])
+            if "east" in hw and hw["east"]:
+                house_walls.east = OrientationWall.model_validate(hw["east"])
+            if "south" in hw and hw["south"]:
+                house_walls.south = OrientationWall.model_validate(hw["south"])
+            if "west" in hw and hw["west"]:
+                house_walls.west = OrientationWall.model_validate(hw["west"])
+            logger.info("Merged house_walls from zones-extractor")
+
+        # Handle thermal_boundary output
+        if "thermal_boundary" in zones_data:
+            tb = zones_data["thermal_boundary"]
+            if "conditioned_zones" in tb:
+                thermal_boundary.conditioned_zones = [
+                    ConditionedZone.model_validate(z) for z in tb["conditioned_zones"]
+                ]
+            if "unconditioned_zones" in tb:
+                from schemas.takeoff_spec import UnconditionedZone
+                thermal_boundary.unconditioned_zones = [
+                    UnconditionedZone.model_validate(z) for z in tb["unconditioned_zones"]
+                ]
+            if "total_conditioned_floor_area" in tb:
+                thermal_boundary.total_conditioned_floor_area = tb["total_conditioned_floor_area"]
+            logger.info(f"Merged thermal_boundary: {len(thermal_boundary.conditioned_zones)} conditioned zones")
+
+        # Handle ceilings if present
+        if "ceilings" in zones_data:
+            ceilings = [CeilingEntry.model_validate(c) for c in zones_data["ceilings"]]
+            logger.info(f"Merged {len(ceilings)} ceilings")
+
+        # Handle slab_floors if present
+        if "slab_floors" in zones_data:
+            slab_floors = [SlabEntry.model_validate(s) for s in zones_data["slab_floors"]]
+            logger.info(f"Merged {len(slab_floors)} slab floors")
+
+        # Collect flags from zones extraction
+        if "flags" in zones_data:
+            flags.extend([UncertaintyFlag.model_validate(f) for f in zones_data["flags"]])
+
+    # Merge windows data (fenestration nested under house_walls)
+    windows_data, _ = domain_extractions.get("windows", (None, None))
+    if windows_data:
+        # Handle nested fenestration by wall orientation
+        if "house_walls" in windows_data:
+            hw = windows_data["house_walls"]
+            # Merge fenestration into existing walls
+            for orientation in ["north", "east", "south", "west"]:
+                if orientation in hw and hw[orientation]:
+                    wall_data = hw[orientation]
+                    existing_wall = getattr(house_walls, orientation)
+                    if existing_wall is None:
+                        # Create wall if it doesn't exist
+                        setattr(house_walls, orientation, OrientationWall.model_validate(wall_data))
+                    elif "fenestration" in wall_data:
+                        # Add fenestration to existing wall
+                        existing_wall.fenestration = [
+                            FenestrationEntry.model_validate(f) for f in wall_data["fenestration"]
+                        ]
+            logger.info("Merged fenestration from windows-extractor")
+
+        # Legacy format: flat windows list (convert to orientation-based)
+        elif "windows" in windows_data:
+            # Group windows by wall/azimuth
+            for w in windows_data["windows"]:
+                window = FenestrationEntry.model_validate(w)
+                # Determine orientation from azimuth or wall name
+                wall_name = w.get("wall", "").lower()
+                azimuth = w.get("azimuth", 0)
+
+                if "north" in wall_name or (azimuth >= 315 or azimuth < 45):
+                    if house_walls.north is None:
+                        house_walls.north = OrientationWall()
+                    house_walls.north.fenestration.append(window)
+                elif "east" in wall_name or (45 <= azimuth < 135):
+                    if house_walls.east is None:
+                        house_walls.east = OrientationWall()
+                    house_walls.east.fenestration.append(window)
+                elif "south" in wall_name or (135 <= azimuth < 225):
+                    if house_walls.south is None:
+                        house_walls.south = OrientationWall()
+                    house_walls.south.fenestration.append(window)
+                elif "west" in wall_name or (225 <= azimuth < 315):
+                    if house_walls.west is None:
+                        house_walls.west = OrientationWall()
+                    house_walls.west.fenestration.append(window)
+            logger.info("Converted legacy windows to orientation-based")
+
+        # Collect flags from windows extraction
+        if "flags" in windows_data:
+            flags.extend([UncertaintyFlag.model_validate(f) for f in windows_data["flags"]])
+
+    # Merge HVAC systems
+    hvac_data, _ = domain_extractions.get("hvac", (None, None))
+    if hvac_data and "hvac_systems" in hvac_data:
+        hvac_systems = [HVACSystemEntry.model_validate(s) for s in hvac_data["hvac_systems"]]
+        logger.info(f"Merged {len(hvac_systems)} HVAC systems")
+        if "flags" in hvac_data:
+            flags.extend([UncertaintyFlag.model_validate(f) for f in hvac_data["flags"]])
+
+    # Merge DHW systems
+    dhw_data, _ = domain_extractions.get("dhw", (None, None))
+    if dhw_data and "dhw_systems" in dhw_data:
+        dhw_systems = [DHWSystem.model_validate(s) for s in dhw_data["dhw_systems"]]
+        logger.info(f"Merged {len(dhw_systems)} DHW systems")
+        if "flags" in dhw_data:
+            flags.extend([UncertaintyFlag.model_validate(f) for f in dhw_data["flags"]])
+
+    # Build TakeoffSpec
+    takeoff_spec = TakeoffSpec(
+        project=project,
+        house_walls=house_walls,
+        thermal_boundary=thermal_boundary,
+        ceilings=ceilings,
+        slab_floors=slab_floors,
+        hvac_systems=hvac_systems,
+        dhw_systems=dhw_systems,
+        flags=flags,
+        extraction_notes=project_data.get("notes", ""),
+    )
+
+    logger.info(f"Built TakeoffSpec with {len(flags)} uncertainty flags")
+    return takeoff_spec, flags
+
+
+def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output_takeoff: bool = False) -> dict:
     """
     Run extraction workflow on an evaluation case.
 
@@ -611,16 +805,17 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
         2. Invoke discovery agent -> DocumentMap
         3. Invoke project-extractor agent -> ProjectInfo + EnvelopeInfo
         4. If parallel=True: Invoke domain extractors in parallel (zones, windows, hvac, dhw)
-        5. Merge all extractions into BuildingSpec with conflict detection
-        6. Return final state
+        5. Merge into TakeoffSpec (orientation-based), then transform to BuildingSpec
+        6. Return final state with both specs
 
     Args:
         eval_name: Evaluation case identifier (e.g., "chamberlin-circle")
         eval_dir: Path to evaluation directory
         parallel: If True, run multi-domain extraction in parallel (default: True)
+        output_takeoff: If True, include TakeoffSpec in output (default: False)
 
     Returns:
-        Final state dict with building_spec or error
+        Final state dict with building_spec (and optionally takeoff_spec) or error
 
     Raises:
         FileNotFoundError: If preprocessed images or PDF not found
@@ -634,27 +829,34 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
         if not preprocessed_base.exists():
             raise FileNotFoundError(f"Preprocessed directory not found: {preprocessed_base}")
 
-        # Find first subdirectory with page images
-        preprocessed_dir = None
-        pdf_path = None
-        for subdir in preprocessed_base.iterdir():
-            if subdir.is_dir() and list(subdir.glob("page-*.png")):
-                preprocessed_dir = subdir
-                # Find matching PDF
-                pdf_path = eval_dir / f"{subdir.name}.pdf"
-                if not pdf_path.exists():
-                    # Try to find any PDF
-                    pdf_files = list(eval_dir.glob("*.pdf"))
-                    pdf_path = pdf_files[0] if pdf_files else None
-                break
+        # Find ALL subdirectories with page images and combine them
+        all_page_images = []
+        pdf_paths = []
+        for subdir in sorted(preprocessed_base.iterdir()):
+            if subdir.is_dir():
+                subdir_pages = sorted(subdir.glob("page-*.png"))
+                if subdir_pages:
+                    all_page_images.extend(subdir_pages)
+                    # Track matching PDF
+                    pdf_path = eval_dir / f"{subdir.name}.pdf"
+                    if pdf_path.exists():
+                        pdf_paths.append(pdf_path)
+                    logger.info(f"  Loaded {len(subdir_pages)} pages from {subdir.name}/")
 
-        if not preprocessed_dir:
+        if not all_page_images:
             raise FileNotFoundError(f"No preprocessed images found in {preprocessed_base}")
 
-        # Get all page images
-        page_images = sorted(preprocessed_dir.glob("page-*.png"))
-        if not page_images:
-            raise FileNotFoundError(f"No preprocessed images found in {preprocessed_dir}")
+        # Use first PDF for metadata (or find plans.pdf)
+        pdf_path = None
+        for p in pdf_paths:
+            if p.name == "plans.pdf":
+                pdf_path = p
+                break
+        if not pdf_path and pdf_paths:
+            pdf_path = pdf_paths[0]
+
+        # Renumber pages sequentially for consistent indexing
+        page_images = all_page_images
 
         logger.info(f"Found {len(page_images)} preprocessed pages")
 
@@ -664,6 +866,8 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
         # Step 2: Project extraction phase (always runs first)
         project_extraction = run_project_extraction(page_images, document_map)
 
+        takeoff_spec = None
+
         if parallel:
             # Step 3: Parallel multi-domain extraction
             logger.info("Starting parallel multi-domain extraction")
@@ -671,8 +875,17 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
                 run_parallel_extraction(page_images, document_map)
             )
 
-            # Step 4: Merge all extractions
-            building_spec, conflicts, extraction_status = merge_extractions(
+            # Step 4: Merge into TakeoffSpec (orientation-based)
+            takeoff_spec, uncertainty_flags = merge_to_takeoff_spec(
+                project_extraction,
+                domain_extractions
+            )
+
+            # Step 5: Transform to BuildingSpec for verification
+            building_spec = transform_takeoff_to_building_spec(takeoff_spec)
+
+            # Also run legacy merge for conflict detection and extraction status
+            _, conflicts, extraction_status = merge_extractions(
                 project_extraction,
                 domain_extractions
             )
@@ -688,6 +901,7 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
             logger.info(f"  HVAC systems: {len(building_spec.hvac_systems)}")
             logger.info(f"  Water heating systems: {len(building_spec.water_heating_systems)}")
             logger.info(f"  Conflicts: {len(conflicts)}")
+            logger.info(f"  Uncertainty flags: {len(uncertainty_flags)}")
         else:
             # Legacy mode: project extraction only
             building_spec = BuildingSpec(
@@ -696,7 +910,7 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
             )
             logger.info(f"Project-only extraction complete for {eval_name}")
 
-        return {
+        result = {
             "eval_name": eval_name,
             "pdf_path": str(pdf_path),
             "page_images": [str(p) for p in page_images],
@@ -704,6 +918,12 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True) -> dic
             "building_spec": building_spec.model_dump(),
             "error": None
         }
+
+        # Optionally include TakeoffSpec in output
+        if output_takeoff and takeoff_spec:
+            result["takeoff_spec"] = takeoff_spec.model_dump()
+
+        return result
 
     except Exception as e:
         logger.error(f"Extraction failed for {eval_name}: {e}")

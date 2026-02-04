@@ -300,6 +300,10 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
             for f in all_field_comparisons
         ]
 
+        # Prepare raw JSON data for display
+        extracted_json = json.dumps(extracted, indent=2, default=str)
+        ground_truth_json = json.dumps(ground_truth, indent=2, default=str)
+
         # Generate HTML report
         report = EvalReport(
             eval_id=eval_id,
@@ -308,6 +312,8 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
             iteration=iteration,
             history=history,
             all_fields=all_fields_dicts,
+            extracted_data=extracted_json,
+            ground_truth_data=ground_truth_json,
         )
         html_content = report.render_html()
 
@@ -445,6 +451,7 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
                 for f in all_field_comparisons
             ],
             'extracted_data': extracted,
+            'ground_truth_data': ground_truth,
         }
 
     # Output skipped evals
@@ -487,6 +494,10 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
             # Get history for report
             history = store.get_history(eval_id)
 
+            # Prepare raw JSON data for display
+            extracted_json = json.dumps(eval_data['extracted_data'], indent=2, default=str)
+            ground_truth_json = json.dumps(eval_data.get('ground_truth_data', {}), indent=2, default=str)
+
             # Generate HTML report
             report = EvalReport(
                 eval_id=eval_id,
@@ -495,6 +506,8 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
                 iteration=iteration,
                 history=history,
                 all_fields=eval_data.get('all_fields'),
+                extracted_data=extracted_json,
+                ground_truth_data=ground_truth_json,
             )
             html_content = report.render_html()
 
