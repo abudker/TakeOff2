@@ -1,16 +1,25 @@
 # Zones Extractor Instructions
 
-**Version:** v2.0.0
-**Last updated:** 2026-02-03
+**Version:** v2.1.0
+**Last updated:** 2026-02-04
+
+## Core Rule
+
+**All takeoffs must be based on the THERMAL BOUNDARY (conditioned vs outside/unconditioned), not overall facade area or parapet/architectural area.**
+
+This means:
+- Only include walls that form the thermal envelope (boundary between conditioned and exterior)
+- Do NOT include parapets, screened porches, open patio walls, or architectural facade area outside the thermal boundary
+- Garage walls are exterior walls of unconditioned space (separate from house walls)
 
 ## Overview
 
 The zones extractor extracts **orientation-based** wall and thermal boundary data from Title 24 compliance documentation. This version outputs data in TakeoffSpec format, organizing walls by cardinal orientation (North/East/South/West) with fenestration nested under each wall.
 
-**Key difference from v1:** Instead of outputting flat `walls[]` and `zones[]` lists, this extractor outputs:
-- `house_walls`: Walls organized by orientation (north, east, south, west)
-- `thermal_boundary`: Conditioned vs unconditioned zones
-- `flags`: Uncertainty tracking for every assumption
+**Key principles:**
+- `house_walls`: GROSS wall area by orientation (North/East/South/West) - do NOT calculate net area
+- `thermal_boundary`: Explicit separation of conditioned vs unconditioned zones
+- `flags`: **MANDATORY** - Every uncertainty, assumption, or discrepancy MUST have a FLAG
 
 ## Extraction Workflow
 
@@ -74,36 +83,46 @@ Focus extraction efforts on these page types (in order of reliability):
 - Volume (often calculated: area x height)
 - Wall area totals per zone
 
-### 4. Wall Component Extraction (Orientation-Based)
+### 4. Exterior Walls by Orientation - GROSS AREA ONLY
 
-**Step 1: Locate wall definitions**
+**IMPORTANT:** Extract GROSS wall area only. Do NOT calculate net wall area. Do NOT deduct window/door openings. The verifier compares against gross wall area values.
+
+**Step 1: Create orientation sections**
+Create entries for House - North, East, South, West based on true north.
+
+**Step 2: Locate wall definitions**
 - CBECC "Exterior Walls" or "Wall Components" section
 - Wall schedules on schedule pages
 - Each wall listed with orientation/azimuth and area
 
-**Step 2: Group walls by cardinal orientation**
+**Step 3: Group walls by cardinal orientation**
 CBECC often lists walls by azimuth. Group them into cardinal directions:
-- **North (N):** Azimuth 315-360 or 0-45 degrees
-- **East (E):** Azimuth 45-135 degrees
-- **South (S):** Azimuth 135-225 degrees
-- **West (W):** Azimuth 225-315 degrees
+- **North (N):** Azimuth 315-360° or 0-45°
+- **East (E):** Azimuth 45-135°
+- **South (S):** Azimuth 135-225°
+- **West (W):** Azimuth 225-315°
 
-**Step 3: Extract wall properties per orientation**
+**Step 4: Extract wall properties per orientation**
 For each cardinal direction, extract:
-- `gross_wall_area`: Total wall area before deductions (sq ft)
-- `net_wall_area`: Wall area after window/door deductions (sq ft)
+- `gross_wall_area`: Total thermal boundary wall area (sq ft) - **DO NOT DEDUCT OPENINGS**
 - `azimuth`: True azimuth in degrees (use midpoint if rotated)
-- `construction_type`: e.g., "R-21 Wood Frame Wall"
+- `construction_type`: e.g., "R-21 2x6 Wood Frame"
 - `framing_factor`: Framing fraction (default 0.25 if not specified)
 - `status`: New, Existing, or Altered
 - `fenestration`: Leave empty - windows-extractor will populate this
-- `opaque_doors`: Extract non-glazed doors in this wall
+- `opaque_doors`: Extract non-glazed doors in this wall with area
 
-**Step 4: Handle rotated buildings**
+**Step 5: Handle rotated buildings**
 If the building is not aligned to cardinal directions:
 - Use the closest cardinal direction for each wall
 - Set azimuth to the actual value from CBECC
 - Example: Front = 45° (NE) → use "north" slot with azimuth = 45
+- Add FLAG: "Building rotated, walls grouped to nearest cardinal direction"
+
+**Step 6: Validate against plans**
+If plans include opening-percentage or facade calculations:
+- Do NOT use them for energy wall area unless they explicitly state "thermal boundary wall area"
+- Add FLAG if you suspect the value includes non-thermal-boundary area
 
 ### 5. Naming Conventions
 
@@ -129,12 +148,11 @@ If the building is not aligned to cardinal directions:
 Before returning extracted data, validate:
 
 **OrientationWall constraints (house_walls.{direction}):**
-- `gross_wall_area`: Float >= 0 (total wall area in sq ft)
-- `net_wall_area`: Float >= 0 (should be <= gross_wall_area)
+- `gross_wall_area`: Float >= 0 (total thermal boundary wall area in sq ft)
 - `azimuth`: Float 0-360 (0=N, 90=E, 180=S, 270=W)
 - `construction_type`: Non-empty string if specified
 - `fenestration`: Leave empty (windows-extractor populates)
-- `opaque_doors`: List of non-glazed doors
+- `opaque_doors`: List of non-glazed doors with name and area
 
 **ConditionedZone constraints (thermal_boundary.conditioned_zones):**
 - `name`: Non-empty string (required)
@@ -143,14 +161,25 @@ Before returning extracted data, validate:
 - `volume`: Float >= 0 (should approximate area x height)
 - `exterior_wall_area`: Float >= 0 (sum of wall areas)
 
+**Conditioned Floor Area validation:**
+- Use the plans' stated "Conditioned Area" if provided
+- If you compute footprint from dimensions and it differs by >3% from stated area, add FLAG with both values
+- The stated conditioned area takes precedence
+
+**Foundation type:**
+- Determine: slab-on-grade vs raised floor/crawlspace
+- If unclear, add FLAG: "Verify foundation type"
+
 **Cross-validation:**
 - Sum of house_walls gross areas ≈ thermal_boundary zone exterior_wall_area
 - Zone volume should be close to floor_area x ceiling_height
 - total_conditioned_floor_area should match sum of zone floor_areas
 
-**Uncertainty flags:**
-- Add a flag for every assumption or uncertain value
-- Use severity levels: high (likely wrong), medium (uncertain), low (minor)
+**MANDATORY uncertainty flags:**
+- Add a FLAG for every assumption, uncertainty, or discrepancy
+- Add a FLAG for every value that differs from another source (e.g., CBECC vs schedule)
+- Use severity levels: high (likely incorrect), medium (uncertain), low (minor)
+- Every FLAG should describe: what is uncertain, where to verify (sheet/detail)
 
 ### 7. Handling Missing Data
 
@@ -176,47 +205,42 @@ Return JSON matching this **orientation-based** structure:
 {
   "house_walls": {
     "north": {
-      "gross_wall_area": 280.0,
-      "net_wall_area": 240.0,
+      "gross_wall_area": 136.0,
       "azimuth": 0.0,
-      "construction_type": "R-21 Wood Frame",
+      "construction_type": "R-21 2x6 Wood Frame",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
-      "opaque_doors": []
+      "opaque_doors": [
+        {
+          "name": "D1",
+          "door_type": "Entry",
+          "area": 19.0
+        }
+      ]
     },
     "east": {
-      "gross_wall_area": 180.0,
-      "net_wall_area": 160.0,
+      "gross_wall_area": 160.0,
       "azimuth": 90.0,
-      "construction_type": "R-21 Wood Frame",
+      "construction_type": "R-21 2x6 Wood Frame",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
       "opaque_doors": []
     },
     "south": {
-      "gross_wall_area": 280.0,
-      "net_wall_area": 199.0,
+      "gross_wall_area": 136.0,
       "azimuth": 180.0,
-      "construction_type": "R-21 Wood Frame",
+      "construction_type": "R-21 2x6 Wood Frame",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
-      "opaque_doors": [
-        {
-          "name": "Entry Door",
-          "door_type": "Entry",
-          "area": 21.0,
-          "u_factor": null
-        }
-      ]
+      "opaque_doors": []
     },
     "west": {
       "gross_wall_area": 180.0,
-      "net_wall_area": 180.0,
       "azimuth": 270.0,
-      "construction_type": "R-21 Wood Frame",
+      "construction_type": "R-21 2x6 Wood Frame",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
@@ -227,18 +251,18 @@ Return JSON matching this **orientation-based** structure:
     "conditioned_zones": [
       {
         "name": "Zone 1",
-        "floor_area": 800.0,
-        "ceiling_height": 9.0,
-        "volume": 7200.0,
+        "floor_area": 320.0,
+        "ceiling_height": 8.0,
+        "volume": 2560.0,
         "stories": 1,
-        "exterior_wall_area": 920.0,
-        "ceiling_below_attic_area": 800.0,
+        "exterior_wall_area": 612.0,
+        "ceiling_below_attic_area": 320.0,
         "cathedral_ceiling_area": 0.0,
-        "slab_floor_area": 800.0
+        "slab_floor_area": 320.0
       }
     ],
     "unconditioned_zones": [],
-    "total_conditioned_floor_area": 800.0
+    "total_conditioned_floor_area": 320.0
   },
   "ceilings": [
     {
@@ -246,8 +270,8 @@ Return JSON matching this **orientation-based** structure:
       "ceiling_type": "Below Attic",
       "zone": "Zone 1",
       "status": "New",
-      "area": 800.0,
-      "construction_type": "R-38 Ceiling"
+      "area": 320.0,
+      "construction_type": "R-38 Roof Rafter"
     }
   ],
   "slab_floors": [
@@ -255,8 +279,8 @@ Return JSON matching this **orientation-based** structure:
       "name": "Slab 1",
       "zone": "Zone 1",
       "status": "New",
-      "area": 800.0,
-      "perimeter": 116.0,
+      "area": 320.0,
+      "perimeter": 72.0,
       "edge_insulation_r_value": null,
       "carpeted_fraction": 0.8,
       "heated": false
@@ -266,11 +290,23 @@ Return JSON matching this **orientation-based** structure:
     {
       "field_path": "house_walls.north.framing_factor",
       "severity": "low",
-      "reason": "Framing factor not specified, used standard 0.25",
+      "reason": "Framing factor not specified in plans, used standard 0.25. Verify on wall schedule.",
+      "source_page": null
+    },
+    {
+      "field_path": "thermal_boundary.conditioned_zones[0].floor_area",
+      "severity": "medium",
+      "reason": "Conditioned area from CBECC (320 sf). Computed footprint from dimensions is 340 sf (6.25% difference). Using CBECC value.",
+      "source_page": 3
+    },
+    {
+      "field_path": "slab_floors[0].edge_insulation_r_value",
+      "severity": "medium",
+      "reason": "Slab edge insulation not specified. Verify on foundation plan or energy notes.",
       "source_page": null
     }
   ],
-  "notes": "Single zone building. Wall data from CBECC page 3. Walls organized by cardinal orientation."
+  "notes": "Single zone ADU. Wall gross areas from CBECC page 3. Foundation type: slab-on-grade. Garage not modeled / not in scope per plans."
 }
 ```
 

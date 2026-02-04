@@ -1,13 +1,25 @@
 # Windows Extractor Instructions
 
-**Version:** v2.0.0
-**Last updated:** 2026-02-03
+**Version:** v2.1.0
+**Last updated:** 2026-02-04
+
+## Core Rule
+
+For each wall orientation, classify openings into two buckets (do not mix):
+1. **Fenestration** (windows, sliders, glazed doors) → `house_walls.{orientation}.fenestration[]`
+2. **Opaque exterior doors** → handled by zones-extractor
+
+This extractor handles **Fenestration only**. Do NOT include opaque doors.
 
 ## Overview
 
-The windows extractor extracts fenestration data **nested under parent wall orientations** from Title 24 compliance documentation. Fenestration includes windows, glazed doors, skylights, and other transparent or translucent building elements.
+The windows extractor extracts fenestration data **nested under parent wall orientations** from Title 24 compliance documentation. Fenestration includes windows, glazed doors (>50% glass), skylights, and other transparent/translucent building elements.
 
-**Key difference from v1:** Instead of outputting a flat `windows[]` list, this extractor outputs fenestration nested under `house_walls.{orientation}.fenestration[]`. This matches the CBECC document structure and ensures correct window-to-wall matching.
+**Key principles:**
+- Fenestration nested under `house_walls.{orientation}.fenestration[]` - matches CBECC structure
+- Report per-opening: Tag/Mark, type, size (WxH), quantity, area
+- Report orientation totals: TotalFenestrationArea per wall
+- **MANDATORY FLAGS** for every uncertainty, assumption, or discrepancy
 
 ## Extraction Workflow
 
@@ -64,15 +76,19 @@ Focus extraction efforts on these page types (in order of reliability):
 
 **Step 3: Handle multipliers**
 - Schedule may show "QTY: 4" meaning 4 identical windows
-- Create single WindowComponent with multiplier=4
-- Or create 4 separate components (depending on detail level needed)
-- Prefer multiplier approach for efficiency
+- Create single entry with multiplier=4
+- Calculate AreaTotal = AreaPerUnit × multiplier
 
-**Step 4: Link to walls**
+**Step 4: Handle schedule vs plan conflicts**
+- If window/door schedule conflicts with plan callouts: **prefer the schedule dimensions**
+- Add FLAG noting the discrepancy: "Schedule shows 3'x4', plan callout shows 3'x5'. Using schedule value."
+- Schedule is typically more accurate for ordering/manufacturing
+
+**Step 5: Link to walls**
 - Window schedule may specify "Location" or "Wall"
-- If not specified, use orientation from floor plan
-- CBECC may show windows by wall orientation
+- If not specified, use orientation from floor plan or CBECC parent
 - Critical for energy modeling: correct wall assignment
+- Add FLAG if wall assignment is uncertain
 
 ### 4. Performance Value Extraction
 
@@ -153,10 +169,13 @@ Before returning extracted data, validate:
 - U-factor and SHGC should be within Title 24 typical ranges
 - All windows on same wall should have consistent performance values (usually same product)
 
-**Uncertainty flags:**
-- Add a flag if orientation assignment is uncertain
-- Add a flag if performance values are from defaults rather than spec
-- Add a flag if multiplier was inferred from schedule vs explicitly stated
+**MANDATORY uncertainty flags:**
+- Add FLAG if orientation assignment is uncertain
+- Add FLAG if performance values are from defaults rather than spec
+- Add FLAG if multiplier was inferred rather than explicitly stated
+- Add FLAG if schedule conflicts with plan callouts (note which you used)
+- Add FLAG for every assumption or uncertainty
+- Every FLAG should describe: what is uncertain, where to verify (sheet/detail)
 
 ### 8. Handling Missing Data
 

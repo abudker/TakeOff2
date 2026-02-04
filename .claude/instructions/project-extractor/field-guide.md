@@ -1,7 +1,7 @@
 # Project Extractor Field Guide
 
-**Version:** v1.0.0
-**Last updated:** 2026-02-03
+**Version:** v1.1.0
+**Last updated:** 2026-02-04
 
 ## Overview
 
@@ -13,23 +13,34 @@ This guide maps each ProjectInfo and EnvelopeInfo schema field to its source loc
 
 ### run_title
 **Type:** string (required)
-**Description:** Project title or name
+**Description:** CBECC analysis run title (NOT the project name or address)
+
+**CRITICAL DISTINCTION:**
+- `run_title` = The analysis run title in CBECC software
+- This is NOT the project name, address, or owner name
+- If CBECC shows "Title 24 Analysis" as the run title, use that exact string
 
 **Document sources:**
-1. **Cover page:** Look in title block, often labeled "Project Name" or "Project Title"
-2. **CBECC-Res output:** Header section may contain project name
-3. **CF1R form:** "Project Name" or "Building Name" field
-4. **Drawing title blocks:** Right side of drawings, labeled "Project"
+1. **CBECC-Res output:** Look for "Run Title:", "Analysis Title:", or header label (PRIMARY SOURCE)
+2. **CF1R form:** May show run identifier
+3. **NOT from:** Title block project name, address, or owner name
 
 **Extraction tips:**
-- May be abbreviated on some pages
-- Prefer full title from cover page or CBECC form
-- Common format: "[Address] ADU" or "[Owner Name] Residence"
+- Look specifically for CBECC analysis naming, not project identification
+- Common values: "Title 24 Analysis", "Compliance Analysis", "Energy Analysis"
+- If not explicitly found, check CBECC header for analysis identifier
+- Do NOT substitute project address or building name
 
 **Example values:**
-- "Smith Residence ADU"
-- "123 Main Street Accessory Dwelling"
-- "Berkeley ADU Project"
+- "Title 24 Analysis" (common default)
+- "Compliance Run 1"
+- "Energy Analysis"
+- "T24 Analysis"
+
+**Common mistakes to avoid:**
+- Using address ("4720 Chamberlin Cir") as run_title - WRONG
+- Using project name ("Smith ADU") as run_title - WRONG
+- Using owner name - WRONG
 
 ---
 
@@ -370,6 +381,178 @@ Average U-Factor = (9.0 + 10.0 + 14.0) / 120 = 0.275
 
 ---
 
+### front_orientation
+**Type:** float 0-360 (optional)
+**Description:** Front wall azimuth in degrees from true north
+
+**Document sources:**
+1. **CBECC-Res output:** "Front:" or "Front Orientation:" field
+2. **Site plan:** North arrow with building orientation
+3. **CF1R form:** Orientation field
+
+**Extraction tips:**
+- 0 = North, 90 = East, 180 = South, 270 = West
+- CBECC shows this prominently for multi-orientation analysis
+- May show "Front: 73°" meaning NE-facing
+
+**Example values:**
+- 0 (north-facing)
+- 73 (NE-facing)
+- 180 (south-facing)
+
+---
+
+### underground_wall_area
+**Type:** float >= 0 (optional)
+**Description:** Below-grade wall area in square feet
+
+**Document sources:**
+1. **CBECC-Res output:** Envelope summary, "Underground Wall Area"
+2. **CF1R form:** Wall area section
+
+**Extraction tips:**
+- For slab-on-grade construction (no basement): use 0
+- Only includes walls below grade level
+- Common ADUs have 0 underground wall area
+
+**Example values:**
+- 0 (slab-on-grade, most ADUs)
+- 200.0 (partial basement)
+
+---
+
+### slab_floor_area
+**Type:** float >= 0 (optional)
+**Description:** Slab-on-grade floor area in square feet
+
+**Document sources:**
+1. **CBECC-Res output:** Envelope summary
+2. **Foundation plan:** Slab perimeter area
+
+**Extraction tips:**
+- For homes entirely on slab: slab_floor_area ≈ conditioned_floor_area
+- May be null if foundation type unclear
+
+---
+
+### exposed_slab_floor_area
+**Type:** float >= 0 (optional)
+**Description:** Exposed slab perimeter area in square feet
+
+**Document sources:**
+1. **CBECC-Res output:** "Exposed Slab" section
+2. **Foundation details:** Slab edge exposure
+
+**Extraction tips:**
+- Perimeter slab area exposed to exterior
+- Often calculated as perimeter × slab thickness
+- Use 0 if slab is entirely under building
+
+**Example values:**
+- 64.0 (160 ft perimeter × 0.4 ft thickness)
+- 0 (no perimeter exposure)
+
+---
+
+### below_grade_floor_area, exposed_below_grade_floor_area
+**Type:** float >= 0 (optional each)
+**Description:** Below-grade floor areas
+
+**Extraction tips:**
+- For slab-on-grade buildings: use 0 for both
+- Only non-zero if building has basement
+- Common for ADUs: both = 0
+
+---
+
+### addition_conditioned_floor_area
+**Type:** float >= 0 (optional)
+**Description:** Conditioned floor area of addition (for alteration projects)
+
+**Extraction tips:**
+- For new construction: use 0
+- Only non-zero for "Addition" or "Alteration" project scope
+- If run_scope = "Newly Constructed", use 0
+
+---
+
+### pv_credit_available
+**Type:** boolean (optional)
+**Description:** Whether PV credit is available for compliance
+
+**Document sources:**
+1. **CBECC-Res output:** Compliance summary, PV section
+2. **CF1R form:** Solar/PV section
+
+**Extraction tips:**
+- true if building has or plans for solar PV
+- May show as checkbox or Y/N
+
+---
+
+### pv_generation_max_credit, credit_available_for_pv, final_pv_credit
+**Type:** float >= 0 (optional each)
+**Description:** PV-related compliance credits
+
+**Extraction tips:**
+- These may all be 0 for projects without solar
+- Use 0 (not null) if project has no PV but field is shown
+- Use null only if PV section is entirely absent
+
+---
+
+### zonal_control
+**Type:** boolean (optional)
+**Description:** Whether HVAC uses zonal control
+
+**Document sources:**
+1. **CBECC-Res output:** HVAC section
+2. **Mechanical schedule:** Zone control equipment
+
+**Extraction tips:**
+- true if multiple thermostats/zones
+- false for single-zone systems (typical ADU)
+
+---
+
+### infiltration_ach50
+**Type:** float > 0 (optional)
+**Description:** Air changes per hour at 50 Pa (blower door test)
+
+**Document sources:**
+1. **CBECC-Res output:** Infiltration section
+2. **CF1R form:** Air tightness
+
+**Extraction tips:**
+- Title 24 2022 requires ≤5 ACH50 for new construction
+- Common values: 3-5 ACH50
+
+---
+
+### infiltration_cfm50
+**Type:** float > 0 (optional)
+**Description:** CFM at 50 Pa blower door pressure
+
+**Extraction tips:**
+- Calculated from ACH50 × Volume / 60
+- May be shown directly in CBECC
+
+---
+
+### quality_insulation_installation
+**Type:** boolean (optional)
+**Description:** QII certification status
+
+**Document sources:**
+1. **CBECC-Res output:** QII checkbox
+2. **CF1R form:** QII certification section
+
+**Extraction tips:**
+- true if QII certified
+- false if standard installation (most projects)
+
+---
+
 ## Extraction Best Practices
 
 ### Page Reading Order
@@ -438,24 +621,40 @@ Include specific notes for low-confidence fields so verifier can double-check.
 
 ## Field Summary Table
 
-| Field | Type | Schema | Sources | Can be null? |
-|-------|------|--------|---------|--------------|
-| run_title | string | ProjectInfo | Cover, CBECC, CF1R | No |
-| address | string | ProjectInfo | Cover, CBECC, CF1R | No |
-| city | string | ProjectInfo | Cover, CBECC, CF1R | No |
-| climate_zone | int 1-16 | ProjectInfo | CBECC, CF1R | No |
-| fuel_type | enum | ProjectInfo | CBECC, equipment | No |
-| house_type | enum | ProjectInfo | CBECC, CF1R | No |
-| dwelling_units | int ≥1 | ProjectInfo | CBECC, CF1R | No |
-| stories | int ≥1 | ProjectInfo | CBECC, elevations | No |
-| bedrooms | int ≥0 | ProjectInfo | CBECC, floor plans | No |
-| conditioned_floor_area | float >0 | EnvelopeInfo | CBECC, CF1R, plans | No |
-| window_area | float ≥0 | EnvelopeInfo | Window schedule, CBECC | No |
-| window_to_floor_ratio | float 0-1 | EnvelopeInfo | CBECC, calculate | No |
-| exterior_wall_area | float ≥0 | EnvelopeInfo | Wall schedule, CBECC | No |
-| fenestration_u_factor | float >0 | EnvelopeInfo | Window schedule, CBECC | Yes (optional) |
+| Field | Type | Sources | Default if Missing |
+|-------|------|---------|-------------------|
+| run_id | string | CBECC header | null |
+| run_title | string | CBECC "Run Title:" (NOT project name) | - |
+| address | string | Cover, CBECC, CF1R | - |
+| city | string | Cover, CBECC, CF1R | - |
+| climate_zone | int 1-16 | CBECC, CF1R | - |
+| fuel_type | enum | CBECC, equipment | - |
+| house_type | enum | CBECC, CF1R | - |
+| dwelling_units | int ≥1 | CBECC, CF1R | 1 |
+| stories | int ≥1 | CBECC, elevations | - |
+| bedrooms | int ≥0 | CBECC, floor plans | - |
+| front_orientation | float 0-360 | CBECC "Front:" | null |
+| conditioned_floor_area | float >0 | CBECC, CF1R | - |
+| window_area | float ≥0 | Window schedule, CBECC | - |
+| window_to_floor_ratio | float 0-1 | CBECC, calculate | - |
+| exterior_wall_area | float ≥0 | Wall schedule, CBECC | - |
+| fenestration_u_factor | float >0 | Window schedule, CBECC | null |
+| underground_wall_area | float ≥0 | CBECC envelope | 0 |
+| slab_floor_area | float ≥0 | CBECC envelope | null |
+| exposed_slab_floor_area | float ≥0 | CBECC envelope | 0 |
+| below_grade_floor_area | float ≥0 | CBECC envelope | 0 |
+| exposed_below_grade_floor_area | float ≥0 | CBECC envelope | 0 |
+| addition_conditioned_floor_area | float ≥0 | CBECC | 0 |
+| pv_credit_available | boolean | CBECC compliance | null |
+| pv_generation_max_credit | float ≥0 | CBECC PV section | null |
+| credit_available_for_pv | float ≥0 | CBECC compliance | null |
+| final_pv_credit | float ≥0 | CBECC compliance | null |
+| zonal_control | boolean | CBECC HVAC | null |
+| infiltration_ach50 | float >0 | CBECC infiltration | null |
+| infiltration_cfm50 | float >0 | CBECC infiltration | null |
+| quality_insulation_installation | boolean | CBECC, CF1R | null |
 
-**Total fields:** 14 (13 required + 1 optional)
+**Total fields:** 30 (ProjectInfo + EnvelopeInfo)
 
 ---
 

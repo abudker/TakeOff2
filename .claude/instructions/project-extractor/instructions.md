@@ -1,13 +1,17 @@
 # Project Extractor Instructions
 
-**Version:** v2.0.0
-**Last updated:** 2026-02-03
+**Version:** v2.1.0
+**Last updated:** 2026-02-04
 
 ## Overview
 
 The project extractor extracts building project metadata (TakeoffProjectInfo) and envelope characteristics from Title 24 compliance documentation. This is the first extraction domain, establishing project context for later zone, window, and HVAC extraction.
 
-**Key addition in v2:** The project extractor now also captures basic thermal boundary information that helps other extractors understand the building's conditioned vs unconditioned spaces.
+**Key responsibilities:**
+1. Initialize and verify project basics (name, address, city, jurisdiction)
+2. Determine orientation basis (north arrow, front orientation)
+3. Capture basic thermal boundary context (conditioned floor area)
+4. Add FLAGS for any missing or inconsistent values
 
 ## Extraction Workflow
 
@@ -78,13 +82,34 @@ When extracting from multiple pages:
 
 4. **Track sources:** Note which page provided each field value
 
-### 5. Schema Validation
+### 5. Orientation and Rotation Tracking
+
+**Step 1: Find the Site Plan**
+- Record the north arrow direction and any bearings
+- Note if site plan shows true north or project north
+
+**Step 2: Find the Floor Plan(s)**
+- Confirm a north arrow exists and matches the Site Plan
+- If floor plan north is missing or conflicts: use Site Plan north as governing and add FLAG
+
+**Step 3: Determine front_orientation**
+- Look for CBECC "Front:" or "Front Orientation:" field (degrees from true north)
+- Example: "Front: 73°" means front wall faces NE (73 degrees clockwise from north)
+- 0 = North, 90 = East, 180 = South, 270 = West
+- This is CRITICAL for multi-orientation energy analysis
+
+**Step 4: Add FLAG if orientation unclear**
+- If north arrow missing: FLAG "North arrow not found on floor plan. Verify orientation."
+- If conflict between site and floor plan: FLAG "Site plan and floor plan north arrows conflict."
+
+### 6. Schema Validation
 
 Before returning extracted data, validate against schemas:
 
 **ProjectInfo constraints:**
-- `run_title`: Non-empty string
-- `address`: Non-empty string
+- `run_id`: String identifier (often "User" or blank)
+- `run_title`: The CBECC analysis run title, NOT the project name (e.g., "Title 24 Analysis")
+- `address`: Non-empty string (include unit number if ADU)
 - `city`: Non-empty string
 - `climate_zone`: Integer 1-16 (California climate zones)
 - `fuel_type`: One of ["All Electric", "Natural Gas", "Mixed"]
@@ -92,6 +117,7 @@ Before returning extracted data, validate against schemas:
 - `dwelling_units`: Integer >= 1
 - `stories`: Integer >= 1
 - `bedrooms`: Integer >= 0
+- `front_orientation`: Float 0-360 (degrees from true north)
 
 **EnvelopeInfo constraints:**
 - `conditioned_floor_area`: Float > 0
@@ -132,24 +158,39 @@ Return JSON matching this structure:
 ```json
 {
   "project": {
-    "run_title": "Example ADU Project",
-    "address": "123 Main Street",
-    "city": "Berkeley",
-    "climate_zone": 3,
+    "run_id": "User",
+    "run_title": "Title 24 Analysis",
+    "address": "4720 Chamberlin Cir ADU",
+    "city": "Elk Grove",
+    "climate_zone": 12,
     "fuel_type": "All Electric",
     "house_type": "Single Family",
     "dwelling_units": 1,
     "stories": 1,
-    "bedrooms": 2
+    "bedrooms": 1,
+    "front_orientation": 73
   },
   "envelope": {
-    "conditioned_floor_area": 800.0,
-    "window_area": 120.0,
-    "window_to_floor_ratio": 0.15,
-    "exterior_wall_area": 1200.0,
-    "fenestration_u_factor": 0.30
+    "conditioned_floor_area": 320.0,
+    "window_area": 64.0,
+    "window_to_floor_ratio": 0.20,
+    "exterior_wall_area": 612.0,
+    "fenestration_u_factor": 0.313,
+    "underground_wall_area": 0,
+    "exposed_slab_floor_area": 64.0,
+    "below_grade_floor_area": 0,
+    "addition_conditioned_floor_area": 0,
+    "pv_credit_available": true
   },
-  "notes": "All values extracted from CBECC-Res page 3 with high confidence."
+  "flags": [
+    {
+      "field_path": "project.front_orientation",
+      "severity": "medium",
+      "reason": "Front orientation from CBECC header. Verify against site plan north arrow.",
+      "source_page": 3
+    }
+  ],
+  "notes": "Project values from CBECC page 3. Front orientation = 73 degrees (NE facing). Slab-on-grade foundation."
 }
 ```
 

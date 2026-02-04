@@ -298,6 +298,126 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool):
 
 
 @cli.command()
+@click.option(
+    "--evals-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=Path("evals"),
+    help="Directory containing evaluation cases"
+)
+def context(evals_dir: Path):
+    """
+    Output failure analysis context for conversational mode.
+
+    Used by the /improve skill to bootstrap conversational improvement.
+    Prints failure analysis and lists available instruction files.
+    """
+    project_root = evals_dir.parent
+    instructions_dir = project_root / ".claude" / "instructions"
+
+    # Check prerequisites
+    if not instructions_dir.exists():
+        click.echo("Error: No .claude/instructions/ directory found", err=True)
+        sys.exit(1)
+
+    eval_ids = get_eval_ids(evals_dir)
+    if not eval_ids:
+        click.echo("Error: No evals found in manifest.yaml", err=True)
+        sys.exit(1)
+
+    # Load evaluation results
+    results = load_eval_results(evals_dir, eval_ids)
+    if not results:
+        click.echo("No evaluation results found. Run extraction and verification first:")
+        click.echo("  python3 -m agents extract-all")
+        click.echo("  python3 -m verifier verify-all --save")
+        sys.exit(1)
+
+    # Aggregate failure analysis
+    from .critic import format_analysis_for_critic
+    analysis = aggregate_failure_analysis(results)
+
+    # Print formatted analysis
+    print(format_analysis_for_critic(analysis))
+
+    # List available instruction files
+    print("\n## Available Instruction Files\n")
+    for f in sorted(instructions_dir.rglob("*.md")):
+        print(f"- {f.relative_to(project_root)}")
+
+
+@cli.command()
+@click.argument(
+    "json_file",
+    type=click.Path(exists=True, dir_okay=False, path_type=Path)
+)
+@click.option(
+    "--evals-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True, path_type=Path),
+    default=Path("evals"),
+    help="Directory containing evaluation cases"
+)
+@click.option(
+    "--no-commit",
+    is_flag=True,
+    help="Skip git commit"
+)
+def apply(json_file: Path, evals_dir: Path, no_commit: bool):
+    """
+    Apply a proposal from JSON file.
+
+    JSON_FILE is a path to a JSON file containing a proposal
+    (see .claude/instructions/critic/proposal-format.md for schema).
+    """
+    project_root = evals_dir.parent
+
+    # Read and parse proposal
+    json_str = json_file.read_text()
+    proposal = parse_proposal(json_str)
+
+    if not proposal:
+        click.echo("Could not parse proposal JSON", err=True)
+        sys.exit(1)
+
+    # Apply the proposal
+    try:
+        old_ver, new_ver = apply_proposal(proposal, project_root, [])
+        click.echo(f"Applied: v{old_ver} -> v{new_ver}")
+        click.echo(f"  File: {proposal.target_file}")
+    except FileNotFoundError as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+
+    # Optionally commit
+    if not no_commit:
+        import subprocess
+        try:
+            # Stage the modified file
+            subprocess.run(
+                ["git", "add", proposal.target_file],
+                cwd=project_root,
+                check=True
+            )
+
+            # Build commit message
+            commit_msg = f"""feat(instructions): {proposal.change_type} in {Path(proposal.target_file).parent.name}
+
+{proposal.hypothesis.split('.')[0] if proposal.hypothesis else 'Improve extraction accuracy'}
+
+Version: v{old_ver} -> v{new_ver}
+Change type: {proposal.change_type}
+Affected domains: {', '.join(proposal.affected_domains)}
+"""
+            subprocess.run(
+                ["git", "commit", "-m", commit_msg],
+                cwd=project_root,
+                check=True
+            )
+            click.echo("  Committed successfully")
+        except subprocess.CalledProcessError:
+            click.echo("  Commit failed (may need manual commit)", err=True)
+
+
+@cli.command()
 @click.argument("iteration", type=int)
 @click.option(
     "--evals-dir",
