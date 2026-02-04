@@ -7,10 +7,72 @@ from typing import Optional
 import click
 import yaml
 
-from .compare import compare_fields, flatten_dict, load_field_mapping
+from .compare import compare_fields, compare_all_fields, flatten_dict, load_field_mapping
 from .metrics import compute_field_level_metrics, compute_aggregate_metrics
 from .report import EvalReport, generate_html_report
 from .persistence import EvalStore, save_evaluation, get_next_iteration
+
+
+def parse_value(value_str: str):
+    """Parse a string value to appropriate Python type."""
+    value_str = value_str.strip().strip('"')
+
+    # Handle empty values
+    if not value_str or value_str == ' ':
+        return None
+
+    # Handle boolean values
+    if value_str.lower() in ('yes', 'true'):
+        return True
+    if value_str.lower() in ('no', 'false'):
+        return False
+
+    # Try to convert to number
+    try:
+        if '.' in value_str:
+            return float(value_str)
+        else:
+            return int(value_str)
+    except (ValueError, TypeError):
+        return value_str
+
+
+def set_nested_value_with_arrays(result: dict, json_path: str, value):
+    """Set value in nested dict, handling array notation like zones[0].name."""
+    import re
+
+    # Split path and handle array indices
+    parts = []
+    for part in json_path.split('.'):
+        # Check for array notation like zones[0]
+        match = re.match(r'(\w+)\[(\d+)\]', part)
+        if match:
+            parts.append(('array', match.group(1), int(match.group(2))))
+        else:
+            parts.append(('key', part, None))
+
+    d = result
+    for i, (ptype, key, idx) in enumerate(parts[:-1]):
+        if ptype == 'array':
+            if key not in d:
+                d[key] = []
+            # Extend list if needed
+            while len(d[key]) <= idx:
+                d[key].append({})
+            d = d[key][idx]
+        else:
+            d = d.setdefault(key, {})
+
+    # Set final value
+    final_type, final_key, final_idx = parts[-1]
+    if final_type == 'array':
+        if final_key not in d:
+            d[final_key] = []
+        while len(d[final_key]) <= final_idx:
+            d[final_key].append({})
+        d[final_key][final_idx] = value
+    else:
+        d[final_key] = value
 
 
 def load_ground_truth_csv(csv_path: Path, mapping: dict) -> dict:
@@ -22,45 +84,81 @@ def load_ground_truth_csv(csv_path: Path, mapping: dict) -> dict:
     - Field names in column B (after comma)
     - Values in column C
     - Units in column D (optional)
+    - Array sections have header rows with column names, then data rows
 
     Lines have variable column counts, so we use Python's csv module
     with flexible handling.
     """
     result = {}
     csv_to_json = mapping.get('csv_to_json', {})
+    array_mappings = mapping.get('array_mappings', {})
+
+    # Build reverse lookup: section name -> (json_key, field_mapping)
+    section_to_config = {}
+    for json_key, config in array_mappings.items():
+        section_name = config.get('csv_section', '')
+        if section_name:
+            section_to_config[section_name] = (json_key, config.get('fields', {}))
 
     with open(csv_path, 'r', encoding='utf-8') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            # Skip rows with fewer than 3 columns
-            if len(row) < 3:
+        rows = list(csv.reader(f))
+
+    current_section = None
+    current_headers = []
+    current_json_key = None
+    current_field_mapping = {}
+
+    for row in rows:
+        # Skip empty rows
+        if not row or all(not cell.strip() for cell in row):
+            current_section = None
+            current_headers = []
+            continue
+
+        # Check for array section header (format: ,Section Name:, col1, col2, ...)
+        if len(row) >= 3 and row[1].strip().endswith(':'):
+            section_name = row[1].strip()
+            if section_name in section_to_config:
+                current_section = section_name
+                current_json_key, current_field_mapping = section_to_config[section_name]
+                # Headers are in columns 2+ (after the empty col 0 and section name col 1)
+                current_headers = [h.strip() for h in row[2:]]
+                # Initialize the array in result
+                if current_json_key not in result:
+                    result[current_json_key] = []
                 continue
 
-            # Field name is in column 1 (index 1), value in column 2 (index 2)
+        # Check for array data row (format: ,,value1, value2, ...)
+        if current_section and len(row) >= 3 and not row[0].strip() and not row[1].strip() and row[2].strip():
+            # This is a data row for the current array section
+            values = row[2:]
+            item = {}
+            for i, header in enumerate(current_headers):
+                if i < len(values) and values[i].strip():
+                    # Map CSV header to JSON field name
+                    json_field = current_field_mapping.get(header, header.lower().replace(' ', '_').replace('(', '').replace(')', ''))
+                    parsed = parse_value(values[i])
+                    if parsed is not None:
+                        item[json_field] = parsed
+            if item:
+                result[current_json_key].append(item)
+            continue
+
+        # Regular key-value field (format: anything, field_name, value, ...)
+        if len(row) >= 3:
             field_name = row[1].strip() if row[1] else None
             value = row[2].strip() if row[2] else None
 
             if field_name and field_name in csv_to_json and value:
                 json_path = csv_to_json[field_name]
+                parsed_value = parse_value(value)
 
-                # Parse value to appropriate type
-                value_str = value.strip().strip('"')
+                # Skip None values
+                if parsed_value is None:
+                    continue
 
-                # Try to convert to number
-                try:
-                    if '.' in value_str:
-                        parsed_value = float(value_str)
-                    else:
-                        parsed_value = int(value_str)
-                except (ValueError, TypeError):
-                    parsed_value = value_str
-
-                # Set in result dict using path
-                keys = json_path.split('.')
-                d = result
-                for key in keys[:-1]:
-                    d = d.setdefault(key, {})
-                d[keys[-1]] = parsed_value
+                # Set in result dict using path (handles arrays)
+                set_nested_value_with_arrays(result, json_path, parsed_value)
 
     return result
 
@@ -117,6 +215,7 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
 
     # Compare
     discrepancies = compare_fields(ground_truth, extracted, mapping)
+    all_field_comparisons = compare_all_fields(ground_truth, extracted, mapping)
 
     # Flatten for counting
     gt_flat = flatten_dict(ground_truth)
@@ -189,6 +288,18 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
             for d in discrepancies
         ]
 
+        # Prepare all field comparisons for full diff view
+        all_fields_dicts = [
+            {
+                'field_path': f.field_path,
+                'expected': f.expected,
+                'actual': f.actual,
+                'matches': f.matches,
+                'error_type': f.error_type
+            }
+            for f in all_field_comparisons
+        ]
+
         # Generate HTML report
         report = EvalReport(
             eval_id=eval_id,
@@ -196,6 +307,7 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
             discrepancies=discrepancy_dicts,
             iteration=iteration,
             history=history,
+            all_fields=all_fields_dicts,
         )
         html_content = report.render_html()
 
@@ -298,6 +410,7 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
         extracted = load_extracted_json(extracted_path)
 
         discrepancies = compare_fields(ground_truth, extracted, mapping)
+        all_field_comparisons = compare_all_fields(ground_truth, extracted, mapping)
         gt_flat = flatten_dict(ground_truth)
         ext_flat = flatten_dict(extracted)
 
@@ -320,6 +433,16 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
                     'error_type': d.error_type
                 }
                 for d in discrepancies
+            ],
+            'all_fields': [
+                {
+                    'field_path': f.field_path,
+                    'expected': f.expected,
+                    'actual': f.actual,
+                    'matches': f.matches,
+                    'error_type': f.error_type
+                }
+                for f in all_field_comparisons
             ],
             'extracted_data': extracted,
         }
@@ -371,6 +494,7 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
                 discrepancies=eval_data['discrepancies'],
                 iteration=iteration,
                 history=history,
+                all_fields=eval_data.get('all_fields'),
             )
             html_content = report.render_html()
 

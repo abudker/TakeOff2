@@ -109,6 +109,94 @@ def values_match(expected: Any, actual: Any, field_path: str, tolerances: Dict, 
     return expected == actual
 
 
+@dataclass
+class FieldComparison:
+    """Represents a single field comparison (match or mismatch)."""
+    field_path: str
+    expected: Any
+    actual: Any
+    matches: bool
+    error_type: Optional[str] = None  # omission, hallucination, format_error, wrong_value
+
+
+def compare_all_fields(
+    ground_truth: Dict[str, Any],
+    extracted: Dict[str, Any],
+    mapping: Optional[Dict] = None
+) -> List[FieldComparison]:
+    """
+    Compare all fields between extracted data and ground truth.
+
+    Returns all comparisons, including matches.
+    """
+    if mapping is None:
+        mapping = load_field_mapping()
+
+    tolerances = mapping.get("tolerances", {"default": {"percent": 0.5, "absolute": 0.01}})
+    tolerance_categories = mapping.get("tolerance_categories", {})
+    comparisons = []
+
+    gt_flat = flatten_dict(ground_truth)
+    ext_flat = flatten_dict(extracted)
+
+    # All paths from both sides
+    all_paths = set(gt_flat.keys()) | set(ext_flat.keys())
+
+    for path in sorted(all_paths):
+        expected = gt_flat.get(path)
+        actual = ext_flat.get(path)
+
+        if expected is None:
+            # Hallucination - in extracted but not in ground truth
+            comparisons.append(FieldComparison(
+                field_path=path,
+                expected=None,
+                actual=actual,
+                matches=False,
+                error_type="hallucination"
+            ))
+        elif actual is None:
+            # Omission - in ground truth but not in extracted
+            comparisons.append(FieldComparison(
+                field_path=path,
+                expected=expected,
+                actual=None,
+                matches=False,
+                error_type="omission"
+            ))
+        elif values_match(expected, actual, path, tolerances, tolerance_categories):
+            # Match
+            comparisons.append(FieldComparison(
+                field_path=path,
+                expected=expected,
+                actual=actual,
+                matches=True,
+                error_type=None
+            ))
+        else:
+            # Mismatch - determine error type
+            expected_type = type(expected)
+            actual_type = type(actual)
+            numeric_types = (int, float)
+
+            if isinstance(expected, numeric_types) and isinstance(actual, numeric_types):
+                error_type = "wrong_value"
+            elif expected_type != actual_type:
+                error_type = "format_error"
+            else:
+                error_type = "wrong_value"
+
+            comparisons.append(FieldComparison(
+                field_path=path,
+                expected=expected,
+                actual=actual,
+                matches=False,
+                error_type=error_type
+            ))
+
+    return comparisons
+
+
 def compare_fields(
     ground_truth: Dict[str, Any],
     extracted: Dict[str, Any],

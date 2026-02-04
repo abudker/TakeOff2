@@ -20,6 +20,7 @@ class EvalReport:
     iteration: Optional[int] = None
     history: Optional[List[Dict[str, Any]]] = None
     timestamp: Optional[str] = None
+    all_fields: Optional[List[Dict[str, Any]]] = None
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -34,6 +35,7 @@ class EvalReport:
             "iteration": self.iteration,
             "history": self.history,
             "timestamp": self.timestamp,
+            "all_fields": self.all_fields,
         }
 
     def render_html(self, template_dir: Optional[Path] = None) -> str:
@@ -83,6 +85,7 @@ def generate_html_report(
     output_path: Path,
     iteration: Optional[int] = None,
     history: Optional[List[Dict[str, Any]]] = None,
+    all_fields: Optional[List[Dict[str, Any]]] = None,
 ) -> Path:
     """
     Convenience function to generate and save an HTML report.
@@ -94,6 +97,7 @@ def generate_html_report(
         output_path: Path to save the HTML file
         iteration: Optional iteration number
         history: Optional list of historical metrics for trend display
+        all_fields: Optional list of all field comparisons (matches and mismatches)
 
     Returns:
         Path to saved HTML file
@@ -104,5 +108,6 @@ def generate_html_report(
         discrepancies=discrepancies,
         iteration=iteration,
         history=history,
+        all_fields=all_fields,
     )
     return report.save_html(output_path)

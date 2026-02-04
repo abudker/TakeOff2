@@ -315,18 +315,27 @@ def run_extraction(eval_name: str, eval_dir: Path) -> dict:
     logger.info(f"Starting extraction for {eval_name}")
 
     try:
-        # Find PDF in eval directory
-        pdf_files = list(eval_dir.glob("*.pdf"))
-        if not pdf_files:
-            raise FileNotFoundError(f"No PDF found in {eval_dir}")
-        pdf_path = pdf_files[0]
+        # Find preprocessed images - look for any preprocessed subdirectory with page images
+        preprocessed_base = eval_dir / "preprocessed"
+        if not preprocessed_base.exists():
+            raise FileNotFoundError(f"Preprocessed directory not found: {preprocessed_base}")
 
-        # Find preprocessed images
-        pdf_stem = pdf_path.stem
-        preprocessed_dir = eval_dir / "preprocessed" / pdf_stem
+        # Find first subdirectory with page images
+        preprocessed_dir = None
+        pdf_path = None
+        for subdir in preprocessed_base.iterdir():
+            if subdir.is_dir() and list(subdir.glob("page-*.png")):
+                preprocessed_dir = subdir
+                # Find matching PDF
+                pdf_path = eval_dir / f"{subdir.name}.pdf"
+                if not pdf_path.exists():
+                    # Try to find any PDF
+                    pdf_files = list(eval_dir.glob("*.pdf"))
+                    pdf_path = pdf_files[0] if pdf_files else None
+                break
 
-        if not preprocessed_dir.exists():
-            raise FileNotFoundError(f"Preprocessed directory not found: {preprocessed_dir}")
+        if not preprocessed_dir:
+            raise FileNotFoundError(f"No preprocessed images found in {preprocessed_base}")
 
         # Get all page images
         page_images = sorted(preprocessed_dir.glob("page-*.png"))

@@ -6,46 +6,205 @@
 # - Field names in column B, values in column C, units in column D
 
 csv_to_json:
+  # ============================================================================
   # Project fields
+  # ============================================================================
+  "Run ID": "project.run_id"
   "Run Title": "project.run_title"
+  "Run Number": "project.run_number"
+  "Run Scope": "project.run_scope"
   "Address": "project.address"
   "City": "project.city"
   "Climate Zone": "project.climate_zone"
+  "Standards Version": "project.standards_version"
+  "All Orientations": "project.all_orientations"
   "Fuel Type": "project.fuel_type"
   "House Type": "project.house_type"
   "Dwelling Units": "project.dwelling_units"
   "Stories": "project.stories"
   "Bedrooms": "project.bedrooms"
+  "Attached Garage": "project.attached_garage"
+  "Front Orientation": "project.front_orientation"
 
-  # Envelope fields
+  # ============================================================================
+  # Envelope aggregate fields
+  # ============================================================================
   "Conditioned Floor Area": "envelope.conditioned_floor_area"
   "Total Conditioned Zone Window Area": "envelope.window_area"
   "Window to Floor Area Ratio": "envelope.window_to_floor_ratio"
-  "Exterior Wall Area": "envelope.exterior_wall_area"
   "Area-Weighted Fenestration Ufactor": "envelope.fenestration_u_factor"
+  "Exterior Wall Area": "envelope.exterior_wall_area"
+  "Underground Wall Area": "envelope.underground_wall_area"
+  "Conditioned Zone Slab Floor Area": "envelope.slab_floor_area"
+  "Exposed Slab Floor Area": "envelope.exposed_slab_floor_area"
+  "Conditioned Zone Below Grade Floor Area": "envelope.below_grade_floor_area"
+  "Exposed Below Grade Floor Area": "envelope.exposed_below_grade_floor_area"
+  "Addition Conditioned Floor Area": "envelope.addition_conditioned_floor_area"
+  "PV Credit Available": "envelope.pv_credit_available"
+  "PV Generation - Maximum Credit": "envelope.pv_generation_max_credit"
+  "Credit Available for PV": "envelope.credit_available_for_pv"
+  "Final PV Credit": "envelope.final_pv_credit"
+  "Zonal Control": "envelope.zonal_control"
+  "Envelope Infiltration (ACH @ 50 Pa)": "envelope.infiltration_ach50"
+  "Envelope Infiltration (CFM @ 50 Pa)": "envelope.infiltration_cfm50"
+  "Quality Insulation Installation": "envelope.quality_insulation_installation"
 
+  # ============================================================================
+  # Zone fields (single zone for simple buildings)
+  # ============================================================================
+  "Zone Name": "zones[0].name"
+  "Zone Type": "zones[0].zone_type"
+  "Zone Status": "zones[0].status"
+  "Zone Floor Area": "zones[0].floor_area"
+  "Zone Ceiling Height": "zones[0].ceiling_height"
+  "Zone Stories": "zones[0].stories"
+  "Zone Volume": "zones[0].volume"
+  "Zone Exterior Wall Area": "zones[0].exterior_wall_area"
+  "Zone Exterior Wall Door Area": "zones[0].exterior_wall_door_area"
+  "Zone Ceiling Below Attic Area": "zones[0].ceiling_below_attic_area"
+  "Zone Cathedral Ceiling Area": "zones[0].cathedral_ceiling_area"
+  "Zone Slab Floor Area": "zones[0].slab_floor_area"
+  "Zone Exterior Floor Area": "zones[0].exterior_floor_area"
+
+# ============================================================================
+# Array field mappings (for walls, windows, etc.)
+# These are handled specially by the comparison logic
+# ============================================================================
+array_mappings:
+  walls:
+    csv_section: "Exterior Walls:"
+    fields:
+      "Name": "name"
+      "Zone": "zone"
+      "Status": "status"
+      "Type": "construction_type"
+      "Orientation (deg)": "orientation"
+      "Area (ft2)": "area"
+      "Window Area (ft2)": "window_area"
+      "Door Area (ft2)": "door_area"
+      "Tilt (deg)": "tilt"
+      "Framing Factor": "framing_factor"
+
+  windows:
+    csv_section: "Windows:"
+    fields:
+      "Name": "name"
+      "Wall": "wall"
+      "Status": "status"
+      "Azimuth (deg)": "azimuth"
+      "Height (ft)": "height"
+      "Width (ft)": "width"
+      "Multiplier": "multiplier"
+      "Area (ft2)": "area"
+      "U-factor": "u_factor"
+      "SHGC": "shgc"
+      "Ext. Shade": "exterior_shade"
+
+  wall_constructions:
+    csv_section: "Ext. Wall Constructions:"
+    fields:
+      "Name": "name"
+      "Type": "construction_type"
+      "Total Cavity Rvalue": "cavity_r_value"
+      "Total Thickness": "total_thickness"
+      "Winter Design Uvalue": "winter_design_u_value"
+
+  ceilings:
+    csv_section: "Cathedral Ceilings:"
+    fields:
+      "Name": "name"
+      "Zone": "zone"
+      "Status": "status"
+      "Type": "construction_type"
+      "Orientation": "orientation"
+      "Area (ft2)": "area"
+      "Roof Rise (x in 12)": "roof_rise"
+      "Roof Pitch": "roof_pitch"
+      "Roof Tilt (deg)": "roof_tilt"
+      "Roof Reflectance": "roof_reflectance"
+      "Roof Emittance": "roof_emittance"
+      "Framing Factor": "framing_factor"
+
+  ceiling_constructions:
+    csv_section: "Cathedral Ceiling Constructions:"
+    fields:
+      "Name": "name"
+      "Type": "construction_type"
+      "Total Cavity Rvalue": "cavity_r_value"
+      "Total Thickness": "total_thickness"
+      "Winter Design Uvalue": "winter_design_u_value"
+
+  slab_floors:
+    csv_section: "Slab Floors:"
+    fields:
+      "Name": "name"
+      "Zone": "zone"
+      "Status": "status"
+      "Area (ft2)": "area"
+      "Perimeter (ft)": "perimeter"
+      "Edge Insul. Rvalue": "edge_insulation_r_value"
+      "Carpeted Fraction": "carpeted_fraction"
+      "Heated": "heated"
+
+# ============================================================================
 # Field types for comparison logic
-# Determines how values are compared (exact match vs. tolerance)
+# ============================================================================
 field_types:
   numeric:
     - "project.climate_zone"
+    - "project.run_number"
     - "project.dwelling_units"
     - "project.stories"
     - "project.bedrooms"
+    - "project.front_orientation"
     - "envelope.conditioned_floor_area"
     - "envelope.window_area"
     - "envelope.window_to_floor_ratio"
-    - "envelope.exterior_wall_area"
     - "envelope.fenestration_u_factor"
+    - "envelope.exterior_wall_area"
+    - "envelope.underground_wall_area"
+    - "envelope.slab_floor_area"
+    - "envelope.exposed_slab_floor_area"
+    - "envelope.below_grade_floor_area"
+    - "envelope.exposed_below_grade_floor_area"
+    - "envelope.addition_conditioned_floor_area"
+    - "envelope.pv_generation_max_credit"
+    - "envelope.credit_available_for_pv"
+    - "envelope.final_pv_credit"
+    - "envelope.infiltration_ach50"
+    - "envelope.infiltration_cfm50"
+    - "zones[*].floor_area"
+    - "zones[*].ceiling_height"
+    - "zones[*].stories"
+    - "zones[*].volume"
+    - "zones[*].exterior_wall_area"
+    - "zones[*].exterior_wall_door_area"
+    - "zones[*].ceiling_below_attic_area"
+    - "zones[*].cathedral_ceiling_area"
+    - "zones[*].slab_floor_area"
+    - "zones[*].exterior_floor_area"
   string:
+    - "project.run_id"
     - "project.run_title"
+    - "project.run_scope"
     - "project.address"
     - "project.city"
+    - "project.standards_version"
     - "project.fuel_type"
     - "project.house_type"
+    - "zones[*].name"
+    - "zones[*].zone_type"
+    - "zones[*].status"
+  boolean:
+    - "project.all_orientations"
+    - "project.attached_garage"
+    - "envelope.pv_credit_available"
+    - "envelope.zonal_control"
+    - "envelope.quality_insulation_installation"
 
+# ============================================================================
 # Tolerance settings for numeric comparisons
-# Applied based on field characteristics
+# ============================================================================
 tolerances:
   default:
     percent: 0.5  # +/-0.5% of expected value
@@ -56,18 +215,45 @@ tolerances:
   ratio:
     percent: 0.5
     absolute: 0.001  # For ratios like WWR
+  angle:
+    percent: 1.0
+    absolute: 1.0  # +/-1 degree
+  efficiency:
+    percent: 1.0
+    absolute: 0.01
 
+# ============================================================================
 # Field categories for tolerance selection
-# Fields matching these patterns use the corresponding tolerance
+# ============================================================================
 tolerance_categories:
   area:
     - "conditioned_floor_area"
     - "window_area"
     - "exterior_wall_area"
+    - "underground_wall_area"
+    - "slab_floor_area"
     - "floor_area"
     - "volume"
+    - "door_area"
+    - "ceiling_area"
+    - "attic_area"
   ratio:
     - "window_to_floor_ratio"
     - "r_value"
     - "u_factor"
     - "shgc"
+    - "framing_factor"
+    - "carpeted_fraction"
+    - "reflectance"
+    - "emittance"
+  angle:
+    - "orientation"
+    - "azimuth"
+    - "tilt"
+    - "pitch"
+    - "front_orientation"
+  efficiency:
+    - "energy_factor"
+    - "hspf"
+    - "seer"
+    - "eer"
