@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Document Processing** - PDF preprocessing pipeline
 - [x] **Phase 3: Single-Domain Extraction** - Discovery + first extractor + orchestrator foundation
 - [x] **Phase 4: Multi-Domain Extraction** - Complete extraction system
-- [ ] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
+- [x] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
 - [ ] **Phase 6: Automated Improvement Loop** - Full automation + iteration management
 
 ## Phase Details
@@ -100,13 +100,12 @@ Plans:
   3. Proposals include clear rationale and expected impact
   4. User can manually apply a proposal, re-run extraction/eval, and measure improvement
   5. At least one iteration demonstrates measurable F1 improvement
-**Plans**: 4 plans in 4 waves
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 05-01-PLAN.md — Critic agent and failure analysis foundation
-- [ ] 05-02-PLAN.md — Interactive review and proposal application
-- [ ] 05-03-PLAN.md — CLI integration and iteration tracking
-- [ ] 05-04-PLAN.md — End-to-end verification (checkpoint)
+- [x] 05-01-PLAN.md — Critic agent and failure analysis foundation
+- [x] 05-02-PLAN.md — Interactive review and proposal application
+- [x] 05-03-PLAN.md — CLI integration and iteration tracking
 
 ### Phase 6: Automated Improvement Loop
 **Goal**: Full automation of improvement loop to reach 0.90 F1 target
@@ -120,13 +119,12 @@ Plans:
   5. Loop detects plateau (no improvement for K iterations) and stops early
   6. User can resume loop from any previous iteration
   7. System achieves 0.90 F1 across all 5 evals
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
-- [ ] 06-04: TBD
+- [ ] 06-01-PLAN.md — Loop controller and iteration history modules
+- [ ] 06-02-PLAN.md — CLI commands (loop, history)
+- [ ] 06-03-PLAN.md — End-to-end verification (checkpoint)
 
 ## Progress
 
@@ -139,8 +137,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Document Processing | 1/1 | Complete | 2026-02-03 |
 | 3. Single-Domain Extraction | 4/4 | Complete | 2026-02-04 |
 | 4. Multi-Domain Extraction | 4/4 | Complete | 2026-02-04 |
-| 5. Manual Improvement Loop | 0/4 | Planned | - |
-| 6. Automated Improvement Loop | 0/TBD | Not started | - |
+| 5. Manual Improvement Loop | 3/3 | Complete | 2026-02-04 |
+| 6. Automated Improvement Loop | 0/3 | Planned | - |
 
 ---
-*Last updated: 2026-02-04 after Phase 5 planning*
+*Last updated: 2026-02-04 after Phase 6 planning*
