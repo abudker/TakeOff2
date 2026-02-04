@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 5 of 6 (Manual Improvement Loop)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-03 - Completed 05-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-04 - Completed 05-03-PLAN.md
 
-Progress: [████████░░] ~80%
+Progress: [████████░░] ~85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 3.3 min
-- Total execution time: 0.79 hours
+- Total plans completed: 15
+- Average duration: 3.2 min
+- Total execution time: 0.82 hours
 
 **By Phase:**
 
@@ -31,11 +31,11 @@ Progress: [████████░░] ~80%
 | 02-document-processing | 1 | 3 min | 3.0 min |
 | 03-single-domain-extraction | 4 | 13 min | 3.2 min |
 | 04-multi-domain-extraction | 4 | 17 min | 4.25 min |
-| 05-manual-improvement-loop | 2 | 7 min | 3.5 min |
+| 05-manual-improvement-loop | 3 | 9 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (3 min), 04-04 (2 min), 05-01 (5 min), 05-02 (2 min)
-- Trend: Phase 5 averaging 3.5 min/plan, trending down from 5.0
+- Last 5 plans: 04-04 (2 min), 05-01 (5 min), 05-02 (2 min), 05-03 (2 min)
+- Trend: Phase 5 complete at 3.0 min/plan average, improved from 3.5
 
 *Updated after each plan completion*
 
@@ -86,6 +86,10 @@ Recent decisions affecting current work:
 - Semantic versioning on instruction files (vX.Y.Z in header) (05-02)
 - Snapshots saved to iteration directories before modification (05-02)
 - Editor integration via $EDITOR environment variable (05-02)
+- CLI orchestrates via subprocess (python3 -m agents, python3 -m verifier) not direct imports (05-03)
+- Iteration number tracked globally (max across all evals + 1) (05-03)
+- Auto-commit with metrics delta in commit message (05-03)
+- Rollback by copying snapshots from iteration directories (05-03)
 
 ### Pending Todos
 
@@ -97,9 +101,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T22:12:22Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-02-04T05:23:42Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-02-03 after 05-02 execution*
+*Last updated: 2026-02-04 after 05-03 execution*
