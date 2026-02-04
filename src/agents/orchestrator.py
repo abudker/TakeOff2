@@ -245,6 +245,12 @@ def run_project_extraction(
     # Filter to relevant pages (schedule + cbecc pages)
     relevant_page_numbers = set(document_map.schedule_pages + document_map.cbecc_pages)
 
+    # Also include drawing pages for orientation info (site plan, floor plan)
+    # Drawing pages contain north arrow, front orientation, building layout
+    if document_map.drawing_pages:
+        drawing_subset = document_map.drawing_pages[:5]  # First 5 drawing pages
+        relevant_page_numbers = relevant_page_numbers.union(set(drawing_subset))
+
     if not relevant_page_numbers:
         raise ValueError("No schedule or CBECC pages found for extraction")
 
@@ -270,7 +276,7 @@ def run_project_extraction(
 Document structure (from discovery):
 {document_map_json}
 
-Relevant page image paths (schedule + CBECC pages):
+Relevant page image paths (schedule, CBECC, and drawing pages):
 {page_list}
 
 Read your instructions from:
@@ -324,7 +330,8 @@ Focus on accuracy. Use the field guide to find the correct values.
         logger.info(f"  Address: {project.address}, {project.city}")
         logger.info(f"  Climate zone: {project.climate_zone}")
         logger.info(f"  CFA: {envelope.conditioned_floor_area} sq ft")
-        logger.info(f"  WWR: {envelope.window_to_floor_ratio:.2%}")
+        wwr = f"{envelope.window_to_floor_ratio:.2%}" if envelope.window_to_floor_ratio else "N/A"
+        logger.info(f"  WWR: {wwr}")
 
         return {
             "project": project.model_dump(),

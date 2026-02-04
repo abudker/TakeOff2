@@ -17,43 +17,43 @@ You will receive:
 
 The DocumentMap identifies key page categories:
 - `schedule_pages`: Equipment schedules (water heater schedules)
-- `cbecc_pages`: CBECC-Res software output pages
-- `cf1r_pages`: CF1R compliance forms
-- `drawings`: Plumbing plans
+- `drawing_pages`: Plumbing plans
+- `other`: Cover pages, notes, specifications
+
+**NOTE:** CBECC-Res compliance forms are NOT typically included in architectural plan sets. The source documents are architectural PDFs (floor plans, schedules, title blocks). Do not expect to find CBECC pages.
 
 ### 2. Page Prioritization
 
 Focus extraction efforts on these page types (in order of reliability):
 
-1. **CBECC-Res DHW Section** (highest reliability)
-   - Standardized software output format
-   - Contains water heater type, fuel, efficiency (EF/UEF)
-   - Tank specifications and system configuration
-   - Look for "Water Heating" or "DHW" section headers
-
-2. **CF1R Water Heating Section** (high reliability)
-   - Official compliance forms with structured fields
-   - System type, fuel type, efficiency ratings
-   - Look for "CF1R-PLB" or water heating portion
-
-3. **Equipment Schedules** (medium reliability)
+1. **Equipment Schedules** (highest reliability)
    - Water Heater Schedule
    - Contains model numbers, capacities, efficiency ratings
    - May have manufacturer specifications
-   - Cross-reference with CBECC data
+   - Look for "Water Heater Schedule", "Plumbing Equipment Schedule"
 
-4. **Plumbing Plans** (supplementary)
+2. **Plumbing Plans** (high reliability)
    - Water heater location
    - Piping configuration
+   - Equipment callouts with specifications
    - Multiple water heater arrangements
+
+3. **Energy notes / Specifications** (medium reliability)
+   - UEF/EF efficiency ratings
+   - Tank specifications
+   - Compliance notes
+
+4. **Floor plans** (supplemental)
+   - Water heater location
+   - Utility room identification
 
 ### 3. Water Heater Identification
 
 Identify all water heaters in the document:
 
 1. **Look for water heater names:**
-   - CBECC uses names like "Water Heater 1", "WH-1", "DHW System"
-   - Equipment schedules may use "WH-01", "HPWH-1"
+   - Equipment schedules use names like "WH-1", "WH-01", "HPWH-1"
+   - Plumbing plans may show callouts with designations
    - Standardize to consistent naming
 
 2. **Identify water heater type:**

@@ -257,3 +257,34 @@ tolerance_categories:
     - "hspf"
     - "seer"
     - "eer"
+
+# ============================================================================
+# Non-extractable fields
+# These are CBECC-only outputs that cannot be extracted from architectural plans
+# The verifier will skip these fields during comparison
+# ============================================================================
+non_extractable_fields:
+  # CBECC metadata (software-generated)
+  - "project.run_id"
+  - "project.run_title"
+  - "project.run_number"
+  - "project.run_scope"
+  - "project.standards_version"
+  - "project.all_orientations"
+
+  # Test results (require physical testing)
+  - "envelope.infiltration_ach50"
+  - "envelope.infiltration_cfm50"
+
+  # Compliance calculations (CBECC computes these)
+  - "envelope.pv_credit_available"
+  - "envelope.pv_generation_max_credit"
+  - "envelope.credit_available_for_pv"
+  - "envelope.final_pv_credit"
+
+  # Software classifications
+  - "envelope.zonal_control"
+  - "envelope.quality_insulation_installation"
+
+  # Extraction metadata (internal, not in ground truth)
+  - "extraction_status.*"

@@ -1,7 +1,8 @@
 """Field-level comparison logic for extraction evaluation."""
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 from pathlib import Path
+import re
 import yaml
 
 
@@ -19,6 +20,34 @@ def load_field_mapping() -> Dict:
     mapping_path = Path(__file__).parent.parent / "schemas" / "field_mapping.yaml"
     with open(mapping_path) as f:
         return yaml.safe_load(f)
+
+
+def is_non_extractable(field_path: str, exclusion_set: Set[str]) -> bool:
+    """Check if a field path should be excluded from comparison.
+
+    Args:
+        field_path: The dot-separated field path (e.g., "project.run_id" or "zones[0].name")
+        exclusion_set: Set of field paths to exclude
+
+    Returns:
+        True if the field should be excluded from comparison
+    """
+    if field_path in exclusion_set:
+        return True
+
+    # Handle array notation (zones[0].name matches zones[*].name)
+    normalized = re.sub(r'\[\d+\]', '[*]', field_path)
+    if normalized in exclusion_set:
+        return True
+
+    # Handle prefix wildcards (extraction_status.* matches extraction_status.project.domain)
+    for pattern in exclusion_set:
+        if pattern.endswith('.*'):
+            prefix = pattern[:-2]  # Remove .*
+            if field_path.startswith(prefix + '.'):
+                return True
+
+    return False
 
 
 def get_nested_value(data: Dict, path: str) -> Any:
@@ -134,6 +163,7 @@ def compare_all_fields(
 
     tolerances = mapping.get("tolerances", {"default": {"percent": 0.5, "absolute": 0.01}})
     tolerance_categories = mapping.get("tolerance_categories", {})
+    non_extractable = set(mapping.get("non_extractable_fields", []))
     comparisons = []
 
     gt_flat = flatten_dict(ground_truth)
@@ -143,6 +173,10 @@ def compare_all_fields(
     all_paths = set(gt_flat.keys()) | set(ext_flat.keys())
 
     for path in sorted(all_paths):
+        # Skip non-extractable fields (CBECC-only)
+        if is_non_extractable(path, non_extractable):
+            continue
+
         expected = gt_flat.get(path)
         actual = ext_flat.get(path)
 
@@ -218,6 +252,7 @@ def compare_fields(
 
     tolerances = mapping.get("tolerances", {"default": {"percent": 0.5, "absolute": 0.01}})
     tolerance_categories = mapping.get("tolerance_categories", {})
+    non_extractable = set(mapping.get("non_extractable_fields", []))
     discrepancies = []
 
     gt_flat = flatten_dict(ground_truth)
@@ -225,6 +260,10 @@ def compare_fields(
 
     # Check each ground truth field
     for gt_path, expected_value in gt_flat.items():
+        # Skip non-extractable fields (CBECC-only)
+        if is_non_extractable(gt_path, non_extractable):
+            continue
+
         actual_value = ext_flat.get(gt_path)
 
         if actual_value is None:
@@ -257,6 +296,10 @@ def compare_fields(
 
     # Check for hallucinated fields (in extracted but not in ground truth)
     for ext_path, actual_value in ext_flat.items():
+        # Skip non-extractable fields (CBECC-only)
+        if is_non_extractable(ext_path, non_extractable):
+            continue
+
         if ext_path not in gt_flat:
             discrepancies.append(FieldDiscrepancy(
                 field_path=ext_path,

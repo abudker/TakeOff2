@@ -31,8 +31,10 @@ You will receive:
 
 The DocumentMap identifies key page categories:
 - `schedule_pages`: Pages containing window schedules (primary source)
-- `cbecc_pages`: CBECC-Res fenestration sections
-- `drawing_pages`: Floor plans with window callouts
+- `drawing_pages`: Floor plans with window callouts, elevations
+- `other`: Cover pages, notes, specifications
+
+**NOTE:** CBECC-Res compliance forms are NOT typically included in architectural plan sets. The source documents are architectural PDFs (floor plans, schedules, title blocks). Do not expect to find CBECC pages.
 
 ### 2. Page Prioritization
 
@@ -44,22 +46,21 @@ Focus extraction efforts on these page types (in order of reliability):
    - May show area per window and totals
    - Look for "Window Schedule", "Fenestration Schedule", "Glazing Schedule"
 
-2. **CBECC-Res fenestration pages** (high reliability)
-   - Standardized software output
-   - Lists fenestration components with performance values
-   - May show per-wall window areas
-   - Look for "Fenestration", "Windows", "Glazing" sections
-
-3. **Floor plans** (medium reliability)
+2. **Floor plans** (high reliability for location/orientation)
    - Window locations with callouts (W1, W2, etc.)
    - Window marks referencing schedule
    - Orientation context from building layout
    - North arrow for azimuth reference
 
-4. **Elevations** (supplemental)
+3. **Elevations** (medium reliability)
    - Window sizes visible
    - Window placement confirmation
    - Orientation by elevation direction (North Elev, South Elev)
+
+4. **Energy notes / Specifications** (supplemental)
+   - U-factor and SHGC values
+   - Product specifications
+   - Compliance notes
 
 ### 3. Window Identification Strategy
 
@@ -112,23 +113,32 @@ Focus extraction efforts on these page types (in order of reliability):
 
 ### 5. Assigning Windows to Wall Orientations
 
-**Step 1: Determine orientation from CBECC or schedule**
-- CBECC shows "Parent: North Wall" or azimuth value
-- Schedule may show "Location: N" or wall reference
-- Use azimuth to determine cardinal direction:
-  - 315-360° or 0-45° → `north`
-  - 45-135° → `east`
-  - 135-225° → `south`
-  - 225-315° → `west`
+**Step 1: Determine wall assignment from schedule or floor plan**
+- Schedule may show "Location: N Wall" or "Wall: North"
+- Floor plan shows window position on which exterior wall
+- Match window to the wall it's physically located on
 
-**Step 2: Place in correct orientation slot**
-- Add window to `house_walls.{orientation}.fenestration[]`
-- Example: Window with azimuth 180° → `house_walls.south.fenestration[]`
+**Step 2: Calculate ACTUAL window azimuth for rotated buildings**
+If the building has a front_orientation (e.g., 73° for NE-facing):
+- Window azimuth = wall azimuth (from zones-extractor)
+- **Do NOT use cardinal azimuths (0, 90, 180, 270) for rotated buildings**
+- Example: Front = 73°
+  - North wall windows → azimuth = 343° (73 - 90, wrapped)
+  - East wall windows → azimuth = 73°
+  - South wall windows → azimuth = 163° (73 + 90)
+  - West wall windows → azimuth = 253° (73 + 180)
 
-**Step 3: Handle ambiguous assignments**
+**Step 3: Place in correct orientation slot**
+- Use cardinal direction as JSON key: `house_walls.{north|east|south|west}.fenestration[]`
+- But set `azimuth` to the ACTUAL value (not cardinal)
+- Example: Window on "North Wall" with building front at 73° →
+  - Key: `house_walls.north.fenestration[]`
+  - Azimuth: 343° (actual orientation)
+
+**Step 4: Handle ambiguous assignments**
 If orientation is unclear:
-- Check floor plan for window locations
-- Use CBECC wall parent references
+- Check floor plan for window locations relative to building perimeter
+- Use elevation drawings to confirm wall orientation
 - Add an uncertainty flag with severity "medium"
 
 **Important:** The orchestrator merges fenestration into walls from zones-extractor. Your output should only include `house_walls.{orientation}.fenestration[]` arrays.

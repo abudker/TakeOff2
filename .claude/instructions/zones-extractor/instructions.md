@@ -30,42 +30,45 @@ You will receive:
 - **DocumentMap JSON:** Document structure analysis from discovery phase
 
 The DocumentMap identifies key page categories:
-- `cbecc_pages`: CBECC-Res software output pages (primary source)
 - `schedule_pages`: Pages containing building component schedules
 - `drawing_pages`: Floor plans, elevations, sections
+- `other`: Cover pages, notes, specifications
+
+**NOTE:** CBECC-Res compliance forms are NOT typically included in architectural plan sets. The source documents are architectural PDFs (floor plans, schedules, title blocks). Do not expect to find CBECC pages.
 
 ### 2. Page Prioritization
 
 Focus extraction efforts on these page types (in order of reliability):
 
-1. **CBECC-Res pages** (highest reliability)
-   - Zone summary tables with area, volume, wall area totals
-   - Zone definition lists with type (conditioned/unconditioned)
-   - Wall component lists with construction types and orientations
-   - Look for "Zone" or "Conditioned Zone" sections
+1. **Floor plans** (highest reliability for zones)
+   - Zone names from room labels
+   - Area dimensions and callouts
+   - Wall orientations from building layout
+   - Window and door counts per wall
+   - North arrow for orientation
 
-2. **Schedule pages** (high reliability)
+2. **Schedule pages** (high reliability for construction)
    - Wall schedules listing construction assemblies
    - Room schedules with areas and heights
    - Assembly schedules with R-values and U-factors
-   - Cross-reference with CBECC totals
+   - Door schedules for opaque door areas
 
-3. **Floor plans** (medium reliability)
-   - Zone names from room labels
-   - Area dimensions for verification
-   - Wall orientations from building layout
-   - Window and door counts per wall
-
-4. **Elevations/sections** (supplemental)
+3. **Elevations/sections** (medium reliability)
    - Ceiling heights verification
    - Wall heights for area calculation
    - Roof configurations for cathedral ceilings
 
+4. **Energy notes / General notes** (supplemental)
+   - Insulation specifications
+   - Construction type details
+   - R-values and assembly descriptions
+
 ### 3. Zone Identification Strategy
 
-**Step 1: Locate zone list**
-- CBECC pages typically have a "Zones" or "Conditioned Zones" section
-- Each zone listed with name, type, area, and associated components
+**Step 1: Identify conditioned spaces from floor plan**
+- Look for room labels (Living, Kitchen, Bedroom, Bathroom)
+- Identify conditioned vs unconditioned areas (garage, storage)
+- For simple buildings (ADUs), entire building may be one zone
 
 **Step 2: Extract zone names**
 - Standard naming: "Zone 1", "Living Zone", "Bedroom Zone"
@@ -78,10 +81,19 @@ Focus extraction efforts on these page types (in order of reliability):
 - **Plenum:** Return air plenums (rare in residential)
 
 **Step 4: Collect zone metrics**
-- Floor area from CBECC zone summary
-- Ceiling height from room schedules or CBECC
-- Volume (often calculated: area x height)
-- Wall area totals per zone
+- Floor area from floor plan area callouts or room schedule
+  - **DO NOT include overhangs or exterior projections**
+  - Use the CONDITIONED floor area (interior dimension)
+  - If stated as "320 SF" on plans, use 320 - do not recalculate
+- Ceiling height from section drawings (MANDATORY for accuracy):
+  - Look for "Level 1" to "B.O. Roof" or "Ceiling" dimension on sections
+  - ADU/small buildings typically have 8'-6" to 8'-8" ceilings (8.5 ft)
+  - May show as "8'-7 1/2"" (convert to decimal: 8.625 ft ≈ 8.5)
+  - For vaulted/cathedral ceilings, use average height
+  - **If sections show ~8'-6" to 8'-8", use 8.5 ft**
+  - Wall areas depend on ceiling height (area = perimeter x height)
+- Volume (calculated: area x height)
+- Wall area totals calculated from perimeter dimensions x ceiling height
 
 ### 4. Exterior Walls by Orientation - GROSS AREA ONLY
 
@@ -91,12 +103,12 @@ Focus extraction efforts on these page types (in order of reliability):
 Create entries for House - North, East, South, West based on true north.
 
 **Step 2: Locate wall definitions**
-- CBECC "Exterior Walls" or "Wall Components" section
+- Floor plan with north arrow and wall dimensions
 - Wall schedules on schedule pages
-- Each wall listed with orientation/azimuth and area
+- Calculate wall area from perimeter dimensions x wall height
 
 **Step 3: Group walls by cardinal orientation**
-CBECC often lists walls by azimuth. Group them into cardinal directions:
+Use floor plan orientation and north arrow. Group walls into cardinal directions:
 - **North (N):** Azimuth 315-360° or 0-45°
 - **East (E):** Azimuth 45-135°
 - **South (S):** Azimuth 135-225°
@@ -105,8 +117,8 @@ CBECC often lists walls by azimuth. Group them into cardinal directions:
 **Step 4: Extract wall properties per orientation**
 For each cardinal direction, extract:
 - `gross_wall_area`: Total thermal boundary wall area (sq ft) - **DO NOT DEDUCT OPENINGS**
-- `azimuth`: True azimuth in degrees (use midpoint if rotated)
-- `construction_type`: e.g., "R-21 2x6 Wood Frame"
+- `azimuth`: True azimuth in degrees (ACTUAL orientation, not cardinal - see Step 5)
+- `construction_type`: Use CBECC-style short form: "R-21 Wall" (not "R-21 2x6", "R-21 2x6 Wall", or "R-21 2x6 Wood Frame")
 - `framing_factor`: Framing fraction (default 0.25 if not specified)
 - `status`: New, Existing, or Altered
 - `fenestration`: Leave empty - windows-extractor will populate this
@@ -114,10 +126,19 @@ For each cardinal direction, extract:
 
 **Step 5: Handle rotated buildings**
 If the building is not aligned to cardinal directions:
-- Use the closest cardinal direction for each wall
-- Set azimuth to the actual value from CBECC
-- Example: Front = 45° (NE) → use "north" slot with azimuth = 45
-- Add FLAG: "Building rotated, walls grouped to nearest cardinal direction"
+- Use the closest cardinal direction for the JSON key (north/east/south/west)
+- **CRITICAL:** Set `azimuth` to the ACTUAL wall orientation, NOT cardinal
+- Calculate actual azimuth from front_orientation: wall_azimuth = front_orientation + offset
+  - North wall offset: -90° (or +270°)
+  - East wall offset: 0° (faces same direction as front)
+  - South wall offset: +90°
+  - West wall offset: +180°
+- Example: Front = 73° (NE facing)
+  - "north" slot → azimuth = 73 - 90 = 343° (wrapping)
+  - "east" slot → azimuth = 73°
+  - "south" slot → azimuth = 73 + 90 = 163°
+  - "west" slot → azimuth = 73 + 180 = 253°
+- Add FLAG: "Building rotated {X}° from true north"
 
 **Step 6: Validate against plans**
 If plans include opening-percentage or facade calculations:
@@ -127,8 +148,10 @@ If plans include opening-percentage or facade calculations:
 ### 5. Naming Conventions
 
 **Zone names (in thermal_boundary):**
-- Use exact names from CBECC when available
-- Common patterns: "Zone 1", "Conditioned Zone 1", "Living Zone"
+- **ADU projects:** Use "ADU" as the zone name (not "Zone 1")
+- **Single-family homes:** Use descriptive name from plans or "Living Zone"
+- **Multi-zone buildings:** Use room-based names like "Living Zone", "Bedroom Zone"
+- Derive zone name from project type on title block when possible
 - Keep consistent with other extractors for deduplication
 
 **Orientation keys (in house_walls):**
@@ -207,7 +230,7 @@ Return JSON matching this **orientation-based** structure:
     "north": {
       "gross_wall_area": 136.0,
       "azimuth": 0.0,
-      "construction_type": "R-21 2x6 Wood Frame",
+      "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
@@ -220,9 +243,9 @@ Return JSON matching this **orientation-based** structure:
       ]
     },
     "east": {
-      "gross_wall_area": 160.0,
+      "gross_wall_area": 170.0,
       "azimuth": 90.0,
-      "construction_type": "R-21 2x6 Wood Frame",
+      "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
@@ -231,16 +254,16 @@ Return JSON matching this **orientation-based** structure:
     "south": {
       "gross_wall_area": 136.0,
       "azimuth": 180.0,
-      "construction_type": "R-21 2x6 Wood Frame",
+      "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
       "opaque_doors": []
     },
     "west": {
-      "gross_wall_area": 180.0,
+      "gross_wall_area": 170.0,
       "azimuth": 270.0,
-      "construction_type": "R-21 2x6 Wood Frame",
+      "construction_type": "R-21 Wall",
       "framing_factor": 0.25,
       "status": "New",
       "fenestration": [],
@@ -250,10 +273,10 @@ Return JSON matching this **orientation-based** structure:
   "thermal_boundary": {
     "conditioned_zones": [
       {
-        "name": "Zone 1",
+        "name": "ADU",
         "floor_area": 320.0,
-        "ceiling_height": 8.0,
-        "volume": 2560.0,
+        "ceiling_height": 8.5,
+        "volume": 2720.0,
         "stories": 1,
         "exterior_wall_area": 612.0,
         "ceiling_below_attic_area": 320.0,
@@ -268,7 +291,7 @@ Return JSON matching this **orientation-based** structure:
     {
       "name": "Ceiling 1",
       "ceiling_type": "Below Attic",
-      "zone": "Zone 1",
+      "zone": "ADU",
       "status": "New",
       "area": 320.0,
       "construction_type": "R-38 Roof Rafter"
@@ -277,7 +300,7 @@ Return JSON matching this **orientation-based** structure:
   "slab_floors": [
     {
       "name": "Slab 1",
-      "zone": "Zone 1",
+      "zone": "ADU",
       "status": "New",
       "area": 320.0,
       "perimeter": 72.0,

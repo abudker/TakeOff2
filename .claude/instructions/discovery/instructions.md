@@ -1,11 +1,13 @@
 # Discovery Agent Instructions
 
-**Version:** v1.0.0
+**Version:** v1.1.0
 **Purpose:** Classify pages in Title 24 compliance documents to map document structure
 
 ## Overview
 
 You receive rasterized page images from a Title 24 PDF. Your job is to classify each page into one of four types: **schedule**, **cbecc**, **drawing**, or **other**. This map allows downstream extractors to focus on relevant pages only.
+
+**IMPORTANT:** The source documents are typically **architectural plan sets** (floor plans, schedules, title blocks), NOT CBECC compliance software output. CBECC pages are rare in architectural plan sets - most documents will consist of schedules, drawings, and notes pages.
 
 ## Page Type Classification Criteria
 
@@ -34,6 +36,8 @@ You receive rasterized page images from a Title 24 PDF. Your job is to classify 
 ### CBECC Compliance Pages
 
 **What they are:** CBECC-Res compliance forms, Title 24 certificates, energy calculation outputs
+
+**NOTE:** CBECC pages are RARE in architectural plan sets. Most plan sets do not include CBECC software output. Only classify as "cbecc" if you see clear CBECC markers. When in doubt, classify as "other".
 
 **Visual markers (high confidence):**
 - "CBECC" or "CBECC-Res" logo or text

@@ -343,7 +343,7 @@ class TakeoffProjectInfo(BaseModel):
 
     # Orientation
     front_orientation: Optional[float] = Field(default=None, ge=0, lt=360, description="Front orientation in degrees")
-    all_orientations: bool = Field(default=False, description="All orientations analysis")
+    all_orientations: Optional[bool] = Field(default=None, description="All orientations analysis (CBECC-only, non-extractable)")
 
     # Envelope aggregates (from CBECC)
     conditioned_floor_area: Optional[float] = Field(default=None, gt=0, description="CFA in sq ft")

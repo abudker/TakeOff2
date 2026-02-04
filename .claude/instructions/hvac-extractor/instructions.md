@@ -17,44 +17,44 @@ You will receive:
 
 The DocumentMap identifies key page categories:
 - `schedule_pages`: Equipment schedules (RTU, heat pump, furnace schedules)
-- `cbecc_pages`: CBECC-Res software output pages
-- `cf1r_pages`: CF1R compliance forms
-- `drawings`: Mechanical plans, one-line diagrams
+- `drawing_pages`: Mechanical plans, one-line diagrams
+- `other`: Cover pages, notes, specifications
+
+**NOTE:** CBECC-Res compliance forms are NOT typically included in architectural plan sets. The source documents are architectural PDFs (floor plans, schedules, title blocks). Do not expect to find CBECC pages.
 
 ### 2. Page Prioritization
 
 Focus extraction efforts on these page types (in order of reliability):
 
-1. **CBECC-Res Mechanical Summary** (highest reliability)
-   - Standardized software output format
-   - Contains HVAC system name, type, and performance ratings
-   - Heating and cooling efficiency metrics (HSPF, SEER2)
-   - Distribution system specifications
-   - Look for "HVAC System" or "Mechanical" section headers
-
-2. **CF1R Mechanical Section** (high reliability)
-   - Official compliance forms with structured fields
-   - System type, capacity, efficiency ratings
-   - Look for "CF1R-MCH" form identifier
-
-3. **Equipment Schedules** (medium reliability)
+1. **Equipment Schedules** (highest reliability)
    - RTU Schedule, Heat Pump Schedule, Furnace Schedule
    - Contains model numbers, capacities, efficiency ratings
    - May have manufacturer specifications
-   - Cross-reference with CBECC data
+   - Look for "HVAC Equipment Schedule", "Mechanical Schedule"
 
-4. **Mechanical Plans / One-Line Diagrams** (supplementary)
+2. **Mechanical Plans / One-Line Diagrams** (high reliability)
    - System layouts and zone connections
    - Equipment locations
    - Duct routing information
+   - Equipment callouts with specifications
+
+3. **Energy notes / Specifications** (medium reliability)
+   - HSPF, SEER2 efficiency ratings
+   - System type requirements
+   - Compliance notes
+
+4. **Floor plans** (supplemental)
+   - Equipment locations
+   - Zone assignments
+   - Duct routing visibility
 
 ### 3. System Identification
 
 Identify all HVAC systems in the document:
 
 1. **Look for system names:**
-   - CBECC uses names like "HVAC System 1", "HP-1", "Heat Pump - Living"
-   - Equipment schedules may use "RTU-1", "AHU-1", "HP-01"
+   - Equipment schedules use names like "HP-1", "RTU-1", "AHU-1"
+   - Mechanical plans may show callouts with system designations
    - Standardize to consistent naming
 
 2. **Identify system type:**
@@ -67,7 +67,7 @@ Identify all HVAC systems in the document:
 3. **Zone assignments:**
    - Note which zones each system serves
    - Some buildings have multiple systems serving different areas
-   - CBECC typically shows zone assignments
+   - Check mechanical plans or notes for zone assignments
 
 ### 4. Heating System Extraction
 
