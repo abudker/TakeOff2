@@ -4,7 +4,9 @@ import logging
 import sys
 import shutil
 from pathlib import Path
+from typing import Dict, List, Any
 import click
+import yaml
 from agents.orchestrator import run_extraction
 
 # Configure logging
@@ -23,6 +25,45 @@ def check_claude_cli():
         click.echo("The extraction system requires Claude Code to invoke agent workers.", err=True)
         click.echo("Please install Claude Code: https://claude.ai/download", err=True)
         sys.exit(1)
+
+
+def show_diagnostics(eval_id: str, extraction_status: Dict[str, Any], conflicts: List[Dict[str, Any]]):
+    """Show verbose extraction diagnostics.
+
+    Args:
+        eval_id: Evaluation case identifier
+        extraction_status: Dict mapping domain to status info
+        conflicts: List of conflict records from extraction
+    """
+    click.echo(f"\n  --- Diagnostics for {eval_id} ---")
+
+    # Per-domain status
+    click.echo("  Extraction Status:")
+    for domain, status in extraction_status.items():
+        if isinstance(status, dict):
+            s = status.get("status", "unknown")
+            items = status.get("items_extracted", 0)
+            retries = status.get("retry_count", 0)
+            error = status.get("error", "")
+
+            status_str = f"{domain}: {s} ({items} items)"
+            if retries > 0:
+                status_str += f" [retried {retries}x]"
+            if error:
+                status_str += f" [{error[:50]}...]"
+            click.echo(f"    {status_str}")
+
+    # Conflicts
+    if conflicts:
+        click.echo(f"\n  Conflicts ({len(conflicts)}):")
+        for c in conflicts[:5]:  # Show first 5
+            if isinstance(c, dict):
+                field = c.get("field", "unknown")
+                item = c.get("item_name", "")
+                resolution = c.get("resolution", "")
+                click.echo(f"    - {field} ({item}): {resolution}")
+        if len(conflicts) > 5:
+            click.echo(f"    ... and {len(conflicts) - 5} more")
 
 
 @click.group()
@@ -45,7 +86,12 @@ def cli():
     default=None,
     help="Output path for extracted JSON (default: extracted.json in eval dir)"
 )
-def extract_one(eval_id: str, evals_dir: Path, output: Path):
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    help="Show detailed extraction diagnostics"
+)
+def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
     """
     Extract building specification from a single evaluation case.
 
@@ -91,6 +137,19 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path):
         click.echo(f"  Climate Zone: {building_spec['project']['climate_zone']}")
         click.echo(f"  CFA: {building_spec['envelope']['conditioned_floor_area']} sq ft")
 
+        # Show extraction counts
+        zones_count = len(building_spec.get("zones", []))
+        walls_count = len(building_spec.get("walls", []))
+        windows_count = len(building_spec.get("windows", []))
+        hvac_count = len(building_spec.get("hvac_systems", []))
+        dhw_count = len(building_spec.get("water_heating_systems", []))
+        click.echo(f"  Components: {zones_count} zones, {walls_count} walls, {windows_count} windows, {hvac_count} HVAC, {dhw_count} DHW")
+
+        if verbose:
+            extraction_status = building_spec.get("extraction_status", {})
+            conflicts = building_spec.get("conflicts", [])
+            show_diagnostics(eval_id, extraction_status, conflicts)
+
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
@@ -117,14 +176,17 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path):
     is_flag=True,
     help="Force re-extraction even if extracted.json exists"
 )
-def extract_all(evals_dir: Path, skip_existing: bool, force: bool):
+@click.option(
+    "--verbose", "-v",
+    is_flag=True,
+    help="Show detailed extraction diagnostics per eval"
+)
+def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool):
     """
     Extract building specifications from all evaluation cases.
 
     Processes all eval cases listed in manifest.yaml.
     """
-    import yaml
-
     # Check Claude CLI is available
     check_claude_cli()
 
@@ -138,69 +200,116 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool):
         with open(manifest_path) as f:
             manifest = yaml.safe_load(f)
 
-        eval_cases = manifest.get("evals", [])
-        if not eval_cases:
+        # Manifest uses 'evals' dict with eval_id as key
+        evals_dict = manifest.get("evals", {})
+        if not evals_dict:
             click.echo("No evaluation cases found in manifest.yaml", err=True)
             sys.exit(1)
 
-        click.echo(f"Found {len(eval_cases)} evaluation cases")
+        click.echo(f"Running extraction on {len(evals_dict)} evaluation cases...")
+        click.echo("=" * 60)
 
         # Track results
         results = []
 
-        for eval_case in eval_cases:
-            eval_id = eval_case["id"]
+        for eval_id, eval_info in evals_dict.items():
             eval_dir = evals_dir / eval_id
             output_path = eval_dir / "extracted.json"
 
             # Check if already extracted
             if output_path.exists() and not force:
                 if skip_existing:
-                    click.echo(f"Skipping {eval_id} (already extracted)")
-                    results.append({"eval_id": eval_id, "status": "skipped", "output_path": output_path})
+                    click.echo(f"[{eval_id}] Skipped (already extracted)")
+                    results.append({
+                        "id": eval_id,
+                        "status": "skipped",
+                        "output_path": output_path
+                    })
                     continue
 
             # Run extraction
-            click.echo(f"\nExtracting {eval_id}...")
+            click.echo(f"\n[{eval_id}] Starting extraction...")
             try:
                 final_state = run_extraction(eval_id, eval_dir)
 
                 if final_state.get("error"):
-                    click.echo(f"  Error: {final_state['error']}", err=True)
-                    results.append({"eval_id": eval_id, "status": "error", "output_path": None})
+                    click.echo(f"[{eval_id}] FAILED: {final_state['error']}")
+                    results.append({
+                        "id": eval_id,
+                        "status": "failed",
+                        "error": final_state["error"]
+                    })
                     continue
 
                 building_spec = final_state.get("building_spec")
                 if not building_spec:
-                    click.echo("  Error: No building spec in final state", err=True)
-                    results.append({"eval_id": eval_id, "status": "error", "output_path": None})
+                    click.echo(f"[{eval_id}] FAILED: No building spec in final state")
+                    results.append({
+                        "id": eval_id,
+                        "status": "failed",
+                        "error": "No building spec"
+                    })
                     continue
+
+                # Count extracted items
+                zones_count = len(building_spec.get("zones", []))
+                walls_count = len(building_spec.get("walls", []))
+                windows_count = len(building_spec.get("windows", []))
+                hvac_count = len(building_spec.get("hvac_systems", []))
+                dhw_count = len(building_spec.get("water_heating_systems", []))
+                extraction_status = building_spec.get("extraction_status", {})
+                conflicts = building_spec.get("conflicts", [])
+
+                click.echo(f"[{eval_id}] SUCCESS - Zones: {zones_count}, Walls: {walls_count}, Windows: {windows_count}, HVAC: {hvac_count}, DHW: {dhw_count}")
+
+                if verbose:
+                    show_diagnostics(eval_id, extraction_status, conflicts)
 
                 # Save output
                 with open(output_path, "w") as f:
                     json.dump(building_spec, f, indent=2)
+                click.echo(f"[{eval_id}] Saved to {output_path}")
 
-                click.echo(f"  Success: {output_path}")
-                results.append({"eval_id": eval_id, "status": "success", "output_path": output_path})
+                results.append({
+                    "id": eval_id,
+                    "status": "success",
+                    "zones": zones_count,
+                    "walls": walls_count,
+                    "windows": windows_count,
+                    "hvac": hvac_count,
+                    "dhw": dhw_count,
+                    "conflicts": len(conflicts),
+                    "output_path": output_path
+                })
 
             except Exception as e:
-                click.echo(f"  Failed: {e}", err=True)
-                results.append({"eval_id": eval_id, "status": "error", "output_path": None})
+                click.echo(f"[{eval_id}] ERROR: {e}")
+                results.append({
+                    "id": eval_id,
+                    "status": "error",
+                    "error": str(e)
+                })
 
-        # Print summary table
-        click.echo("\n" + "=" * 80)
+        # Print summary
+        click.echo("\n" + "=" * 60)
         click.echo("EXTRACTION SUMMARY")
-        click.echo("=" * 80)
-        click.echo(f"{'Eval ID':<30} {'Status':<15} {'Output Path'}")
-        click.echo("-" * 80)
+        click.echo("=" * 60)
 
-        for result in results:
-            output_str = str(result["output_path"]) if result["output_path"] else "N/A"
-            click.echo(f"{result['eval_id']:<30} {result['status']:<15} {output_str}")
-
-        click.echo("-" * 80)
         success_count = sum(1 for r in results if r["status"] == "success")
-        click.echo(f"Total: {len(results)} | Success: {success_count} | Failed: {len(results) - success_count}")
+        skipped_count = sum(1 for r in results if r["status"] == "skipped")
+        failed_count = len(results) - success_count - skipped_count
+
+        click.echo(f"Total: {len(results)} | Success: {success_count} | Skipped: {skipped_count} | Failed: {failed_count}")
+
+        if verbose:
+            click.echo("\nPer-eval results:")
+            for r in results:
+                if r["status"] == "success":
+                    click.echo(f"  {r['id']}: {r['zones']}z/{r['walls']}w/{r['windows']}win/{r['hvac']}hvac/{r['dhw']}dhw ({r['conflicts']} conflicts)")
+                elif r["status"] == "skipped":
+                    click.echo(f"  {r['id']}: skipped")
+                else:
+                    click.echo(f"  {r['id']}: {r['status']} - {r.get('error', 'Unknown')}")
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
