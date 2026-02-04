@@ -12,8 +12,6 @@ dependencies = [
     "pymupdf>=1.26",
     "pillow>=10.0",
     "tqdm>=4.66",
-    "langgraph>=0.2.75",
-    "anthropic>=0.45",
 ]
 
 [project.optional-dependencies]

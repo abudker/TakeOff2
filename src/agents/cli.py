@@ -2,6 +2,7 @@
 import json
 import logging
 import sys
+import shutil
 from pathlib import Path
 import click
 from agents.orchestrator import run_extraction
@@ -12,6 +13,16 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
+
+def check_claude_cli():
+    """Check if Claude CLI is available."""
+    if not shutil.which("claude"):
+        click.echo("Error: Claude CLI not found.", err=True)
+        click.echo("", err=True)
+        click.echo("The extraction system requires Claude Code to invoke agent workers.", err=True)
+        click.echo("Please install Claude Code: https://claude.ai/download", err=True)
+        sys.exit(1)
 
 
 @click.group()
@@ -40,6 +51,9 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path):
 
     EVAL_ID is the evaluation case identifier (e.g., chamberlin-circle).
     """
+    # Check Claude CLI is available
+    check_claude_cli()
+
     try:
         # Find eval directory
         eval_dir = evals_dir / eval_id
@@ -110,6 +124,9 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool):
     Processes all eval cases listed in manifest.yaml.
     """
     import yaml
+
+    # Check Claude CLI is available
+    check_claude_cli()
 
     try:
         # Load manifest
