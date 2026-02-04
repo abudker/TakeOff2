@@ -170,16 +170,42 @@ def cli():
     is_flag=True,
     help="Don't auto-commit accepted proposals"
 )
-def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool):
+@click.option(
+    "--focus",
+    type=str,
+    default=None,
+    help="Focus critic on specific agent (e.g., 'orientation-extractor')"
+)
+@click.option(
+    "--focus-reason",
+    type=str,
+    default=None,
+    help="Explanation for why focus area is priority"
+)
+@click.option(
+    "--auto",
+    is_flag=True,
+    help="Auto-accept proposals without user review (for autonomous iteration)"
+)
+def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str, focus_reason: str, auto: bool):
     """
     Run one iteration of the improvement loop.
 
     1. Analyze current verification results
     2. Invoke critic to generate proposal
-    3. Present proposal for user review
+    3. Present proposal for user review (or auto-accept with --auto)
     4. If accepted, apply change and re-run extraction/verification
     5. Show before/after metrics comparison
     6. Auto-commit with metrics
+
+    Use --focus to constrain the critic to a specific extractor's instructions.
+    Use --auto for autonomous iteration (can be run in a loop).
+
+    Example for 5 iterations focused on orientation:
+        for i in {1..5}; do
+          python3 -m improvement improve --auto --focus orientation-extractor \\
+            --focus-reason "Orientation errors cascade to wall/window azimuths"
+        done
     """
     project_root = evals_dir.parent
     instructions_dir = project_root / ".claude" / "instructions"
@@ -195,6 +221,8 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool):
         sys.exit(1)
 
     click.echo(f"Improvement Loop - {len(eval_ids)} evals")
+    if focus:
+        click.echo(f"Focus: {focus}")
     click.echo("=" * 60)
 
     # Step 1: Load current results and compute metrics
@@ -219,9 +247,15 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool):
     click.echo(f"  Dominant domain: {analysis['dominant_domain']}")
 
     # Step 3: Invoke critic
-    click.echo("\n[Critic] Generating improvement proposal...")
+    if focus:
+        click.echo(f"\n[Critic] Generating improvement proposal (focus: {focus})...")
+    else:
+        click.echo("\n[Critic] Generating improvement proposal...")
     try:
-        critic_output = invoke_critic(analysis, instructions_dir, project_root)
+        critic_output = invoke_critic(
+            analysis, instructions_dir, project_root,
+            focus_agent=focus, focus_reason=focus_reason
+        )
         proposal = parse_proposal(critic_output)
     except Exception as e:
         click.echo(f"Error invoking critic: {e}", err=True)
@@ -232,20 +266,26 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool):
         click.echo("This may happen if metrics are already good or no clear pattern found.")
         sys.exit(0)
 
-    # Step 4: Present proposal for review
-    decision = present_proposal(proposal)
+    # Step 4: Present proposal for review (or auto-accept)
+    if auto:
+        click.echo(f"\n[Auto] Auto-accepting proposal for {proposal.target_file}")
+        click.echo(f"  Change: {proposal.change_type}")
+        click.echo(f"  Hypothesis: {proposal.hypothesis[:100]}...")
+        decision = "accept"
+    else:
+        decision = present_proposal(proposal)
 
-    if decision == "edit":
-        edited = edit_proposal(proposal)
-        if edited:
-            proposal = edited
-            decision = "accept"
-        else:
-            decision = "reject"
+        if decision == "edit":
+            edited = edit_proposal(proposal)
+            if edited:
+                proposal = edited
+                decision = "accept"
+            else:
+                decision = "reject"
 
-    if decision in ("reject", "skip"):
-        click.echo(f"\nProposal {decision}ed. No changes made.")
-        sys.exit(0)
+        if decision in ("reject", "skip"):
+            click.echo(f"\nProposal {decision}ed. No changes made.")
+            sys.exit(0)
 
     # Step 5: Apply proposal
     click.echo(f"\n[Apply] Applying proposal to {proposal.target_file}...")

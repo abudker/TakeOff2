@@ -249,7 +249,9 @@ class InstructionProposal:
 def invoke_critic(
     analysis: Dict[str, Any],
     instructions_dir: Path,
-    project_root: Path
+    project_root: Path,
+    focus_agent: Optional[str] = None,
+    focus_reason: Optional[str] = None
 ) -> str:
     """
     Invoke critic agent via Claude CLI subprocess.
@@ -258,6 +260,8 @@ def invoke_critic(
         analysis: Aggregated failure analysis
         instructions_dir: Path to .claude/instructions/
         project_root: Project root for working directory
+        focus_agent: Optional agent name to focus on (e.g., "orientation-extractor")
+        focus_reason: Optional explanation for why focus is important
 
     Returns:
         Raw output from critic agent
@@ -270,16 +274,36 @@ def invoke_critic(
 
     # List available instruction files for critic context
     instruction_files = list(instructions_dir.rglob("*.md"))
+
+    # Filter to focused agent if specified
+    if focus_agent:
+        instruction_files = [
+            f for f in instruction_files
+            if focus_agent in str(f)
+        ]
+
     files_list = "\n".join(
         f"- {f.relative_to(project_root)}" for f in instruction_files
     )
+
+    # Build focus directive if specified
+    focus_directive = ""
+    if focus_agent:
+        focus_directive = f"""
+## IMPORTANT: Focus Area
+
+You MUST propose changes to the **{focus_agent}** instructions only.
+{f"Reason: {focus_reason}" if focus_reason else ""}
+
+Do NOT propose changes to other extractors. The {focus_agent} is the priority for this improvement cycle.
+"""
 
     full_prompt = f"""Analyze the following extraction failure patterns and propose ONE instruction file improvement.
 
 ## Failure Analysis
 
 {prompt}
-
+{focus_directive}
 ## Available Instruction Files
 
 {files_list}

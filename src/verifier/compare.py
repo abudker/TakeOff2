@@ -6,6 +6,31 @@ import re
 import yaml
 
 
+def normalize_text(text: str, field_path: str = None) -> str:
+    """Normalize text for comparison.
+
+    Args:
+        text: The text to normalize
+        field_path: Optional field path for context-aware normalization
+
+    Returns:
+        Normalized text string
+    """
+    text = text.strip().lower()
+
+    # Remove trailing punctuation (periods, commas)
+    text = re.sub(r'[.,;:]+$', '', text)
+
+    # For name fields, remove parenthetical content like "(3020)"
+    if field_path and ('name' in field_path or 'window' in field_path or 'wall' in field_path):
+        text = re.sub(r'\s*\([^)]*\)\s*', '', text)
+
+    # Normalize multiple spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    return text
+
+
 @dataclass
 class FieldDiscrepancy:
     """Represents a single field-level discrepancy."""
@@ -118,9 +143,9 @@ def values_match(expected: Any, actual: Any, field_path: str, tolerances: Dict, 
         return (rel_diff <= tol["percent"] / 100 or
                 abs_diff <= tol["absolute"])
 
-    # String comparison (case-insensitive, trimmed)
+    # String comparison (case-insensitive, trimmed, normalized)
     if isinstance(expected, str) and isinstance(actual, str):
-        return expected.strip().lower() == actual.strip().lower()
+        return normalize_text(expected, field_path) == normalize_text(actual, field_path)
 
     # Boolean exact match
     if isinstance(expected, bool) and isinstance(actual, bool):

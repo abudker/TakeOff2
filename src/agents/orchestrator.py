@@ -224,9 +224,108 @@ Ensure all {len(page_images)} pages are classified.
         raise RuntimeError(f"Discovery agent returned invalid response: {e}")
 
 
-def run_project_extraction(
+def run_orientation_extraction(
     page_images: List[Path],
     document_map: DocumentMap
+) -> Dict[str, Any]:
+    """
+    Run orientation-extractor agent to extract building front orientation.
+
+    Args:
+        page_images: List of all page image paths
+        document_map: Document structure from discovery phase
+
+    Returns:
+        Dict with orientation data including front_orientation, confidence, etc.
+
+    Raises:
+        RuntimeError: If extraction agent fails
+    """
+    # Filter to drawing pages (site plans, floor plans contain north arrows)
+    relevant_page_numbers = set(document_map.drawing_pages)
+
+    # If no drawing pages, fall back to first few pages
+    if not relevant_page_numbers:
+        relevant_page_numbers = set(range(1, min(6, len(page_images) + 1)))
+
+    # Filter page images to relevant ones (page_images are 0-indexed)
+    relevant_images = [
+        page_images[page_num - 1]
+        for page_num in sorted(relevant_page_numbers)
+        if page_num <= len(page_images)
+    ]
+
+    logger.info(f"Running orientation extraction on {len(relevant_images)} pages: {sorted(relevant_page_numbers)}")
+
+    # Build prompt with page paths
+    page_list = "\n".join([
+        f"- Page {sorted(relevant_page_numbers)[i]}: {p}"
+        for i, p in enumerate(relevant_images)
+    ])
+
+    document_map_json = json.dumps(document_map.model_dump(), indent=2)
+
+    prompt = f"""Extract building orientation from this Title 24 document.
+
+Document structure (from discovery):
+{document_map_json}
+
+Drawing page image paths (site plans, floor plans):
+{page_list}
+
+Read your instructions from:
+- .claude/instructions/orientation-extractor/instructions.md
+
+Then analyze the provided pages and return JSON with this structure:
+
+{{
+  "front_orientation": 0.0,
+  "north_arrow_found": true,
+  "north_arrow_page": null,
+  "front_direction": "N",
+  "confidence": "high",
+  "reasoning": "Explanation of how orientation was determined",
+  "notes": "Additional context"
+}}
+
+Focus on:
+1. Finding the north arrow on site plan or floor plan
+2. Determining which side of the building is the "front" (faces street)
+3. Calculating the angle from true north to the front direction
+"""
+
+    # Invoke orientation-extractor agent
+    try:
+        response = invoke_claude_agent("orientation-extractor", prompt, timeout=300)
+        json_data = extract_json_from_response(response)
+
+        front_orientation = json_data.get("front_orientation", 0.0)
+        confidence = json_data.get("confidence", "low")
+
+        logger.info(f"Orientation extraction complete:")
+        logger.info(f"  Front orientation: {front_orientation} degrees")
+        logger.info(f"  North arrow found: {json_data.get('north_arrow_found', False)}")
+        logger.info(f"  Confidence: {confidence}")
+
+        return json_data
+
+    except Exception as e:
+        logger.warning(f"Orientation extraction failed: {e}, using default orientation")
+        return {
+            "front_orientation": 0.0,
+            "north_arrow_found": False,
+            "north_arrow_page": None,
+            "front_direction": "N",
+            "confidence": "low",
+            "reasoning": f"Orientation extraction failed: {e}. Using default north-facing orientation.",
+            "notes": "Default orientation used due to extraction failure."
+        }
+
+
+def run_project_extraction(
+    page_images: List[Path],
+    document_map: DocumentMap,
+    orientation_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
     Run project-extractor agent to extract building specifications.
@@ -234,6 +333,7 @@ def run_project_extraction(
     Args:
         page_images: List of all page image paths
         document_map: Document structure from discovery phase
+        orientation_data: Optional orientation data from orientation-extractor
 
     Returns:
         Dict with 'project' and 'envelope' keys containing extracted data
@@ -333,11 +433,18 @@ Focus on accuracy. Use the field guide to find the correct values.
         wwr = f"{envelope.window_to_floor_ratio:.2%}" if envelope.window_to_floor_ratio else "N/A"
         logger.info(f"  WWR: {wwr}")
 
-        return {
+        result = {
             "project": project.model_dump(),
             "envelope": envelope.model_dump(),
             "notes": json_data.get("notes", "")
         }
+
+        # Include orientation data if provided
+        if orientation_data:
+            result["project"]["front_orientation"] = orientation_data.get("front_orientation")
+            result["orientation_data"] = orientation_data
+
+        return result
 
     except Exception as e:
         logger.error(f"Failed to parse extraction response: {e}")
@@ -406,7 +513,8 @@ async def extract_with_retry(
 def build_domain_prompt(
     domain: str,
     page_images: List[Path],
-    document_map: DocumentMap
+    document_map: DocumentMap,
+    orientation_data: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Build extraction prompt for a specific domain.
@@ -415,6 +523,7 @@ def build_domain_prompt(
         domain: Domain name (zones, windows, hvac, dhw)
         page_images: List of all page image paths
         document_map: Document structure from discovery
+        orientation_data: Optional orientation data from orientation-extractor
 
     Returns:
         Formatted prompt string for the extractor agent
@@ -422,9 +531,9 @@ def build_domain_prompt(
     # Filter to relevant pages (schedule + CBECC for all domains)
     relevant_pages = sorted(set(document_map.schedule_pages + document_map.cbecc_pages))
 
-    # Windows also benefit from drawing pages (floor plans show window locations)
-    if domain == "windows":
-        drawing_subset = document_map.drawing_pages[:5] if document_map.drawing_pages else []
+    # Windows and zones also benefit from drawing pages
+    if domain in ("windows", "zones"):
+        drawing_subset = document_map.drawing_pages or []
         relevant_pages = sorted(set(relevant_pages + drawing_subset))
 
     # Build page list with paths
@@ -436,11 +545,44 @@ def build_domain_prompt(
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
+    # Build orientation context for zones and windows extractors
+    orientation_context = ""
+    if orientation_data and domain in ("zones", "windows"):
+        front_orientation = orientation_data.get("front_orientation", 0.0)
+        confidence = orientation_data.get("confidence", "low")
+        reasoning = orientation_data.get("reasoning", "")
+
+        # Calculate wall azimuths from front orientation
+        # Convention based on CBECC output format:
+        # - "east" key (E Wall) = front of building
+        # - "west" key (W Wall) = back of building
+        # - "north" key (N Wall) = left side (90 CCW from front)
+        # - "south" key (S Wall) = right side (90 CW from front)
+        east_azimuth = front_orientation  # Front faces this direction
+        west_azimuth = (front_orientation + 180) % 360
+        north_azimuth = (front_orientation - 90 + 360) % 360
+        south_azimuth = (front_orientation + 90) % 360
+
+        orientation_context = f"""
+BUILDING ORIENTATION (from orientation-extractor, confidence: {confidence}):
+- Front orientation: {front_orientation} degrees from true north
+- Reasoning: {reasoning}
+
+CRITICAL - USE THESE EXACT AZIMUTHS FOR EACH WALL:
+- "north" key (N Wall): azimuth = {north_azimuth} degrees
+- "east" key (E Wall): azimuth = {east_azimuth} degrees (this is the FRONT)
+- "south" key (S Wall): azimuth = {south_azimuth} degrees
+- "west" key (W Wall): azimuth = {west_azimuth} degrees (this is the BACK)
+
+DO NOT use cardinal azimuths (0, 90, 180, 270). The building is rotated.
+Copy the exact azimuth values above into your JSON output.
+"""
+
     return f"""Extract {domain} data from this Title 24 document.
 
 Document structure (from discovery):
 {document_map_json}
-
+{orientation_context}
 Relevant page image paths:
 {page_list}
 
@@ -455,7 +597,8 @@ Focus on accuracy and completeness.
 
 async def run_parallel_extraction(
     page_images: List[Path],
-    document_map: DocumentMap
+    document_map: DocumentMap,
+    orientation_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Tuple[Optional[Dict[str, Any]], ExtractionStatus]]:
     """
     Run all domain extractors in parallel using asyncio.
@@ -463,15 +606,16 @@ async def run_parallel_extraction(
     Args:
         page_images: List of preprocessed page image paths
         document_map: Document structure from discovery
+        orientation_data: Optional orientation data from orientation-extractor
 
     Returns:
         Dict mapping domain name to (data, status) tuple
     """
     logger.info("Starting parallel extraction for zones, windows, hvac, dhw")
 
-    # Build prompts for each domain
-    zones_prompt = build_domain_prompt("zones", page_images, document_map)
-    windows_prompt = build_domain_prompt("windows", page_images, document_map)
+    # Build prompts for each domain (zones and windows get orientation context)
+    zones_prompt = build_domain_prompt("zones", page_images, document_map, orientation_data)
+    windows_prompt = build_domain_prompt("windows", page_images, document_map, orientation_data)
     hvac_prompt = build_domain_prompt("hvac", page_images, document_map)
     dhw_prompt = build_domain_prompt("dhw", page_images, document_map)
 
@@ -870,16 +1014,19 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         # Step 1: Discovery phase
         document_map = run_discovery(page_images)
 
-        # Step 2: Project extraction phase (always runs first)
-        project_extraction = run_project_extraction(page_images, document_map)
+        # Step 2: Orientation extraction phase (runs on drawing pages)
+        orientation_data = run_orientation_extraction(page_images, document_map)
+
+        # Step 3: Project extraction phase
+        project_extraction = run_project_extraction(page_images, document_map, orientation_data)
 
         takeoff_spec = None
 
         if parallel:
-            # Step 3: Parallel multi-domain extraction
+            # Step 4: Parallel multi-domain extraction (with orientation context)
             logger.info("Starting parallel multi-domain extraction")
             domain_extractions = asyncio.run(
-                run_parallel_extraction(page_images, document_map)
+                run_parallel_extraction(page_images, document_map, orientation_data)
             )
 
             # Step 4: Merge into TakeoffSpec (orientation-based)
@@ -909,6 +1056,8 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             logger.info(f"  Water heating systems: {len(building_spec.water_heating_systems)}")
             logger.info(f"  Conflicts: {len(conflicts)}")
             logger.info(f"  Uncertainty flags: {len(uncertainty_flags)}")
+            if orientation_data:
+                logger.info(f"  Front orientation: {orientation_data.get('front_orientation')} degrees")
         else:
             # Legacy mode: project extraction only
             building_spec = BuildingSpec(
