@@ -310,6 +310,7 @@ def parse_proposal(critic_output: str) -> Optional[InstructionProposal]:
     Parse critic output to extract proposal JSON.
 
     Handles cases where JSON is embedded in markdown code blocks.
+    Also handles JSON with unescaped newlines in string fields.
 
     Args:
         critic_output: Raw output from critic agent
@@ -336,6 +337,14 @@ def parse_proposal(critic_output: str) -> Optional[InstructionProposal]:
 
     try:
         data = json.loads(json_str)
+    except json.JSONDecodeError:
+        # Try parsing line-by-line to extract fields manually
+        # This handles cases where proposed_change has unescaped newlines
+        data = _parse_proposal_manual(json_str)
+        if not data:
+            return None
+
+    try:
         return InstructionProposal(
             target_file=data["target_file"],
             current_version=data.get("current_version", "v1.0.0"),
@@ -349,5 +358,100 @@ def parse_proposal(critic_output: str) -> Optional[InstructionProposal]:
             affected_domains=data.get("affected_domains", []),
             estimated_f1_delta=data.get("estimated_f1_delta")
         )
-    except (json.JSONDecodeError, KeyError) as e:
+    except KeyError as e:
         return None
+
+
+def _parse_proposal_manual(json_str: str) -> Optional[Dict[str, Any]]:
+    """
+    Manually parse proposal JSON when standard parser fails.
+
+    Handles multi-line strings in proposed_change field that may not be
+    properly escaped. Extracts field by field using regex patterns.
+
+    Args:
+        json_str: JSON string with potential formatting issues
+
+    Returns:
+        Dict with parsed fields or None if parsing fails
+    """
+    result = {}
+
+    # Extract simple string fields (target_file, versions, change_type)
+    simple_fields = [
+        "target_file",
+        "current_version",
+        "proposed_version",
+        "change_type",
+    ]
+
+    for field in simple_fields:
+        match = re.search(rf'"{field}"\s*:\s*"([^"]*)"', json_str)
+        if match:
+            result[field] = match.group(1)
+
+    # Extract complex text fields (may contain unescaped content)
+    # Pattern: "field": "content..." where content may span lines
+    # Look for next field or closing brace to determine end
+
+    def extract_text_field(field_name: str, text: str) -> Optional[str]:
+        # Find field start
+        field_pattern = rf'"{field_name}"\s*:\s*"'
+        match = re.search(field_pattern, text)
+        if not match:
+            return None
+
+        start = match.end()
+        # Find field end - either by counting quotes or by next field
+        # Try to find end quote, accounting for escaped quotes
+        chars = list(text[start:])
+        content = []
+        i = 0
+        depth = 0
+
+        while i < len(chars):
+            char = chars[i]
+            if char == '"' and (i == 0 or chars[i-1] != '\\'):
+                # Found unescaped quote - this might be end
+                # Check if next non-whitespace char is comma or brace
+                rest = text[start + i + 1:].lstrip()
+                if rest and rest[0] in ',}':
+                    # This is the end quote
+                    return ''.join(content)
+            content.append(char)
+            i += 1
+
+        # Fallback: didn't find clean end, try to extract until next field
+        next_field_match = re.search(r'",\s*"[a-z_]+"\s*:', text[start:])
+        if next_field_match:
+            return text[start:start + next_field_match.start()]
+
+        return None
+
+    text_fields = ["failure_pattern", "hypothesis", "proposed_change", "expected_impact"]
+    for field in text_fields:
+        value = extract_text_field(field, json_str)
+        if value is not None:
+            result[field] = value
+
+    # Extract array fields (affected_error_types, affected_domains)
+    array_fields = ["affected_error_types", "affected_domains"]
+    for field in array_fields:
+        match = re.search(rf'"{field}"\s*:\s*\[(.*?)\]', json_str, re.DOTALL)
+        if match:
+            array_content = match.group(1)
+            # Extract quoted strings from array
+            items = re.findall(r'"([^"]*)"', array_content)
+            result[field] = items
+
+    # Extract numeric field (estimated_f1_delta)
+    match = re.search(r'"estimated_f1_delta"\s*:\s*([-+]?\d*\.?\d+)', json_str)
+    if match:
+        result["estimated_f1_delta"] = float(match.group(1))
+
+    # Verify we got required fields
+    required = ["target_file", "failure_pattern", "hypothesis", "proposed_change", "expected_impact"]
+    if all(field in result for field in required):
+        return result
+
+    return None
