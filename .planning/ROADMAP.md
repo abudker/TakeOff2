@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - Agent architecture + evaluation infrastructure
 - [x] **Phase 2: Document Processing** - PDF preprocessing pipeline
-- [ ] **Phase 3: Single-Domain Extraction** - Discovery + first extractor + orchestrator foundation
+- [x] **Phase 3: Single-Domain Extraction** - Discovery + first extractor + orchestrator foundation
 - [ ] **Phase 4: Multi-Domain Extraction** - Complete extraction system
 - [ ] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
 - [ ] **Phase 6: Automated Improvement Loop** - Full automation + iteration management
@@ -69,7 +69,7 @@ Plans:
 - [x] 03-01-PLAN.md — Discovery agent (schema + agent definition + classification instructions)
 - [x] 03-02-PLAN.md — Project extractor (agent definition + field extraction guide)
 - [x] 03-03-PLAN.md — Orchestrator + CLI (direct API - superseded by 03-04)
-- [ ] 03-04-PLAN.md — Rewrite orchestrator to use Claude Code agents (fix architecture)
+- [x] 03-04-PLAN.md — Rewrite orchestrator to use Claude Code agents (fix architecture)
 
 ### Phase 4: Multi-Domain Extraction
 **Goal**: Complete multi-agent extraction system covering all domains
@@ -82,13 +82,13 @@ Plans:
   4. Orchestrator merges results from all extractors into complete BuildingSpec
   5. User can run extraction on all 5 evals with one command
   6. Full extraction pipeline produces measurable F1 scores across all domains
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
-- [ ] 04-04: TBD
+- [ ] 04-01-PLAN.md — Zones and Windows extractor agents
+- [ ] 04-02-PLAN.md — HVAC and DHW extractor agents
+- [ ] 04-03-PLAN.md — Parallel orchestration with asyncio and merge logic
+- [ ] 04-04-PLAN.md — CLI extract-all command and verbose diagnostics
 
 ### Phase 5: Manual Improvement Loop
 **Goal**: Critic analyzes failures and proposes instruction file changes
@@ -134,12 +134,12 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 3/3 | ✓ Complete | 2026-02-03 |
-| 2. Document Processing | 1/1 | ✓ Complete | 2026-02-03 |
-| 3. Single-Domain Extraction | 3/4 | In progress | - |
-| 4. Multi-Domain Extraction | 0/TBD | Not started | - |
+| 1. Foundation | 3/3 | Complete | 2026-02-03 |
+| 2. Document Processing | 1/1 | Complete | 2026-02-03 |
+| 3. Single-Domain Extraction | 4/4 | Complete | 2026-02-04 |
+| 4. Multi-Domain Extraction | 0/4 | Ready | - |
 | 5. Manual Improvement Loop | 0/TBD | Not started | - |
 | 6. Automated Improvement Loop | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-02-03 after Phase 3 planning*
+*Last updated: 2026-02-04 after Phase 4 planning*
