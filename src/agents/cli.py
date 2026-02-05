@@ -66,6 +66,20 @@ def show_diagnostics(eval_id: str, extraction_status: Dict[str, Any], conflicts:
             click.echo(f"    ... and {len(conflicts) - 5} more")
 
 
+def show_timing(timing: Dict[str, float], eval_id: str):
+    """Print pipeline timing breakdown."""
+    if not timing:
+        return
+    click.echo(f"\n  --- Timing for {eval_id} ---")
+    total = timing.get("total", 0)
+    for stage, duration in timing.items():
+        if stage == "total":
+            continue
+        pct = (duration / total * 100) if total > 0 else 0
+        click.echo(f"    {stage:<25} {duration:>7.1f}s  ({pct:>4.0f}%)")
+    click.echo(f"    {'total':<25} {total:>7.1f}s")
+
+
 @click.group()
 def cli():
     """Extraction agent CLI for Title 24 building specifications."""
@@ -115,6 +129,11 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
         click.echo(f"Extracting from {eval_id}...")
         final_state = run_extraction(eval_id, eval_dir)
 
+        # Show timing
+        timing = final_state.get("timing")
+        if timing:
+            show_timing(timing, eval_id)
+
         # Check for errors
         if final_state.get("error"):
             click.echo(f"Error: {final_state['error']}", err=True)
@@ -149,6 +168,12 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
             extraction_status = building_spec.get("extraction_status", {})
             conflicts = building_spec.get("conflicts", [])
             show_diagnostics(eval_id, extraction_status, conflicts)
+
+        # Save timing alongside results
+        if timing:
+            timing_path = eval_dir / "timing.json"
+            with open(timing_path, "w") as f:
+                json.dump(timing, f, indent=2)
 
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
@@ -211,6 +236,7 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
 
         # Track results
         results = []
+        all_timings = {}
 
         for eval_id, eval_info in evals_dict.items():
             eval_dir = evals_dir / eval_id
@@ -231,6 +257,11 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
             click.echo(f"\n[{eval_id}] Starting extraction...")
             try:
                 final_state = run_extraction(eval_id, eval_dir)
+
+                # Collect timing
+                timing = final_state.get("timing")
+                if timing:
+                    all_timings[eval_id] = timing
 
                 if final_state.get("error"):
                     click.echo(f"[{eval_id}] FAILED: {final_state['error']}")
@@ -260,15 +291,24 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
                 extraction_status = building_spec.get("extraction_status", {})
                 conflicts = building_spec.get("conflicts", [])
 
-                click.echo(f"[{eval_id}] SUCCESS - Zones: {zones_count}, Walls: {walls_count}, Windows: {windows_count}, HVAC: {hvac_count}, DHW: {dhw_count}")
+                total_s = f" ({timing['total']:.0f}s)" if timing else ""
+                click.echo(f"[{eval_id}] SUCCESS{total_s} - Zones: {zones_count}, Walls: {walls_count}, Windows: {windows_count}, HVAC: {hvac_count}, DHW: {dhw_count}")
 
                 if verbose:
                     show_diagnostics(eval_id, extraction_status, conflicts)
+                    if timing:
+                        show_timing(timing, eval_id)
 
                 # Save output
                 with open(output_path, "w") as f:
                     json.dump(building_spec, f, indent=2)
                 click.echo(f"[{eval_id}] Saved to {output_path}")
+
+                # Save timing
+                if timing:
+                    timing_path = eval_dir / "timing.json"
+                    with open(timing_path, "w") as f:
+                        json.dump(timing, f, indent=2)
 
                 results.append({
                     "id": eval_id,
@@ -300,6 +340,26 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
         failed_count = len(results) - success_count - skipped_count
 
         click.echo(f"Total: {len(results)} | Success: {success_count} | Skipped: {skipped_count} | Failed: {failed_count}")
+
+        # Print timing summary across all evals
+        if all_timings:
+            click.echo("\n" + "─" * 60)
+            click.echo("TIMING SUMMARY")
+            click.echo("─" * 60)
+            click.echo(f"{'Eval':<22} {'Discovery':>10} {'Orient':>10} {'Project':>10} {'Domains':>10} {'Total':>10}")
+            click.echo("─" * 60)
+            for eid, t in all_timings.items():
+                click.echo(
+                    f"{eid:<22} "
+                    f"{t.get('discovery', 0):>9.0f}s "
+                    f"{t.get('orientation', 0):>9.0f}s "
+                    f"{t.get('project', 0):>9.0f}s "
+                    f"{t.get('parallel_extraction', 0):>9.0f}s "
+                    f"{t.get('total', 0):>9.0f}s"
+                )
+            grand_total = sum(t.get("total", 0) for t in all_timings.values())
+            click.echo("─" * 60)
+            click.echo(f"{'Grand total':<22} {'':>10} {'':>10} {'':>10} {'':>10} {grand_total:>9.0f}s")
 
         if verbose:
             click.echo("\nPer-eval results:")

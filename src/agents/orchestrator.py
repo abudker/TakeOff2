@@ -20,6 +20,7 @@ import asyncio
 import logging
 import subprocess
 import json
+import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel
@@ -1603,10 +1604,14 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         RuntimeError: If workflow execution fails
     """
     logger.info(f"Starting extraction for {eval_name} (parallel={parallel})")
+    pipeline_start = time.monotonic()
+    timing = {}
 
     try:
         # Step 0: Discover source PDFs
+        t0 = time.monotonic()
         source_pdfs = discover_source_pdfs(eval_dir)
+        timing["discover_pdfs"] = round(time.monotonic() - t0, 3)
         if not source_pdfs:
             raise FileNotFoundError(f"No PDFs found in {eval_dir}")
 
@@ -1623,24 +1628,33 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             pdf_path = eval_dir / first_pdf.filename
 
         # Step 1: Discovery phase
+        t0 = time.monotonic()
         document_map = run_discovery(eval_dir, source_pdfs)
+        timing["discovery"] = round(time.monotonic() - t0, 1)
 
         # Step 2: Orientation extraction phase (two-pass with verification)
+        t0 = time.monotonic()
         orientation_data = run_orientation_twopass(eval_dir, document_map)
+        timing["orientation"] = round(time.monotonic() - t0, 1)
 
         # Step 3: Project extraction phase
+        t0 = time.monotonic()
         project_extraction = run_project_extraction(eval_dir, document_map, orientation_data)
+        timing["project"] = round(time.monotonic() - t0, 1)
 
         takeoff_spec = None
 
         if parallel:
             # Step 4: Parallel multi-domain extraction (with orientation context)
             logger.info("Starting parallel multi-domain extraction")
+            t0 = time.monotonic()
             domain_extractions = asyncio.run(
                 run_parallel_extraction(eval_dir, document_map, orientation_data)
             )
+            timing["parallel_extraction"] = round(time.monotonic() - t0, 1)
 
             # Step 5: Merge into TakeoffSpec (orientation-based)
+            t0 = time.monotonic()
             takeoff_spec, uncertainty_flags = merge_to_takeoff_spec(
                 project_extraction,
                 domain_extractions
@@ -1654,6 +1668,7 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
                 project_extraction,
                 domain_extractions
             )
+            timing["merge_transform"] = round(time.monotonic() - t0, 3)
 
             # Add metadata to spec
             building_spec.extraction_status = extraction_status
@@ -1677,12 +1692,20 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             )
             logger.info(f"Project-only extraction complete for {eval_name}")
 
+        timing["total"] = round(time.monotonic() - pipeline_start, 1)
+
+        # Log timing summary
+        logger.info(f"Pipeline timing for {eval_name}:")
+        for stage, duration in timing.items():
+            logger.info(f"  {stage}: {duration}s")
+
         result = {
             "eval_name": eval_name,
             "pdf_path": str(pdf_path),
             "source_pdfs": {name: info.model_dump() for name, info in source_pdfs.items()},
             "document_map": document_map.model_dump(),
             "building_spec": building_spec.model_dump(),
+            "timing": timing,
             "error": None
         }
 
@@ -1693,9 +1716,11 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         return result
 
     except Exception as e:
+        timing["total"] = round(time.monotonic() - pipeline_start, 1)
         logger.error(f"Extraction failed for {eval_name}: {e}")
         return {
             "eval_name": eval_name,
             "error": str(e),
-            "building_spec": None
+            "building_spec": None,
+            "timing": timing
         }

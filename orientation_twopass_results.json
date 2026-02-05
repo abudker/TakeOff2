@@ -1,412 +1,94 @@
 [
   {
-    "eval_id": "chamberlin-circle",
-    "status": "success",
-    "pass1": {
-      "pass": 1,
-      "status": "success",
-      "orientation": 73,
-      "confidence": "medium",
-      "north_arrow_angle": 17,
-      "full_response": {
-        "pass": 1,
-        "north_arrow": {
-          "found": true,
-          "page": 3,
-          "description": "Compass rose near bottom-right of site plan sheet A0.3, near the sheet number",
-          "tilt_direction": "right",
-          "tilt_magnitude": 17,
-          "angle": 17
-        },
-        "front_identification": {
-          "building_type": "adu",
-          "method": "entry_door",
-          "description": "ADU entry door (D01) with FOYER inside faces the right side of the page on both site plan and floor plan. Walkway connects from the main house area to the ADU entry on the right/east side. Entry confirmed on floor plan A1.1 with ENTRY label and arrow on right wall.",
-          "drawing_direction": "right",
-          "drawing_angle": 90
-        },
-        "calculation": {
-          "formula": "(90 - 17 + 360) % 360 = 73",
-          "result": 73
-        },
-        "front_orientation": 73,
-        "confidence": "medium"
-      }
-    },
-    "pass2": {
-      "pass": 2,
-      "status": "success",
-      "orientation": 73,
-      "confidence": "medium",
-      "north_arrow_angle": 343,
-      "full_response": {
-        "pass": 2,
-        "elevation_analysis": {
-          "entry_elevation": "North Elevation",
-          "entry_evidence": "Door D01 visible - single swing entry door with covered area, (N) EXT. CONDENSER PER T24 also on this elevation. Foyer visible just inside on floor plan.",
-          "page": 6,
-          "nominal_front_direction": "north"
-        },
-        "site_plan_measurement": {
-          "site_plan_page": 3,
-          "building_footprint_description": "Rectangular ADU footprint (20' x 16'), long axis runs roughly left-to-right on page, slightly tilted following lot geometry. ADU is above/north of existing single-family dwelling on the page.",
-          "entry_wall_identification": "Right short wall (16' width side) of ADU, closest to existing house. Floor plan confirms ENTRY and (N) WALKWAY on this side leading to (E) HOUSE below.",
-          "entry_wall_edge": {
-            "wall_runs_from": "upper-right to lower-right, nearly vertical but tilted ~35\u00b0 from vertical (roughly from 11 o'clock to 5 o'clock direction)",
-            "wall_angle_from_horizontal": 55,
-            "entry_faces_outward": "perpendicular outward from the wall, toward the upper-right of the page, toward the main house connection"
-          },
-          "entry_drawing_angle": 55,
-          "cross_check": "Entry direction points toward main house walkway connection \u2014 confirmed. Walkway shown on floor plan connects entry to (E) HOUSE."
-        },
-        "north_arrow": {
-          "found": true,
-          "page": 3,
-          "tilt_direction": "left",
-          "angle": 343
-        },
-        "calculation": {
-          "formula": "(55 - 343 + 360) % 360 = 72",
-          "result": 72
-        },
-        "front_orientation": 73,
-        "confidence": "medium"
-      }
-    },
-    "verification": "agreement",
-    "final_orientation": 73.0,
-    "expected": 73,
-    "error_degrees": 0.0,
-    "correct": true,
-    "confidence": "high",
-    "notes": "Passes agree within 0.0\u00b0"
-  },
-  {
-    "eval_id": "canterbury-rd",
-    "status": "success",
-    "pass1": {
-      "pass": 1,
-      "status": "success",
-      "orientation": 90,
-      "confidence": "high",
-      "north_arrow_angle": 0,
-      "full_response": {
-        "pass": 1,
-        "north_arrow": {
-          "found": true,
-          "page": 5,
-          "description": "Compass rose at bottom-right of site plan A0.3, also repeated on floor plan sheets A1.1-A1.5",
-          "tilt_direction": "vertical",
-          "tilt_magnitude": 0,
-          "angle": 0
-        },
-        "front_identification": {
-          "building_type": "single_family",
-          "method": "street_facing",
-          "description": "SB-9 single family dwelling at 1961 Canterbury Rd. Canterbury Rd runs along the east (right) side of the property. Entry door and entry patio face right on floor plan toward Canterbury Rd and existing house. North elevation on A3.1 confirms entry/courtyard facade.",
-          "drawing_direction": "right",
-          "drawing_angle": 90
-        },
-        "calculation": {
-          "formula": "(90 - 0 + 360) % 360 = 90",
-          "result": 90
-        },
-        "front_orientation": 90,
-        "confidence": "high"
-      }
-    },
-    "pass2": {
-      "pass": 2,
-      "status": "success",
-      "orientation": 90,
-      "confidence": "high",
-      "north_arrow_angle": 0,
-      "full_response": {
-        "pass": 2,
-        "elevation_analysis": {
-          "entry_elevation": "East Elevation",
-          "entry_evidence": "Entry door D03 visible, ENTRY PATIO labeled on floor plan adjacent to this wall, existing house (E) HOUSE is on this side",
-          "page": 16,
-          "nominal_front_direction": "east"
-        },
-        "site_plan_measurement": {
-          "site_plan_page": 4,
-          "building_footprint_description": "Long rectangular footprint, long axis runs left-to-right (roughly east-west) on the page. Short dimension is top-to-bottom.",
-          "entry_wall_identification": "The short wall on the RIGHT side of the building footprint, closest to the existing house (E) HOUSE which is further right toward Canterbury Rd.",
-          "entry_wall_edge": {
-            "wall_runs_from": "top to bottom, nearly vertical on the page",
-            "wall_angle_from_horizontal": 90,
-            "entry_faces_outward": "perpendicular outward from the wall, toward RIGHT (toward existing house and Canterbury Rd)"
-          },
-          "entry_drawing_angle": 90,
-          "cross_check": "Entry direction points toward existing house \u2014 confirmed. Walkway/path from existing house connects to this wall."
-        },
-        "north_arrow": {
-          "found": true,
-          "page": 4,
-          "tilt_direction": "none",
-          "angle": 0
-        },
-        "calculation": {
-          "formula": "(90 - 0 + 360) % 360 = 90",
-          "result": 90
-        },
-        "front_orientation": 90,
-        "confidence": "high"
-      }
-    },
-    "verification": "agreement",
-    "final_orientation": 90.0,
-    "expected": 90,
-    "error_degrees": 0.0,
-    "correct": true,
-    "confidence": "high",
-    "notes": "Passes agree within 0.0\u00b0"
-  },
-  {
     "eval_id": "martinez-adu",
     "status": "success",
     "pass1": {
       "pass": 1,
       "status": "success",
-      "orientation": 195,
-      "confidence": "low",
-      "north_arrow_angle": 345,
+      "orientation": 284,
+      "confidence": "medium",
+      "north_arrow_angle": 340,
       "full_response": {
         "pass": 1,
         "north_arrow": {
           "found": true,
           "page": 1,
-          "description": "Compass rose in upper-left of sewer site plan with NORTH label. Arrow points upper-left, tilted left of vertical.",
+          "description": "North arrow in upper-left corner of sewer site plan, labeled NORTH with compass rose. Arrow points upper-left, tilted left of vertical.",
           "tilt_direction": "left",
-          "tilt_magnitude": 15,
-          "angle": 345
+          "tilt_magnitude": 20,
+          "angle": 340
         },
         "front_identification": {
           "building_type": "adu",
           "method": "entry_door",
-          "description": "FRONT elevation (A7) shows long wall (36'-4') with porch, 4x4 posts, and entry door. On floor plan (A1), entry is at bottom of page. On site plan, ADU is behind main house; entry side faces toward main house, roughly toward the left/lower-left of the page.",
-          "drawing_direction": "down",
-          "drawing_angle": 180
+          "description": "ADU entry door is on the bottom wall of the floor plan (FRONT elevation with covered porch and 4x4 posts). On the site plan, the floor plan is rotated 90\u00b0 clockwise \u2014 the front/entry wall faces LEFT toward the existing 4-bedroom house. The sub panel is noted at the 'back of ADU' with conduit from the left (house side), confirming back=right on site plan and front=left. The front faces slightly south of due left on the site plan.",
+          "drawing_direction": "left-and-slightly-down",
+          "drawing_angle": 264
         },
         "calculation": {
-          "formula": "(180 - 345 + 360) % 360 = 195",
-          "result": 195
+          "formula": "(264 - 340 + 360) % 360 = 284",
+          "result": 284
         },
-        "front_orientation": 195,
-        "confidence": "low"
-      }
+        "front_orientation": 284,
+        "confidence": "medium"
+      },
+      "duration_seconds": 137.6
     },
     "pass2": {
       "pass": 2,
       "status": "success",
-      "orientation": 286,
+      "orientation": 284,
       "confidence": "medium",
-      "north_arrow_angle": 344,
+      "north_arrow_angle": 340,
       "full_response": {
         "pass": 2,
         "elevation_analysis": {
-          "entry_elevation": "FRONT",
-          "entry_evidence": "FRONT elevation shows long wall (36'-4') with covered porch, 4x4 posts, and entry door (Door #1: 3'-0\" x 6'-8\" L.H. swing). Floor plan labels 'ENTRY' room along this wall. Windows: 4040, 3030, 3040, 3040.",
+          "entry_elevation": "Front Elevation",
+          "entry_evidence": "FRONT elevation shows long wall (36'-4\") with covered porch, 4x4 posts, entry door (#1, 3'-0\" swing door). Floor plan confirms ENTRY room with door #1 on this side.",
           "page": 11,
           "nominal_front_direction": "front"
         },
         "site_plan_measurement": {
           "site_plan_page": 1,
-          "building_footprint_description": "Rectangular ADU footprint in back-right of lot, behind existing 4BR house. Long axis (36'-4\") runs VERTICALLY on the site plan (up-down). Short axis (21'-4\") runs horizontally. Offsets: 5'-0\" from top boundary, 9'-0\" from right boundary.",
-          "entry_wall_identification": "The LEFT-facing long wall of the ADU, which is closest to the existing 4 Bedroom House. Water line on page 2 connects from existing house to this side of the ADU. Sub-panel conduit runs to 'back of ADU' (right side), confirming front is on the left.",
+          "building_footprint_description": "ADU rectangle in upper-right of lot, long axis runs roughly top-to-bottom (vertically) on the page. Main house is to the left. Wyoming Street is on the far left.",
+          "entry_wall_identification": "The long wall on the LEFT side of the ADU footprint, facing toward the existing 4 Bedroom House. This is the FRONT wall (entry side).",
           "entry_wall_edge": {
-            "wall_runs_from": "top to bottom, nearly vertical on the page (long wall, ~36'-4\")",
-            "wall_angle_from_horizontal": 88,
-            "entry_faces_outward": "perpendicular outward from the wall, toward LEFT (toward main house)"
+            "wall_runs_from": "top to bottom, nearly vertical on the page but tilted approximately 6 degrees (top leans slightly right)",
+            "wall_angle_from_horizontal": 84,
+            "entry_faces_outward": "perpendicular outward from the wall, toward LEFT and slightly DOWN (toward main house), drawing angle ~264\u00b0"
           },
-          "entry_drawing_angle": 270,
-          "cross_check": "Entry direction (LEFT) points toward existing 4 Bedroom House \u2014 confirmed. Water line extends from house to ADU's left wall. Electrical note says sub panel at 'back of ADU' which is the right side, opposite the entry."
+          "entry_drawing_angle": 264,
+          "cross_check": "Entry direction points toward existing 4 Bedroom House \u2014 confirmed. Sewer lateral path runs from house to ADU in this direction."
         },
         "north_arrow": {
           "found": true,
           "page": 1,
           "tilt_direction": "left",
-          "angle": 344
+          "angle": 340
         },
         "calculation": {
-          "formula": "(270 - 344 + 360) % 360 = 286",
-          "result": 286
+          "formula": "(264 - 340 + 360) % 360 = 284",
+          "result": 284
         },
-        "front_orientation": 286,
+        "front_orientation": 284,
         "confidence": "medium"
-      }
+      },
+      "duration_seconds": 97.4
     },
-    "verification": "side_front_confusion",
-    "final_orientation": 286,
+    "verification": "agreement",
+    "final_orientation": 284.0,
     "expected": 284,
-    "error_degrees": 2,
+    "error_degrees": 0.0,
     "correct": true,
-    "confidence": "low",
-    "notes": "90\u00b0 difference (91.0\u00b0) - trusting Pass 2 (higher confidence)"
-  },
-  {
-    "eval_id": "poonian-adu",
-    "status": "success",
-    "pass1": {
-      "pass": 1,
-      "status": "success",
-      "orientation": 68,
-      "confidence": "medium",
-      "north_arrow_angle": 12,
-      "full_response": {
-        "pass": 1,
-        "north_arrow": {
-          "found": true,
-          "page": 4,
-          "description": "Compass rose / north arrow in upper-left of proposed site plan (AS1.0), also confirmed on foundation plan (S1.0) page 12 and framing plan (S1.1) page 13 with N_REF arrows",
-          "tilt_direction": "right",
-          "tilt_magnitude": 12,
-          "angle": 12
-        },
-        "front_identification": {
-          "building_type": "adu",
-          "method": "entry_door",
-          "description": "ADU entry door (D-01) faces east toward the existing main house. Elevation page labels this as 'East Exterior Elevation'. On the site plan, the ADU entry faces right/slightly upper-right toward the main house.",
-          "drawing_direction": "right (slightly upper-right)",
-          "drawing_angle": 80
-        },
-        "calculation": {
-          "formula": "(80 - 12 + 360) % 360 = 68",
-          "result": 68
-        },
-        "front_orientation": 68,
-        "confidence": "medium"
-      }
-    },
-    "pass2": {
-      "pass": 2,
-      "status": "success",
-      "orientation": 87,
-      "confidence": "high",
-      "north_arrow_angle": 348,
-      "full_response": {
-        "pass": 2,
-        "elevation_analysis": {
-          "entry_elevation": "East Exterior Elevation",
-          "entry_evidence": "Top elevation drawing (view 1) on A2.3 shows covered porch area with lower roof extension on right side, entry door visible with steps. This is the long wall facing the main house.",
-          "page": 7,
-          "nominal_front_direction": "east"
-        },
-        "site_plan_measurement": {
-          "site_plan_page": 4,
-          "building_footprint_description": "Rectangular ADU footprint (1160 SF) in lower-left of property. Long axis runs roughly left-to-right with slight tilt \u2014 upper-right end slightly higher than lower-left end.",
-          "entry_wall_identification": "The long wall on the upper-right side of the ADU, closest to the Existing House (3448 SF) which is to the right/upper-right.",
-          "entry_wall_edge": {
-            "wall_runs_from": "upper-left to lower-right, tilted about 15 degrees below horizontal",
-            "wall_angle_from_horizontal": 15,
-            "entry_faces_outward": "perpendicular outward from wall, toward upper-right (toward main house)"
-          },
-          "entry_drawing_angle": 75,
-          "cross_check": "Entry direction points toward existing house to the upper-right \u2014 confirmed. Consistent with East Elevation label."
-        },
-        "north_arrow": {
-          "found": true,
-          "page": 4,
-          "tilt_direction": "left",
-          "angle": 348
-        },
-        "calculation": {
-          "formula": "(75 - 348 + 360) % 360 = 87",
-          "result": 87
-        },
-        "front_orientation": 87,
-        "confidence": "high"
-      }
-    },
-    "verification": "agreement",
-    "final_orientation": 77.5,
-    "expected": 112,
-    "error_degrees": 34.5,
-    "correct": false,
     "confidence": "high",
-    "notes": "Passes agree within 19.0\u00b0"
-  },
-  {
-    "eval_id": "lamb-adu",
-    "status": "success",
-    "pass1": {
-      "pass": 1,
-      "status": "success",
-      "orientation": 345,
-      "confidence": "medium",
-      "north_arrow_angle": 15,
-      "full_response": {
-        "pass": 1,
-        "north_arrow": {
-          "found": true,
-          "page": 3,
-          "description": "Compass rose labeled 'REFERENCE NORTH' in lower-right of site plan, confirmed on pages 5 and 6",
-          "tilt_direction": "right",
-          "tilt_magnitude": 15,
-          "angle": 15
-        },
-        "front_identification": {
-          "building_type": "adu",
-          "method": "entry_door",
-          "description": "Entry door on the north wall (long side), visible in floor plan near Great Room/Hall, confirmed by North Elevation showing accent door panel and NW perspective view showing entry approach. South side has covered deck (not entry).",
-          "drawing_direction": "top",
-          "drawing_angle": 0
-        },
-        "calculation": {
-          "formula": "(0 - 15 + 360) % 360 = 345",
-          "result": 345
-        },
-        "front_orientation": 345,
-        "confidence": "medium"
-      }
-    },
-    "pass2": {
-      "pass": 2,
-      "status": "success",
-      "orientation": 352,
-      "confidence": "medium",
-      "north_arrow_angle": 8,
-      "full_response": {
-        "pass": 2,
-        "elevation_analysis": {
-          "entry_elevation": "North Elevation",
-          "entry_evidence": "Single swing entry door with small covered porch visible on North Elevation (2/A2.1). Confirmed by 3D View from Northwest (1/A2.2) showing entry door with wood accent panel above. Not the sliding glass doors on South Elevation which lead to the covered/uncovered deck.",
-          "page": 7,
-          "nominal_front_direction": "north"
-        },
-        "site_plan_measurement": {
-          "site_plan_page": 3,
-          "building_footprint_description": "Rectangular footprint with long axis running roughly left-to-right (horizontally) on the page. ADU is in the upper-right area of the property, labeled ACCESSORY DWELLING UNIT FIN. FL. +504'-0\".",
-          "entry_wall_identification": "The top (north) long wall of the ADU footprint, facing toward the top of the page. The main house/existing structures are above and to the left on the site plan.",
-          "entry_wall_edge": {
-            "wall_runs_from": "left to right, nearly horizontal on the page with minimal tilt",
-            "wall_angle_from_horizontal": 2,
-            "entry_faces_outward": "perpendicular outward from the wall, toward TOP of page (toward main house area)"
-          },
-          "entry_drawing_angle": 0,
-          "cross_check": "Entry direction points toward top of page where main house/existing structures are located \u2014 consistent with ADU entry facing main house"
-        },
-        "north_arrow": {
-          "found": true,
-          "page": 3,
-          "tilt_direction": "right",
-          "angle": 8
-        },
-        "calculation": {
-          "formula": "(0 - 8 + 360) % 360 = 352",
-          "result": 352
-        },
-        "front_orientation": 352,
-        "confidence": "medium"
-      }
-    },
-    "verification": "agreement",
-    "final_orientation": 348.5,
-    "expected": 22,
-    "error_degrees": 33.5,
-    "correct": false,
-    "confidence": "high",
-    "notes": "Passes agree within 7.0\u00b0"
+    "notes": "Passes agree within 0.0\u00b0",
+    "cv_hints": null,
+    "timing": {
+      "eval_total_seconds": 137.6,
+      "cv_sensors_seconds": 0.0,
+      "orientation_seconds": 137.6,
+      "pass1_seconds": 137.6,
+      "pass2_seconds": 97.4
+    }
   }
 ]

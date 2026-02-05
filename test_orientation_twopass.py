@@ -14,6 +14,7 @@ import asyncio
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -29,6 +30,7 @@ from agents.orchestrator import (
     run_cv_sensors,
 )
 from schemas.discovery import DocumentMap, PDFSource, CACHE_VERSION
+from telemetry import Telemetry
 
 logging.basicConfig(
     level=logging.INFO,
@@ -105,6 +107,7 @@ async def run_pass(
     cv_hints: Optional[Dict] = None,
 ) -> Dict:
     """Run a single orientation extraction pass."""
+    t_start = time.monotonic()
 
     relevant_pages = get_relevant_pages_for_domain("orientation", document_map)
     if not relevant_pages:
@@ -154,13 +157,15 @@ Focus on outputting the structured intermediate values, not just the final answe
             "confidence": json_data.get("confidence", "unknown"),
             "north_arrow_angle": json_data.get("north_arrow", {}).get("angle"),
             "full_response": json_data,
+            "duration_seconds": round(time.monotonic() - t_start, 1),
         }
     except Exception as e:
         logger.error(f"[{eval_id}] Pass {pass_num} error: {e}")
         return {
             "pass": pass_num,
             "status": "error",
-            "error": str(e)
+            "error": str(e),
+            "duration_seconds": round(time.monotonic() - t_start, 1),
         }
 
 
@@ -254,28 +259,36 @@ async def run_twopass_extraction(
     eval_id: str,
     eval_dir: Path,
     document_map: DocumentMap,
-    use_cv_hints: bool = True
+    use_cv_hints: bool = True,
+    tel: Optional[Telemetry] = None,
 ) -> Dict:
     """Run both passes in parallel and verify results."""
 
     logger.info(f"[{eval_id}] Running two-pass extraction...")
+    eval_start = time.monotonic()
 
     # Run CV sensors first if enabled
     cv_hints = None
+    cv_duration = 0.0
     if use_cv_hints:
         try:
+            cv_start = time.monotonic()
             cv_hints = run_cv_sensors(eval_dir, document_map)
+            cv_duration = time.monotonic() - cv_start
             logger.info(f"[{eval_id}] CV hints: north={cv_hints['north_arrow']['angle']}°, "
                        f"walls={len(cv_hints['wall_edges'])}, "
                        f"building_rot={cv_hints['building_rotation']['rotation_from_horizontal']}°")
         except Exception as e:
+            cv_duration = time.monotonic() - cv_start
             logger.warning(f"[{eval_id}] CV sensors failed, proceeding without hints: {e}")
 
     # Run both passes in parallel with CV hints
     pass1_task = run_pass(eval_id, eval_dir, document_map, 1, cv_hints)
     pass2_task = run_pass(eval_id, eval_dir, document_map, 2, cv_hints)
 
+    orientation_start = time.monotonic()
     pass1, pass2 = await asyncio.gather(pass1_task, pass2_task)
+    orientation_duration = time.monotonic() - orientation_start
 
     # Verify and combine results
     verification = verify_passes(pass1, pass2)
@@ -290,6 +303,16 @@ async def run_twopass_extraction(
         error = None
         correct = None
 
+    eval_duration = time.monotonic() - eval_start
+
+    timing = {
+        "eval_total_seconds": round(eval_duration, 1),
+        "cv_sensors_seconds": round(cv_duration, 1),
+        "orientation_seconds": round(orientation_duration, 1),
+        "pass1_seconds": pass1.get("duration_seconds"),
+        "pass2_seconds": pass2.get("duration_seconds"),
+    }
+
     return {
         "eval_id": eval_id,
         "status": "success",
@@ -303,10 +326,11 @@ async def run_twopass_extraction(
         "confidence": verification["confidence"],
         "notes": verification["notes"],
         "cv_hints": cv_hints,
+        "timing": timing,
     }
 
 
-async def run_all_evals(evals_dir: Path = Path("evals"), use_cv_hints: bool = True) -> List[Dict]:
+async def run_all_evals(evals_dir: Path = Path("evals"), use_cv_hints: bool = True, tel: Optional[Telemetry] = None) -> List[Dict]:
     """Run two-pass extraction on all evals."""
 
     eval_ids = list(GROUND_TRUTH.keys())
@@ -321,14 +345,14 @@ async def run_all_evals(evals_dir: Path = Path("evals"), use_cv_hints: bool = Tr
     logger.info(f"Running two-pass extraction on {len(eval_ids)} evals...")
 
     tasks = [
-        run_twopass_extraction(eval_id, eval_dir, document_map, use_cv_hints)
+        run_twopass_extraction(eval_id, eval_dir, document_map, use_cv_hints, tel)
         for eval_id, (document_map, eval_dir) in discoveries.items()
     ]
 
     return await asyncio.gather(*tasks)
 
 
-def print_results(results: List[Dict]):
+def print_results(results: List[Dict], total_seconds: Optional[float] = None):
     """Print formatted results."""
     print("\n" + "=" * 80)
     print("TWO-PASS ORIENTATION VERIFICATION RESULTS")
@@ -367,6 +391,37 @@ def print_results(results: List[Dict]):
         else:
             print(f"{r['eval_id']:<18} {'ERROR':>7} {'-':>7} {'-':>7} {'-':>7} {'-':>6} {'-':<12} ERROR")
 
+    # Print timing breakdown
+    timed_results = [r for r in results if r.get("timing")]
+    if timed_results:
+        print("\n" + "=" * 80)
+        print("TIMING BREAKDOWN")
+        print("─" * 80)
+        print(f"{'Eval':<18} {'CV':>7} {'Pass1':>8} {'Pass2':>8} {'Orient':>8} {'Total':>8}")
+        print("─" * 80)
+
+        total_cv = 0.0
+        total_orient = 0.0
+
+        for r in timed_results:
+            t = r["timing"]
+            cv = t.get("cv_sensors_seconds", 0) or 0
+            p1 = t.get("pass1_seconds", 0) or 0
+            p2 = t.get("pass2_seconds", 0) or 0
+            orient = t.get("orientation_seconds", 0) or 0
+            etotal = t.get("eval_total_seconds", 0) or 0
+
+            total_cv += cv
+            total_orient += orient
+
+            print(f"{r['eval_id']:<18} {cv:>6.1f}s {p1:>7.1f}s {p2:>7.1f}s {orient:>7.1f}s {etotal:>7.1f}s")
+
+        if len(timed_results) > 1:
+            print("─" * 80)
+            wall = total_seconds or sum(t["timing"]["eval_total_seconds"] for t in timed_results)
+            print(f"{'Totals':<18} {total_cv:>6.1f}s {'':>8} {'':>8} {total_orient:>7.1f}s {wall:>7.1f}s")
+            print(f"\n  Wall-clock: {wall:.1f}s | CV: {total_cv:.1f}s ({total_cv/wall*100:.0f}%) | LLM: {total_orient:.1f}s ({total_orient/wall*100:.0f}%)")
+
     # Save detailed results
     output_file = Path("orientation_twopass_results.json")
     with open(output_file, "w") as f:
@@ -385,15 +440,16 @@ def main():
     args = parser.parse_args()
 
     use_cv_hints = not args.no_cv
+    tel = Telemetry()
 
     if args.eval:
         evals_dir = Path("evals")
         document_map, eval_dir = ensure_discovery(args.eval, evals_dir)
-        result = asyncio.run(run_twopass_extraction(args.eval, eval_dir, document_map, use_cv_hints))
-        print_results([result])
+        result = asyncio.run(run_twopass_extraction(args.eval, eval_dir, document_map, use_cv_hints, tel))
+        print_results([result], tel.total_seconds())
     elif args.all:
-        results = asyncio.run(run_all_evals(use_cv_hints=use_cv_hints))
-        print_results(results)
+        results = asyncio.run(run_all_evals(use_cv_hints=use_cv_hints, tel=tel))
+        print_results(results, tel.total_seconds())
     else:
         parser.print_help()
 
