@@ -1,0 +1,138 @@
+2025 Building Energy Efficiency Standards
+Performance-based Compliance
+
+Detailed Report For:,User Input,
+
+Project
+,Run ID,"User",
+,Run Title,"Title 24 Analysis",
+,Run Number,0,
+,Run Scope,Newly Constructed,
+
+,Address,"1500 Wooden Valley Rd",
+,City,"Napa",
+,Climate Zone,2,
+
+,Standards Version," ",
+,All Orientations,"No",
+,Fuel Type,"All Electric",
+
+,House Type,"Single Family",
+,Dwelling Units,1,
+,Stories,1,
+,Bedrooms,2,
+,Attached Garage,"No",
+
+,Front Orientation,22,deg,
+
+,Conditioned Floor Area,1200.0,ft2,
+,Total Conditioned Zone Window Area,373.2,ft2,
+,Window to Floor Area Ratio,0.311,
+,Area-Weighted Fenestration Ufactor,0.300,Btuh/ft2-?F,
+,Exterior Wall Area,1728.0,ft2,
+,Underground Wall Area,0.0,ft2,
+,Conditioned Zone Slab Floor Area,0.0,ft2,
+,Exposed Slab Floor Area,0.0,ft2,
+,Conditioned Zone Below Grade Floor Area,0.0,ft2,
+,Exposed Below Grade Floor Area,0.0,ft2,
+
+,Addition Conditioned Floor Area,0.0,ft2,
+
+,PV Credit Available,"Yes",
+,PV Generation - Maximum Credit,0.0,LSC $,
+,Credit Available for PV,0.0,LSC $,
+,Final PV Credit,0.0,LSC $/ft2-yr,
+
+,Zonal Control,"No",
+,Envelope Infiltration (ACH @ 50 Pa),5.000,
+,Envelope Infiltration (CFM @ 50 Pa),1000.000,
+,Quality Insulation Installation,"Yes",
+
+,Exterior Walls:, Name, Zone, Status, Type, Orientation (deg), Area (ft2), Window Area (ft2),Door Area (ft2), Tilt (deg), Framing Factor, 
+,,"N Wall","ADU",New,R-21 Wall,22.000,600.000,253.200,0.000,90.000,0.250,
+,,"E Wall","ADU",New,R-21 Wall,112.000,384.000,22.500,0.000,90.000,0.250,
+,,"S Wall","ADU",New,R-21 Wall,202.000,360.000,48.000,0.000,90.000,0.250,
+,,"W Wall","ADU",New,R-21 Wall,292.000,384.000,49.500,0.000,90.000,0.250,
+
+,Windows:, Name, Wall, Status, Azimuth (deg), Height (ft), Width (ft), Multiplier, Area (ft2),U-factor, SHGC, Ext. Shade, 
+,,"101","N Wall",New,22.000,,,1.000,24.00,0.300,0.290,Insect Screen (default),
+,,"102","N Wall",New,22.000,,,1.000,54.60,0.300,0.290,Insect Screen (default),
+,,"103","N Wall",New,22.000,,,1.000,54.60,0.300,0.290,Insect Screen (default),
+,,"104","N Wall",New,22.000,,,1.000,64.00,0.300,0.290,Insect Screen (default),
+,,"BA","N Wall",New,22.000,,,1.000,17.00,0.300,0.290,Insect Screen (default),
+,,"BB","N Wall",New,22.000,,,1.000,17.00,0.300,0.290,Insect Screen (default),
+,,"BC","N Wall",New,22.000,,,1.000,6.00,0.300,0.290,Insect Screen (default),
+,,"BD","N Wall",New,22.000,,,1.000,16.00,0.300,0.290,Insect Screen (default),
+,,"AF","E Wall",New,112.000,,,1.000,22.50,0.300,0.290,Insect Screen (default),
+,,"AE","S Wall",New,202.000,,,1.000,13.50,0.300,0.290,Insect Screen (default),
+,,"AD","S Wall",New,202.000,,,1.000,13.50,0.300,0.290,Insect Screen (default),
+,,"AC","S Wall",New,202.000,,,1.000,21.00,0.300,0.290,Insect Screen (default),
+,,"AB","W Wall",New,292.000,,,1.000,16.50,0.300,0.290,Insect Screen (default),
+,,"AA","W Wall",New,292.000,,,1.000,33.00,0.300,0.290,Insect Screen (default),
+
+,Ext. Wall Constructions:, Name, Type, Total Cavity Rvalue, Total Thickness, Winter Design Uvalue, Layers:, 
+,,"R-21 Wall","Wood Framed Wall",21.000,6.875,0.069,"Inside Finish: Gypsum Board",
+,,,,,,,"Cavity / Frame: R-21 / 2x6",
+,,,,,,,"Exterior Finish: 3 Coat Stucco",
+
+,Cathedral Ceilings:, Name, Zone, Status, Type, Orientation, Area (ft2), Roof Rise (x in 12), Roof Pitch, Roof Tilt (deg), Roof Reflectance, Roof Emittance, Framing Factor, 
+,,"Roof","ADU",New,R-38 Roof No Attic,202.000,1200.00,2.000,0.167,9.462,0.100,0.850,0.070,
+
+,Cathedral Ceiling Constructions:, Name, Type, Total Cavity Rvalue, Total Thickness, Winter Design Uvalue,  Layers:, 
+,,"R-38 Roof No Attic","Wood Framed Ceiling",38.000,10.450,0.029,"Roofing: Light Roof (Asphalt Shingle)",
+,,,,,,,"Roof Deck: Wood Siding/sheathing/decking",
+,,,,,,,"Cavity / Frame: R-38 / 2x10",
+,,,,,,,"Inside Finish: Gypsum Board",
+
+,Exterior Floors:, Name, Zone, Status, Type, Area (ft2),Edge Insul. Rvalue, Framing Factor, 
+
+,Ext. Floor Constructions:, Name, Type, Total Cavity Rvalue, Total Thickness, Winter Design Uvalue, Layers:, 
+
+,Floors Over Crawlspace:, Name, Zone, Status, Type, Area (ft2), Framing Factor, 
+,,"Raised Floor","ADU",New,(N) R-30 Floor Crawlspace,1200.00,0.100,
+
+,Floor Over Crawlspace Constructions:, Name, Type, Total Cavity Rvalue, Total Thickness, Winter Design Uvalue, Layers:, 
+,,"(N) R-30 Floor Crawlspace","Wood Framed Floor",30.000,10.250,0.034,"Floor Surface: Carpeted",
+,,,,,,,"Floor Deck: Wood Siding/sheathing/decking",
+,,,,,,,"Cavity / Frame: R-30 / 2x10",
+
+,CrawlSpace:, Name, Status, Type, Area (ft2), Perimeter (ft), Avg. Height (ft), 
+,,"Crawl Space","Normal (vented)",1200.00,144.00,2.00,
+
+,Zone Name,"ADU",
+,Zone Type,"Conditioned",
+,Zone Status,"New",
+,Zone Floor Area,1200.00,ft2,
+,Zone Ceiling Height,10.00,ft,
+,Zone Stories,1.0,
+,Zone Volume,12000.00,ft3,
+,Zone Exterior Wall Area,1728.000,ft2,
+,Zone Exterior Wall Door Area,0.000,ft2,
+,Zone Ceiling Below Attic Area,0.000,ft2,
+,Zone Cathedral Ceiling Area,1200.000,ft2,
+,Zone Slab Floor Area,0.000,ft2,
+,Zone Exterior Floor Area,1200.000,ft2,
+
+,Water Heating System Data:, Status, Type, Water Heaters:, Fuel, Tank, Volume (gal), Energy Factor, Input Rating,, Int. Insul. RValue, Ext. Insul. Rvalue, Standby Loss,Make & Model,Tank Location,Rated Flow,First Hour Rating,Recovery Efficiency, 
+,"DHW Sys 1",New,"Standard","DHW Heater 1",Heat Pump,NA,50.000,NEEA Rated,NA,"watts",NA,NA,NA,Rheem / PROPH50 T2 RH350 D  (50 gal),ADU,,,,
+
+,HVAC System Data:,  Status, Type,
+,"Ducted Heat Pump1",New,Heat Pump,
+,,Heat Pump (Heating):, Type, HSPF, Cap47, Cap 17, Aux. Htg. Capacity, Ducted,
+,,"Heat Pump System 1",SplitHeatPump,8.200,34200.000,20800.000,-99996.000,"Yes",
+
+,,Heat Pump (Cooling):, Type, SEER2, EER2, CFM/Ton, AC Charge, Ducted,
+,,"Heat Pump System 1",SplitHeatPump,15.800,9.300,350.000,"Not  Verified","Yes",
+
+
+,,Distribution System:, Type, Percent Leakage, Insulation R-Value, Supply Area (ft2), Supply Dia (in), Return Area (ft2), Return Dia (in), Bypass Duct,
+,,"Air Distribution System 1",DuctsCrawl,5.000,8.000,"No",
+
+
+
+
+
+
+
+Compliance Manager Version:,,"BEMCmpMgr 2025.1.0 (2600)",
+Software Version:,,"EnergyPro 10.0",

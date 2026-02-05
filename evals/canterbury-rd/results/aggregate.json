@@ -1,0 +1,21 @@
+{
+  "eval_id": "canterbury-rd",
+  "iterations": [
+    {
+      "iteration": 8,
+      "f1": 0.489655172413793,
+      "precision": 0.4965034965034965,
+      "recall": 0.48299319727891155,
+      "timestamp": "2026-02-04T17:00:09.679789Z",
+      "error_counts": {
+        "omission": 76,
+        "hallucination": 16,
+        "wrong_value": 56,
+        "format_error": 0
+      },
+      "trend": 0.0
+    }
+  ],
+  "best_f1": 0.489655172413793,
+  "best_iteration": 8
+}

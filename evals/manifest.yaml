@@ -1,0 +1,95 @@
+version: '2.0'
+
+evals:
+  chamberlin-circle:
+    name: 4720 Chamberlin Circle
+    description: 320 SF ADU in Elk Grove, CA (Climate Zone 12)
+    source_project: 'New Test Cases'
+    pdf: plans.pdf
+    spec_sheet: spec_sheet.pdf
+    ground_truth: ground_truth.csv
+    ground_truth_format: building_summary_csv
+    features:
+      - Single zone ADU
+      - Ductless heat pump (SEER2 14, HSPF 8)
+      - Electric point-of-use water heater
+      - R-21 walls, R-38 cathedral ceiling
+    expected:
+      address: 4720 Chamberlin Cir.
+      city: Elk Grove
+      climate_zone: 12
+      bedrooms: 1
+      stories: 1
+      conditioned_floor_area: 320
+      zones: 1
+      walls: 4
+      windows: 4
+      hvac_systems: 1
+      water_heaters: 1
+
+  canterbury-rd:
+    name: 1961 Canterbury Rd
+    description: Residence in Sacramento, CA (Climate Zone 12)
+    source_project: 'Project #2'
+    pdf: plans.pdf
+    spec_sheet: spec_sheet.pdf
+    ground_truth: ground_truth.csv
+    ground_truth_format: building_summary_csv
+    features:
+      - Natural gas fuel type
+      - Single family home
+    expected:
+      address: 1961 Canterbury
+      city: Sacramento
+      climate_zone: 12
+
+  martinez-adu:
+    name: 745 Wyoming Street ADU
+    description: 2BR ADU in Martinez, CA (Climate Zone 12)
+    source_project: 'Project #3'
+    pdf: plans.pdf
+    spec_sheet: spec_sheet.pdf
+    ground_truth: ground_truth.csv
+    ground_truth_format: building_summary_csv
+    features:
+      - All electric
+      - Single family ADU
+      - 2 bedrooms
+    expected:
+      address: 745 Woming St.
+      city: Martinez
+      climate_zone: 12
+
+  poonian-adu:
+    name: Poonian Residence ADU
+    description: ADU in San Jose, CA (Climate Zone 4)
+    source_project: 'Project #4'
+    pdf: plans.pdf
+    spec_sheet: spec_sheet.pdf
+    ground_truth: ground_truth.csv
+    ground_truth_format: building_summary_csv
+    features:
+      - All electric
+      - Heat pump water heater
+      - Single family ADU
+    expected:
+      address: 3534 Meadowlands Lane
+      city: San Jose
+      climate_zone: 4
+
+  lamb-adu:
+    name: Lamb ADU
+    description: ADU in Napa, CA (Climate Zone 2)
+    source_project: 'Project #5'
+    pdf: plans.pdf
+    spec_sheet: spec_sheet.pdf
+    ground_truth: ground_truth.csv
+    ground_truth_format: building_summary_csv
+    features:
+      - All electric
+      - Updated HVAC system
+      - Single family ADU
+    expected:
+      address: 1500 Wooden Valley Rd
+      city: Napa
+      climate_zone: 2

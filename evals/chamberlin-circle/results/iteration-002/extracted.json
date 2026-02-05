@@ -1,0 +1,25 @@
+{
+  "project": {
+    "run_title": "4720 Chamberlin Cir ADU",
+    "address": "4720 Chamberlin Cir",
+    "city": "Elk Grove",
+    "climate_zone": 12,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 0
+  },
+  "envelope": {
+    "conditioned_floor_area": 450.0,
+    "window_area": 68.0,
+    "window_to_floor_ratio": 0.151,
+    "exterior_wall_area": 621.0,
+    "fenestration_u_factor": null
+  },
+  "zones": [],
+  "walls": [],
+  "windows": [],
+  "hvac_systems": [],
+  "water_heaters": []
+}

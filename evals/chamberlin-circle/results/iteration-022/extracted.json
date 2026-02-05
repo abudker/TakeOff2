@@ -1,0 +1,241 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": null,
+    "run_number": 0,
+    "run_scope": "Newly Constructed",
+    "address": "4720 Chamberlin Cir",
+    "city": "Elk Grove",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 1,
+    "attached_garage": false,
+    "front_orientation": null
+  },
+  "envelope": {
+    "conditioned_floor_area": 320.0,
+    "addition_conditioned_floor_area": null,
+    "window_area": 64.0,
+    "window_to_floor_ratio": 0.2,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 576.0,
+    "underground_wall_area": null,
+    "slab_floor_area": 320.0,
+    "exposed_slab_floor_area": null,
+    "below_grade_floor_area": null,
+    "exposed_below_grade_floor_area": null,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 320.0,
+      "ceiling_height": 8.0,
+      "stories": 1,
+      "volume": 2560.0,
+      "exterior_wall_area": 576.0,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 320.0,
+      "slab_floor_area": 320.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 0.0,
+      "area": 128.0,
+      "window_area": 6.0,
+      "door_area": 18.9,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 90.0,
+      "area": 160.0,
+      "window_area": null,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 180.0,
+      "area": 128.0,
+      "window_area": 18.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 270.0,
+      "area": 160.0,
+      "window_area": 40.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "G05",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "G02",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 3.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "G03",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "D03",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 6.67,
+      "width": 6.0,
+      "multiplier": 1,
+      "area": 40.0,
+      "u_factor": 0.32,
+      "shgc": 0.21,
+      "exterior_shade": null
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-38 Roof Rafter",
+      "orientation": null,
+      "area": 320.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "ADU",
+      "status": "New",
+      "area": 320.0,
+      "perimeter": 72.0,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "Ductless Heat Pump Mini-Split",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 9
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 5
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

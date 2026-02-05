@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Report: chamberlin-circle</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #4e9fff;
+            --accent-green: #00d26a;
+            --accent-red: #ff4757;
+            --accent-orange: #ffa502;
+            --accent-yellow: #ffc312;
+            --accent-purple: #9c88ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-card);
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .meta span {
+            margin-right: 1.5rem;
+        }
+
+        /* Metrics Section */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .metric-value.f1 { color: var(--accent-blue); }
+        .metric-value.precision { color: var(--accent-green); }
+        .metric-value.recall { color: var(--accent-purple); }
+        .metric-value.correct { color: var(--accent-green); }
+
+        .metric-subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* F1 Score Color Coding */
+        .f1-excellent { color: var(--accent-green) !important; }
+        .f1-good { color: var(--accent-blue) !important; }
+        .f1-fair { color: var(--accent-orange) !important; }
+        .f1-poor { color: var(--accent-red) !important; }
+
+        /* Error Breakdown */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .error-card.omission { border-left: 4px solid var(--accent-red); }
+        .error-card.hallucination { border-left: 4px solid var(--accent-orange); }
+        .error-card.format_error { border-left: 4px solid var(--accent-yellow); }
+        .error-card.wrong_value { border-left: 4px solid var(--accent-purple); }
+
+        .error-count {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .error-card.omission .error-count { color: var(--accent-red); }
+        .error-card.hallucination .error-count { color: var(--accent-orange); }
+        .error-card.format_error .error-count { color: var(--accent-yellow); }
+        .error-card.wrong_value .error-count { color: var(--accent-purple); }
+
+        .error-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Discrepancies Table */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: var(--accent-blue);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            width: 250px;
+            font-size: 0.85rem;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .error-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .error-badge.omission { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); }
+        .error-badge.hallucination { background: rgba(255, 165, 2, 0.2); color: var(--accent-orange); }
+        .error-badge.format_error { background: rgba(255, 195, 18, 0.2); color: var(--accent-yellow); }
+        .error-badge.wrong_value { background: rgba(156, 136, 255, 0.2); color: var(--accent-purple); }
+
+        .field-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        .value-cell {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .value-expected {
+            color: var(--accent-green);
+        }
+
+        .value-actual {
+            color: var(--accent-red);
+        }
+
+        .value-null {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--bg-card);
+        }
+
+        .pagination button {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Iteration History */
+        .history-chart {
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .history-table {
+            font-size: 0.85rem;
+        }
+
+        .history-table td:first-child {
+            font-weight: 600;
+        }
+
+        .trend-up { color: var(--accent-green); }
+        .trend-down { color: var(--accent-red); }
+        .trend-same { color: var(--text-secondary); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .error-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        /* No discrepancies message */
+        .no-discrepancies {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .no-discrepancies .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* All Fields Diff View */
+        .diff-view {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .diff-row {
+            display: grid;
+            grid-template-columns: 24px 200px 1fr 1fr;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 6px;
+            align-items: center;
+        }
+
+        .diff-row.match {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .diff-row.mismatch {
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .diff-status {
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .diff-status.match { color: var(--accent-green); }
+        .diff-status.mismatch { color: var(--accent-red); }
+
+        .diff-field {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        .diff-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .diff-expected {
+            background: rgba(0, 210, 106, 0.1);
+            color: var(--accent-green);
+        }
+
+        .diff-actual {
+            background: rgba(78, 159, 255, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .diff-actual.wrong {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        .diff-null {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .diff-header {
+            display: grid;
+            grid-template-columns: 24px 200px 1fr 1fr;
+            gap: 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .toggle-btn:hover, .toggle-btn.active {
+            background: var(--accent-blue);
+        }
+
+        @media (max-width: 768px) {
+            .diff-row {
+                grid-template-columns: 24px 1fr;
+            }
+            .diff-row .diff-expected,
+            .diff-row .diff-actual {
+                grid-column: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Evaluation Report: chamberlin-circle</h1>
+            <div class="meta">
+                <span>Generated: 2026-02-04 03:13:56 UTC</span>
+                
+                <span>Iteration: 2</span>
+                
+            </div>
+        </header>
+
+        <!-- Metrics Overview -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>F1 Score</h3>
+                <div class="metric-value f1 f1-fair">
+                    60.0%
+                </div>
+                <div class="metric-subtext">Target: 90%</div>
+            </div>
+            <div class="metric-card">
+                <h3>Precision</h3>
+                <div class="metric-value precision">46.2%</div>
+                <div class="metric-subtext">Correct / Extracted</div>
+            </div>
+            <div class="metric-card">
+                <h3>Recall</h3>
+                <div class="metric-value recall">85.7%</div>
+                <div class="metric-subtext">Correct / Expected</div>
+            </div>
+            <div class="metric-card">
+                <h3>Correct Fields</h3>
+                <div class="metric-value correct">6</div>
+                <div class="metric-subtext">of 14 expected</div>
+            </div>
+        </div>
+
+        <!-- Error Breakdown -->
+        <div class="section">
+            <h2>Error Breakdown</h2>
+            <div class="error-grid">
+                <div class="error-card omission">
+                    <div class="error-count">1</div>
+                    <div class="error-label">Omissions</div>
+                </div>
+                <div class="error-card hallucination">
+                    <div class="error-count">0</div>
+                    <div class="error-label">Hallucinations</div>
+                </div>
+                <div class="error-card format_error">
+                    <div class="error-count">0</div>
+                    <div class="error-label">Format Errors</div>
+                </div>
+                <div class="error-card wrong_value">
+                    <div class="error-count">7</div>
+                    <div class="error-label">Wrong Values</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Fields Diff View -->
+        
+        <div class="section">
+            <h2>All Fields Comparison</h2>
+            <div style="margin-bottom: 1rem;">
+                <button class="toggle-btn active" onclick="filterAllFields('all')">All (14)</button>
+                <button class="toggle-btn" onclick="filterAllFields('match')">Matches (6)</button>
+                <button class="toggle-btn" onclick="filterAllFields('mismatch')">Mismatches (8)</button>
+            </div>
+            <div class="diff-header">
+                <span></span>
+                <span>Field</span>
+                <span>Expected (Ground Truth)</span>
+                <span>Actual (Extracted)</span>
+            </div>
+            <div class="diff-view" id="all-fields-view">
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">envelope.conditioned_floor_area</span>
+                    <span class="diff-value diff-expected ">
+                        320
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        450.0
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">envelope.exterior_wall_area</span>
+                    <span class="diff-value diff-expected ">
+                        612
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        621.0
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">envelope.fenestration_u_factor</span>
+                    <span class="diff-value diff-expected ">
+                        0.313
+                    </span>
+                    <span class="diff-value diff-actual wrong diff-null">
+                        (none)
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">envelope.window_area</span>
+                    <span class="diff-value diff-expected ">
+                        64
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        68.0
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">envelope.window_to_floor_ratio</span>
+                    <span class="diff-value diff-expected ">
+                        0.2
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        0.151
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">project.address</span>
+                    <span class="diff-value diff-expected ">
+                        4720 Chamberlin Cir.
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        4720 Chamberlin Cir
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">project.bedrooms</span>
+                    <span class="diff-value diff-expected ">
+                        1
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        0
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.city</span>
+                    <span class="diff-value diff-expected ">
+                        Elk Grove
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        Elk Grove
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.climate_zone</span>
+                    <span class="diff-value diff-expected ">
+                        12
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        12
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.dwelling_units</span>
+                    <span class="diff-value diff-expected ">
+                        1
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        1
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.fuel_type</span>
+                    <span class="diff-value diff-expected ">
+                        All Electric
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        All Electric
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.house_type</span>
+                    <span class="diff-value diff-expected ">
+                        Single Family
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        Single Family
+                    </span>
+                </div>
+                
+                <div class="diff-row mismatch" data-match="false">
+                    <span class="diff-status mismatch">
+                        &#x2718;
+                    </span>
+                    <span class="diff-field">project.run_title</span>
+                    <span class="diff-value diff-expected ">
+                        Title 24 Analysis
+                    </span>
+                    <span class="diff-value diff-actual wrong ">
+                        4720 Chamberlin Cir ADU
+                    </span>
+                </div>
+                
+                <div class="diff-row match" data-match="true">
+                    <span class="diff-status match">
+                        &#x2714;
+                    </span>
+                    <span class="diff-field">project.stories</span>
+                    <span class="diff-value diff-expected ">
+                        1
+                    </span>
+                    <span class="diff-value diff-actual  ">
+                        1
+                    </span>
+                </div>
+                
+            </div>
+        </div>
+        
+
+        <!-- Discrepancies Table -->
+        <div class="section">
+            <h2>Field Discrepancies</h2>
+            
+            <div class="table-controls">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterDiscrepancies('all')">All (8)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('omission')">Omissions (1)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('hallucination')">Hallucinations (0)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('format_error')">Format (0)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('wrong_value')">Wrong Value (7)</button>
+                </div>
+                <input type="text" class="search-box" placeholder="Search field paths..." onkeyup="searchDiscrepancies(this.value)">
+            </div>
+            <table id="discrepancies-table">
+                <thead>
+                    <tr>
+                        <th>Error Type</th>
+                        <th>Field Path</th>
+                        <th>Expected</th>
+                        <th>Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">project.run_title</td>
+                        <td class="value-cell value-expected">
+                            Title 24 Analysis
+                        </td>
+                        <td class="value-cell value-actual">
+                            4720 Chamberlin Cir ADU
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">project.address</td>
+                        <td class="value-cell value-expected">
+                            4720 Chamberlin Cir.
+                        </td>
+                        <td class="value-cell value-actual">
+                            4720 Chamberlin Cir
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">project.bedrooms</td>
+                        <td class="value-cell value-expected">
+                            1
+                        </td>
+                        <td class="value-cell value-actual">
+                            0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">envelope.conditioned_floor_area</td>
+                        <td class="value-cell value-expected">
+                            320
+                        </td>
+                        <td class="value-cell value-actual">
+                            450.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">envelope.window_area</td>
+                        <td class="value-cell value-expected">
+                            64
+                        </td>
+                        <td class="value-cell value-actual">
+                            68.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">envelope.window_to_floor_ratio</td>
+                        <td class="value-cell value-expected">
+                            0.2
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.151
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">envelope.fenestration_u_factor</td>
+                        <td class="value-cell value-expected">
+                            0.313
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">envelope.exterior_wall_area</td>
+                        <td class="value-cell value-expected">
+                            612
+                        </td>
+                        <td class="value-cell value-actual">
+                            621.0
+                        </td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button onclick="prevPage()" id="prev-btn" disabled>Previous</button>
+                <span class="page-info" id="page-info">Page 1 of 1</span>
+                <button onclick="nextPage()" id="next-btn">Next</button>
+            </div>
+            
+        </div>
+
+        
+        <!-- Iteration History -->
+        <div class="section">
+            <h2>F1 Score History</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Iteration</th>
+                        <th>F1</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>Trend</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>1</td>
+                        <td>60.0%</td>
+                        <td>46.2%</td>
+                        <td>85.7%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T02:20:31.733734Z</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+
+    <script>
+        // Pagination state
+        const ROWS_PER_PAGE = 50;
+        let currentPage = 1;
+        let filteredRows = [];
+        let allRows = [];
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const tbody = document.querySelector('#discrepancies-table tbody');
+            if (tbody) {
+                allRows = Array.from(tbody.querySelectorAll('tr'));
+                filteredRows = [...allRows];
+                updatePagination();
+            }
+        });
+
+        function filterDiscrepancies(errorType) {
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter rows
+            if (errorType === 'all') {
+                filteredRows = [...allRows];
+            } else {
+                filteredRows = allRows.filter(row => row.dataset.errorType === errorType);
+            }
+
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function searchDiscrepancies(query) {
+            query = query.toLowerCase();
+            filteredRows = allRows.filter(row => {
+                const fieldPath = row.querySelector('.field-path').textContent.toLowerCase();
+                return fieldPath.includes(query);
+            });
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+            const endIdx = startIdx + ROWS_PER_PAGE;
+
+            // Show/hide rows
+            allRows.forEach(row => row.style.display = 'none');
+            filteredRows.slice(startIdx, endIdx).forEach(row => row.style.display = '');
+
+            // Update pagination controls
+            document.getElementById('page-info').textContent =
+                `Page ${currentPage} of ${Math.max(1, totalPages)} (${filteredRows.length} items)`;
+            document.getElementById('prev-btn').disabled = currentPage <= 1;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        }
+
+        // All Fields filter
+        function filterAllFields(filter) {
+            const container = document.getElementById('all-fields-view');
+            if (!container) return;
+
+            // Update button states
+            container.parentElement.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const rows = container.querySelectorAll('.diff-row');
+            rows.forEach(row => {
+                const isMatch = row.dataset.match === 'true';
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'match') {
+                    row.style.display = isMatch ? '' : 'none';
+                } else if (filter === 'mismatch') {
+                    row.style.display = isMatch ? 'none' : '';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

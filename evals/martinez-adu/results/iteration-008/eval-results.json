@@ -1,0 +1,768 @@
+{
+  "eval_id": "martinez-adu",
+  "metrics": {
+    "precision": 0.5139664804469274,
+    "recall": 0.7131782945736435,
+    "f1": 0.5974025974025974,
+    "true_positives": 92,
+    "false_positives": 87,
+    "false_negatives": 37,
+    "total_fields_gt": 182,
+    "total_fields_extracted": 227,
+    "correct_fields": 92,
+    "errors_by_type": {
+      "omission": 37,
+      "hallucination": 34,
+      "wrong_value": 52,
+      "format_error": 1
+    }
+  },
+  "discrepancies": [
+    {
+      "field_path": "project.address",
+      "expected": "745 Woming St.",
+      "actual": "745 Woming Street",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.front_orientation",
+      "expected": 284,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.window_area",
+      "expected": 141,
+      "actual": 201.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_to_floor_ratio",
+      "expected": 0.189,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.fenestration_u_factor",
+      "expected": 0.306,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exterior_wall_area",
+      "expected": 1028,
+      "actual": 931.5999999999999,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.underground_wall_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exposed_slab_floor_area",
+      "expected": 746,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.below_grade_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exposed_below_grade_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.addition_conditioned_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[0].orientation",
+      "expected": 14,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].area",
+      "expected": 205,
+      "actual": 293.5,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].window_area",
+      "expected": 24,
+      "actual": 28.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].door_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[1].orientation",
+      "expected": 104,
+      "actual": 90.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].area",
+      "expected": 309,
+      "actual": 172.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].window_area",
+      "expected": 28,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].door_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[2].orientation",
+      "expected": 194,
+      "actual": 180.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].area",
+      "expected": 205,
+      "actual": 293.5,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].window_area",
+      "expected": 40,
+      "actual": 73.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].door_area",
+      "expected": 0,
+      "actual": 20.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].orientation",
+      "expected": 284,
+      "actual": 270.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].area",
+      "expected": 309,
+      "actual": 172.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].window_area",
+      "expected": 49,
+      "actual": 88.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].door_area",
+      "expected": 20,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[0].name",
+      "expected": "3040 HS",
+      "actual": "W-3040-N1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].azimuth",
+      "expected": 14,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[1].name",
+      "expected": "3040 HS 2",
+      "actual": "W-4040-N",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].azimuth",
+      "expected": 14,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].area",
+      "expected": 12,
+      "actual": 16.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[2].name",
+      "expected": "4040 HS",
+      "actual": "W-3040-E",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].azimuth",
+      "expected": 104,
+      "actual": 90.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].area",
+      "expected": 16,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[3].name",
+      "expected": "3040 HS 3",
+      "actual": "W-4040-S",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].wall",
+      "expected": "E Wall",
+      "actual": "S Wall",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].azimuth",
+      "expected": 104,
+      "actual": 180.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].area",
+      "expected": 12,
+      "actual": 16.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[4].name",
+      "expected": 6068,
+      "actual": "W-3030-S",
+      "error_type": "format_error"
+    },
+    {
+      "field_path": "windows[4].azimuth",
+      "expected": 194,
+      "actual": 180.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].area",
+      "expected": 40,
+      "actual": 9.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].u_factor",
+      "expected": 0.32,
+      "actual": 0.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].shgc",
+      "expected": 0.22,
+      "actual": 0.23,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[5].name",
+      "expected": "3030 HS",
+      "actual": "W-3040-S1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].wall",
+      "expected": "W Wall",
+      "actual": "S Wall",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].azimuth",
+      "expected": 284,
+      "actual": 180.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].multiplier",
+      "expected": 1,
+      "actual": 2,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].area",
+      "expected": 9,
+      "actual": 24.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].name",
+      "expected": "3040 HS 4",
+      "actual": "W-3040-W",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].azimuth",
+      "expected": 284,
+      "actual": 270.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].multiplier",
+      "expected": 1,
+      "actual": 2,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].area",
+      "expected": 12,
+      "actual": 24.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].name",
+      "expected": "3040 HS 5",
+      "actual": "SGD-1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].azimuth",
+      "expected": 284,
+      "actual": 270.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].area",
+      "expected": 12,
+      "actual": 40.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].u_factor",
+      "expected": 0.3,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].shgc",
+      "expected": 0.23,
+      "actual": 0.21,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].name",
+      "expected": "4040 HS 2",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].wall",
+      "expected": "W Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].azimuth",
+      "expected": 284,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].multiplier",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].area",
+      "expected": 16,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].u_factor",
+      "expected": 0.3,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].shgc",
+      "expected": 0.23,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].name",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].construction_type",
+      "expected": "Wood Framed Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].cavity_r_value",
+      "expected": 21,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].total_thickness",
+      "expected": 6.875,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].winter_design_u_value",
+      "expected": 0.069,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].layers:",
+      "expected": "Inside Finish: Gypsum Board",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].name",
+      "expected": "Slab-on-Grade",
+      "actual": "Slab 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].perimeter",
+      "expected": 112,
+      "actual": 115.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].edge_insulation_r_value",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].carpeted_fraction",
+      "expected": 0,
+      "actual": 0.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].ceiling_height",
+      "expected": 8,
+      "actual": 8.08,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].volume",
+      "expected": 5968,
+      "actual": 6028.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 1028,
+      "actual": 931.6,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 20,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[0].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[0].width",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[1].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[1].width",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[2].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[2].width",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[3].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[3].width",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[4].height",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[4].width",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[5].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[5].width",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[6].height",
+      "expected": null,
+      "actual": 4.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[6].width",
+      "expected": null,
+      "actual": 3.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[7].height",
+      "expected": null,
+      "actual": 6.67,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "windows[7].width",
+      "expected": null,
+      "actual": 6.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].name",
+      "expected": null,
+      "actual": "Ceiling 1",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].zone",
+      "expected": null,
+      "actual": "ADU",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].status",
+      "expected": null,
+      "actual": "New",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].construction_type",
+      "expected": null,
+      "actual": "R-30 Roof Rafter",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].orientation",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].area",
+      "expected": null,
+      "actual": 746.0,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].roof_rise",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].roof_pitch",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].roof_tilt",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].roof_reflectance",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].roof_emittance",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "ceilings[0].framing_factor",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].name",
+      "expected": null,
+      "actual": "Ductless Multi-Split Heat Pump",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].status",
+      "expected": null,
+      "actual": "New",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].system_type",
+      "expected": null,
+      "actual": "Ductless",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].heating",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].cooling",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].distribution",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    }
+  ],
+  "timestamp": "2026-02-04T10:09:28.892333Z",
+  "iteration": 8
+}

@@ -1,0 +1,21 @@
+{
+  "eval_id": "martinez-adu",
+  "iterations": [
+    {
+      "iteration": 8,
+      "f1": 0.5974025974025974,
+      "precision": 0.5139664804469274,
+      "recall": 0.7131782945736435,
+      "timestamp": "2026-02-04T10:09:28.892333Z",
+      "error_counts": {
+        "omission": 37,
+        "hallucination": 34,
+        "wrong_value": 52,
+        "format_error": 1
+      },
+      "trend": 0.0
+    }
+  ],
+  "best_f1": 0.5974025974025974,
+  "best_iteration": 8
+}

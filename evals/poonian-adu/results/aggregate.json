@@ -1,0 +1,21 @@
+{
+  "eval_id": "poonian-adu",
+  "iterations": [
+    {
+      "iteration": 8,
+      "f1": 0.6906474820143884,
+      "precision": 0.6050420168067226,
+      "recall": 0.8044692737430168,
+      "timestamp": "2026-02-04T10:17:14.570923Z",
+      "error_counts": {
+        "omission": 35,
+        "hallucination": 46,
+        "wrong_value": 48,
+        "format_error": 0
+      },
+      "trend": 0.0
+    }
+  ],
+  "best_f1": 0.6906474820143884,
+  "best_iteration": 8
+}

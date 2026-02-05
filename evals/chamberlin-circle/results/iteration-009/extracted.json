@@ -1,0 +1,253 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": "4720 Chamberlin Cir ADU",
+    "run_number": 0,
+    "run_scope": "Newly Constructed",
+    "address": "4720 Chamberlin Cir",
+    "city": "Elk Grove",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 0,
+    "attached_garage": false,
+    "front_orientation": null
+  },
+  "envelope": {
+    "conditioned_floor_area": 495.0,
+    "addition_conditioned_floor_area": 0.0,
+    "window_area": 64.0,
+    "window_to_floor_ratio": 0.13,
+    "fenestration_u_factor": 0.3,
+    "exterior_wall_area": null,
+    "underground_wall_area": 0.0,
+    "slab_floor_area": 495.0,
+    "exposed_slab_floor_area": 0.0,
+    "below_grade_floor_area": 0.0,
+    "exposed_below_grade_floor_area": 0.0,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "Zone 1",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 320.0,
+      "ceiling_height": 9.0,
+      "stories": 1,
+      "volume": 2880.0,
+      "exterior_wall_area": 576.0,
+      "exterior_wall_door_area": 60.0,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 320.0,
+      "slab_floor_area": 320.0,
+      "exterior_floor_area": 0.0
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "Zone 1",
+      "status": "New",
+      "construction_type": "R-21 2x6 Wood Frame",
+      "orientation": 0.0,
+      "area": 144.0,
+      "window_area": 19.17,
+      "door_area": 40.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "Zone 1",
+      "status": "New",
+      "construction_type": "R-21 2x6 Wood Frame",
+      "orientation": 90.0,
+      "area": 180.0,
+      "window_area": 0.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "Zone 1",
+      "status": "New",
+      "construction_type": "R-21 2x6 Wood Frame",
+      "orientation": 180.0,
+      "area": 144.0,
+      "window_area": 18.75,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "Zone 1",
+      "status": "New",
+      "construction_type": "R-21 2x6 Wood Frame",
+      "orientation": 270.0,
+      "area": 180.0,
+      "window_area": 12.0,
+      "door_area": 20.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "G02",
+      "wall": "West Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 3.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "G03",
+      "wall": "North Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "G05",
+      "wall": "South Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "D03",
+      "wall": "West Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 6.67,
+      "width": 6.0,
+      "multiplier": 1,
+      "area": 40.0,
+      "u_factor": 0.32,
+      "shgc": 0.21,
+      "exterior_shade": null
+    }
+  ],
+  "ceilings": [],
+  "ceiling_constructions": [],
+  "slab_floors": [],
+  "hvac_systems": [
+    {
+      "name": "Ductless Heat Pump Mini-Split",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": {
+        "system_type": "MSHP",
+        "hspf": 8.0,
+        "capacity_47": null,
+        "capacity_17": null,
+        "auxiliary_heating_capacity": null,
+        "ducted": false
+      },
+      "cooling": {
+        "system_type": "MSHP",
+        "seer2": 14.0,
+        "eer2": 11.7,
+        "cfm_per_ton": null,
+        "ac_charge": "Weigh-in method",
+        "ducted": false
+      },
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [
+    {
+      "name": "DHW System 1",
+      "status": "New",
+      "system_type": "Point of use",
+      "water_heaters": [
+        {
+          "name": "WH-1",
+          "fuel": "Electric Resistance",
+          "tank_type": "Storage",
+          "volume": null,
+          "energy_factor": 0.98,
+          "input_rating": null,
+          "input_rating_units": null,
+          "interior_insulation_r_value": null,
+          "exterior_insulation_r_value": null,
+          "standby_loss": null,
+          "tank_location": null,
+          "rated_flow": null,
+          "first_hour_rating": null,
+          "recovery_efficiency": null
+        }
+      ]
+    }
+  ],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 5
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 4
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

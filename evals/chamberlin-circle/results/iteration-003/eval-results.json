@@ -1,0 +1,270 @@
+{
+  "eval_id": "chamberlin-circle",
+  "metrics": {
+    "precision": 0.46153846153846156,
+    "recall": 0.15,
+    "f1": 0.22641509433962265,
+    "true_positives": 6,
+    "false_positives": 7,
+    "false_negatives": 34,
+    "total_fields_gt": 47,
+    "total_fields_extracted": 14,
+    "correct_fields": 6,
+    "errors_by_type": {
+      "omission": 34,
+      "hallucination": 0,
+      "wrong_value": 7,
+      "format_error": 0
+    }
+  },
+  "discrepancies": [
+    {
+      "field_path": "project.run_id",
+      "expected": "User",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.run_title",
+      "expected": "Title 24 Analysis",
+      "actual": "4720 Chamberlin Cir ADU",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.run_number",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.run_scope",
+      "expected": "Newly Constructed",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.address",
+      "expected": "4720 Chamberlin Cir.",
+      "actual": "4720 Chamberlin Cir",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.all_orientations",
+      "expected": false,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.bedrooms",
+      "expected": 1,
+      "actual": 0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.attached_garage",
+      "expected": false,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.front_orientation",
+      "expected": 73,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.conditioned_floor_area",
+      "expected": 320,
+      "actual": 450.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_area",
+      "expected": 64,
+      "actual": 68.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_to_floor_ratio",
+      "expected": 0.2,
+      "actual": 0.151,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.fenestration_u_factor",
+      "expected": 0.313,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exterior_wall_area",
+      "expected": 612,
+      "actual": 621.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.underground_wall_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.slab_floor_area",
+      "expected": 320,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exposed_slab_floor_area",
+      "expected": 64,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.below_grade_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exposed_below_grade_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.addition_conditioned_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.pv_credit_available",
+      "expected": true,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.pv_generation_max_credit",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.credit_available_for_pv",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.final_pv_credit",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.zonal_control",
+      "expected": false,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.infiltration_ach50",
+      "expected": 5,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.infiltration_cfm50",
+      "expected": 226.667,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.quality_insulation_installation",
+      "expected": false,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].name",
+      "expected": "ADU",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].zone_type",
+      "expected": "Conditioned",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].floor_area",
+      "expected": 320,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].ceiling_height",
+      "expected": 8.5,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].stories",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].volume",
+      "expected": 2720,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 612,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 18.9,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].ceiling_below_attic_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].cathedral_ceiling_area",
+      "expected": 320,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].slab_floor_area",
+      "expected": 320,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    }
+  ],
+  "timestamp": "2026-02-04T03:17:38.855609Z",
+  "iteration": 3
+}

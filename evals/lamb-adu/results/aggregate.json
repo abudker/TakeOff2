@@ -1,0 +1,49 @@
+{
+  "eval_id": "lamb-adu",
+  "iterations": [
+    {
+      "iteration": 1,
+      "f1": 0.11155378486055778,
+      "precision": 1.0,
+      "recall": 0.05907172995780591,
+      "timestamp": "2026-02-04T05:26:24.188829Z",
+      "error_counts": {
+        "omission": 223,
+        "hallucination": 0,
+        "wrong_value": 0,
+        "format_error": 0
+      },
+      "trend": 0.0
+    },
+    {
+      "iteration": 8,
+      "f1": 0.38095238095238093,
+      "precision": 0.33497536945812806,
+      "recall": 0.44155844155844154,
+      "timestamp": "2026-02-04T08:16:51.276810Z",
+      "error_counts": {
+        "omission": 86,
+        "hallucination": 52,
+        "wrong_value": 79,
+        "format_error": 4
+      },
+      "trend": 0.26939859609182315
+    },
+    {
+      "iteration": 9,
+      "f1": 0.40771349862258954,
+      "precision": 0.37,
+      "recall": 0.4539877300613497,
+      "timestamp": "2026-02-04T08:27:44.092251Z",
+      "error_counts": {
+        "omission": 89,
+        "hallucination": 52,
+        "wrong_value": 70,
+        "format_error": 4
+      },
+      "trend": 0.026761117670208612
+    }
+  ],
+  "best_f1": 0.40771349862258954,
+  "best_iteration": 9
+}

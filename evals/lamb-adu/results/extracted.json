@@ -1,0 +1,20 @@
+{
+  "project": {
+    "run_title": "Title 24 Analysis",
+    "address": "1500 Wooden Valley Rd",
+    "city": "Napa",
+    "climate_zone": 2,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 2
+  },
+  "envelope": {
+    "conditioned_floor_area": 1200.0,
+    "window_area": 373.2,
+    "window_to_floor_ratio": 0.311,
+    "exterior_wall_area": 1728.0,
+    "fenestration_u_factor": 0.300
+  }
+}
