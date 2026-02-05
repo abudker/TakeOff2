@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 ## Current Position
 
 Phase: 7 of 8 (CV Sensors)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-05 - Completed 07-01-PLAN.md
+Last activity: 2026-02-05 - Completed 07-02-PLAN.md
 
-Progress: [████████░░] ~87%
+Progress: [████████░░] ~88%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 3.3 min
-- Total execution time: 0.90 hours
+- Total plans completed: 17
+- Average duration: 3.6 min
+- Total execution time: 1.03 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [████████░░] ~87%
 | 03-single-domain-extraction | 4 | 13 min | 3.2 min |
 | 04-multi-domain-extraction | 4 | 17 min | 4.25 min |
 | 05-manual-improvement-loop | 3 | 9 min | 3.0 min |
-| 07-cv-sensors | 1 | 5 min | 5.0 min |
+| 07-cv-sensors | 2 | 13 min | 6.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (5 min), 05-02 (2 min), 05-03 (2 min), 07-01 (5 min)
-- Trend: Phase 7 started at 5.0 min/plan (CV module setup)
+- Last 5 plans: 05-02 (2 min), 05-03 (2 min), 07-01 (5 min), 07-02 (8 min)
+- Trend: Phase 7 plans taking longer (integration complexity, CV validation)
 
 *Updated after each plan completion*
 
@@ -95,6 +95,10 @@ Recent decisions affecting current work:
 - Coordinate system: negate dy for inverted y-axis, convert to compass bearing (07-01)
 - Wall angles normalized to [0, 180) since direction doesn't matter (07-01)
 - K-means clustering (k=2) for building rotation from wall angles (07-01)
+- CV sensors run in orchestrator before agent invocation, not inside agents (07-02)
+- CV hints injected as JSON text block in prompts, not as tool calls (07-02)
+- LLM retains all semantic reasoning, CV provides only geometric measurements (07-02)
+- Optional cv_hints parameter maintains backwards compatibility (07-02)
 
 ### Roadmap Evolution
 
@@ -111,9 +115,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-05T18:09:05Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-02-05T18:21:23Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-02-05 after 07-01 execution*
+*Last updated: 2026-02-05 after 07-02 execution*
