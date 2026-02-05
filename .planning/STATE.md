@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-03)
 
 ## Current Position
 
-Phase: 5 of 6 (Manual Improvement Loop)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-04 - Completed 05-03-PLAN.md
+Phase: 7 of 8 (CV Sensors)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-05 - Completed 07-01-PLAN.md
 
-Progress: [████████░░] ~85%
+Progress: [████████░░] ~87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: 3.2 min
-- Total execution time: 0.82 hours
+- Total plans completed: 16
+- Average duration: 3.3 min
+- Total execution time: 0.90 hours
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [████████░░] ~85%
 | 03-single-domain-extraction | 4 | 13 min | 3.2 min |
 | 04-multi-domain-extraction | 4 | 17 min | 4.25 min |
 | 05-manual-improvement-loop | 3 | 9 min | 3.0 min |
+| 07-cv-sensors | 1 | 5 min | 5.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-04 (2 min), 05-01 (5 min), 05-02 (2 min), 05-03 (2 min)
-- Trend: Phase 5 complete at 3.0 min/plan average, improved from 3.5
+- Last 5 plans: 05-01 (5 min), 05-02 (2 min), 05-03 (2 min), 07-01 (5 min)
+- Trend: Phase 7 started at 5.0 min/plan (CV module setup)
 
 *Updated after each plan completion*
 
@@ -90,6 +91,15 @@ Recent decisions affecting current work:
 - Iteration number tracked globally (max across all evals + 1) (05-03)
 - Auto-commit with metrics delta in commit message (05-03)
 - Rollback by copying snapshots from iteration directories (05-03)
+- Dual detection (Hough lines + contours) for north arrow robustness (07-01)
+- Coordinate system: negate dy for inverted y-axis, convert to compass bearing (07-01)
+- Wall angles normalized to [0, 180) since direction doesn't matter (07-01)
+- K-means clustering (k=2) for building rotation from wall angles (07-01)
+
+### Roadmap Evolution
+
+- Phase 7 added: CV Sensors — deterministic geometry sensing to reduce orientation variance and eliminate ±90°/±180° errors
+- OpenRouter multi-model experiment parked on branch `experiment/openrouter-multi-model` — results not compelling (Claude's advantage is multi-turn tool use, not vision)
 
 ### Pending Todos
 
@@ -101,9 +111,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-04T05:23:42Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-02-05T18:09:05Z
+Stopped at: Completed 07-01-PLAN.md
 Resume file: None
 
 ---
-*Last updated: 2026-02-04 after 05-03 execution*
+*Last updated: 2026-02-05 after 07-01 execution*
