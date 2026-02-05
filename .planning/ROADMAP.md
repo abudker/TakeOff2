@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Multi-Domain Extraction** - Complete extraction system
 - [x] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
 - [ ] **Phase 6: Automated Improvement Loop** - Full automation + iteration management
-- [ ] **Phase 7: CV Sensors** - Deterministic geometry sensing to reduce orientation variance
+- [x] **Phase 7: CV Sensors** - Deterministic geometry sensing to reduce orientation variance
 
 ## Phase Details
 
@@ -144,8 +144,8 @@ Plans:
 **Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 07-01-PLAN.md — Core CV sensor module (rendering, north arrow detection, wall edge measurement)
-- [ ] 07-02-PLAN.md — Integration into orientation pipeline and instruction updates
+- [x] 07-01-PLAN.md — Core CV sensor module (rendering, north arrow detection, wall edge measurement)
+- [x] 07-02-PLAN.md — Integration into orientation pipeline and instruction updates
 
 ## Progress
 
@@ -160,7 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 | 4. Multi-Domain Extraction | 4/4 | Complete | 2026-02-04 |
 | 5. Manual Improvement Loop | 3/3 | Complete | 2026-02-04 |
 | 6. Automated Improvement Loop | 0/3 | Planned | - |
-| 7. CV Sensors | 0/2 | Planned | - |
+| 7. CV Sensors | 2/2 | Complete | 2026-02-05 |
 
 ---
-*Last updated: 2026-02-05 after Phase 7 addition*
+*Last updated: 2026-02-05 after Phase 7 execution*
