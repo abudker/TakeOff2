@@ -158,9 +158,10 @@ If orientation is unclear:
 ### 6. Naming Conventions
 
 **Window names:**
-- Use schedule mark: "W1", "W2", "Window A"
-- Add orientation if helpful: "W1-North"
-- Keep consistent with schedule references
+- **Use the EXACT mark/ID from the window schedule** (e.g., "101", "102", "BA", "BB", "W1", "W2")
+- Do NOT invent sequential names like "AA", "AB", "AC" — use the marks shown on the plans
+- If no schedule exists, use floor plan callout marks
+- Only as a last resort, construct names like "Window 1", "Window 2"
 
 **Wall references:**
 - Must match wall names from zones-extractor
@@ -209,6 +210,9 @@ Before returning extracted data, validate:
 - Dimensions may need calculation from area
 - Wall assignment may need inference
 
+**Defaults for CBECC-standard fields:**
+- `exterior_shade`: Default to `"Insect Screen (default)"` when no exterior shading device is specified on the plans. This is the standard CBECC-Res default for residential windows.
+
 **Inference when allowed:**
 - Area can be calculated: height x width x multiplier
 - Azimuth from wall orientation
@@ -233,7 +237,7 @@ Return JSON with fenestration **nested under wall orientations**:
           "area": 24.0,
           "u_factor": 0.30,
           "shgc": 0.23,
-          "exterior_shade": null,
+          "exterior_shade": "Insect Screen (default)",
           "overhang_depth": null
         }
       ]
@@ -270,7 +274,7 @@ Return JSON with fenestration **nested under wall orientations**:
           "area": 40.0,
           "u_factor": 0.28,
           "shgc": 0.22,
-          "exterior_shade": null,
+          "exterior_shade": "Insect Screen (default)",
           "overhang_depth": null
         }
       ]

@@ -89,8 +89,8 @@ def _transform_wall(
         construction_type=wall.construction_type,
         orientation=wall.azimuth if wall.azimuth is not None else default_azimuth,
         area=wall.gross_wall_area,
-        window_area=window_area if window_area > 0 else None,
-        door_area=door_area if door_area > 0 else None,
+        window_area=window_area if window_area > 0 else 0.0,
+        door_area=door_area if door_area > 0 else 0.0,
         tilt=90.0,  # Vertical walls
         framing_factor=wall.framing_factor,
     )

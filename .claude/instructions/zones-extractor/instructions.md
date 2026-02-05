@@ -3,6 +3,14 @@
 **Version:** v2.2.0
 **Last updated:** 2026-02-04
 
+## CRITICAL OUTPUT RULES (read first)
+
+1. **Zone naming:** For ADU projects, the zone name MUST be `"ADU"` — never "Zone 1", "Living Zone", or other generic names.
+2. **Construction type format:** MUST use CBECC short form: `"R-21 Wall"`, `"R-13 Wall"`. Never include framing details like "2x6", "Wood Frame", or "2x4 @ 16" — just `"R-{value} Wall"`.
+3. **Ceiling height:** If sections show ceiling heights between 8'-0" and 8'-8", read the EXACT dimension. ADU/small buildings commonly have 8'-6" (= 8.5 ft), NOT 8'-0". Getting this wrong cascades to all wall area calculations.
+4. **Door area:** Every wall MUST have `opaque_doors` populated. If a wall has no doors, use an empty list `[]`. If a wall has a door, include it with the correct area (width x height in sq ft). Do NOT omit the `opaque_doors` field.
+5. **Wall area = perimeter segment x ceiling height.** Use the ACTUAL ceiling height from rule 3, not a default of 8.0.
+
 ## Core Rule
 
 **All takeoffs must be based on the THERMAL BOUNDARY (conditioned vs outside/unconditioned), not overall facade area or parapet/architectural area.**

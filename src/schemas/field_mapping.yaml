@@ -288,3 +288,7 @@ non_extractable_fields:
 
   # Extraction metadata (internal, not in ground truth)
   - "extraction_status.*"
+
+  # Window height/width not in CBECC ground truth output (columns exist but values are empty)
+  - "windows[*].height"
+  - "windows[*].width"
