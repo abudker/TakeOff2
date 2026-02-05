@@ -26,6 +26,7 @@ from agents.orchestrator import (
     get_relevant_pages_for_domain,
     discover_source_pdfs,
     build_pdf_read_instructions,
+    run_cv_sensors,
 )
 from schemas.discovery import DocumentMap, PDFSource, CACHE_VERSION
 
@@ -101,6 +102,7 @@ async def run_pass(
     eval_dir: Path,
     document_map: DocumentMap,
     pass_num: int,
+    cv_hints: Optional[Dict] = None,
 ) -> Dict:
     """Run a single orientation extraction pass."""
 
@@ -117,9 +119,20 @@ async def run_pass(
         else ".claude/instructions/orientation-extractor/pass2-elevation-matching.md"
     )
 
+    # Inject CV hints if provided
+    cv_section = ""
+    if cv_hints:
+        cv_section = f"""
+CV SENSOR MEASUREMENTS (deterministic, from computer vision):
+{json.dumps(cv_hints, indent=2)}
+
+These measurements are precise and repeatable. Use them as described in your instructions.
+
+"""
+
     prompt = f"""Extract building orientation using the Pass {pass_num} method.
 
-Document structure:
+{cv_section}Document structure:
 {document_map_json}
 
 {pdf_instructions}
@@ -240,15 +253,27 @@ def verify_passes(pass1: Dict, pass2: Dict) -> Dict:
 async def run_twopass_extraction(
     eval_id: str,
     eval_dir: Path,
-    document_map: DocumentMap
+    document_map: DocumentMap,
+    use_cv_hints: bool = True
 ) -> Dict:
     """Run both passes in parallel and verify results."""
 
     logger.info(f"[{eval_id}] Running two-pass extraction...")
 
-    # Run both passes in parallel
-    pass1_task = run_pass(eval_id, eval_dir, document_map, 1)
-    pass2_task = run_pass(eval_id, eval_dir, document_map, 2)
+    # Run CV sensors first if enabled
+    cv_hints = None
+    if use_cv_hints:
+        try:
+            cv_hints = run_cv_sensors(eval_dir, document_map)
+            logger.info(f"[{eval_id}] CV hints: north={cv_hints['north_arrow']['angle']}°, "
+                       f"walls={len(cv_hints['wall_edges'])}, "
+                       f"building_rot={cv_hints['building_rotation']['rotation_from_horizontal']}°")
+        except Exception as e:
+            logger.warning(f"[{eval_id}] CV sensors failed, proceeding without hints: {e}")
+
+    # Run both passes in parallel with CV hints
+    pass1_task = run_pass(eval_id, eval_dir, document_map, 1, cv_hints)
+    pass2_task = run_pass(eval_id, eval_dir, document_map, 2, cv_hints)
 
     pass1, pass2 = await asyncio.gather(pass1_task, pass2_task)
 
@@ -277,10 +302,11 @@ async def run_twopass_extraction(
         "correct": correct,
         "confidence": verification["confidence"],
         "notes": verification["notes"],
+        "cv_hints": cv_hints,
     }
 
 
-async def run_all_evals(evals_dir: Path = Path("evals")) -> List[Dict]:
+async def run_all_evals(evals_dir: Path = Path("evals"), use_cv_hints: bool = True) -> List[Dict]:
     """Run two-pass extraction on all evals."""
 
     eval_ids = list(GROUND_TRUTH.keys())
@@ -295,7 +321,7 @@ async def run_all_evals(evals_dir: Path = Path("evals")) -> List[Dict]:
     logger.info(f"Running two-pass extraction on {len(eval_ids)} evals...")
 
     tasks = [
-        run_twopass_extraction(eval_id, eval_dir, document_map)
+        run_twopass_extraction(eval_id, eval_dir, document_map, use_cv_hints)
         for eval_id, (document_map, eval_dir) in discoveries.items()
     ]
 
@@ -355,15 +381,18 @@ def main():
     parser = argparse.ArgumentParser(description="Two-pass orientation extraction")
     parser.add_argument("--eval", type=str, help="Run single eval")
     parser.add_argument("--all", action="store_true", help="Run all evals")
+    parser.add_argument("--no-cv", action="store_true", help="Disable CV hints (for A/B comparison)")
     args = parser.parse_args()
+
+    use_cv_hints = not args.no_cv
 
     if args.eval:
         evals_dir = Path("evals")
         document_map, eval_dir = ensure_discovery(args.eval, evals_dir)
-        result = asyncio.run(run_twopass_extraction(args.eval, eval_dir, document_map))
+        result = asyncio.run(run_twopass_extraction(args.eval, eval_dir, document_map, use_cv_hints))
         print_results([result])
     elif args.all:
-        results = asyncio.run(run_all_evals())
+        results = asyncio.run(run_all_evals(use_cv_hints=use_cv_hints))
         print_results(results)
     else:
         parser.print_help()
