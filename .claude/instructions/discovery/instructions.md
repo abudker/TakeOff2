@@ -1,16 +1,29 @@
 # Discovery Agent Instructions
 
-**Version:** v2.0.0
+**Version:** v2.1.0
 **Purpose:** Classify pages in Title 24 compliance documents to map document structure
 
 ## Overview
 
-You receive rasterized page images from a Title 24 PDF. Your job is to:
-1. Classify each page into one of four primary types: **schedule**, **cbecc**, **drawing**, or **other**
-2. Assign a **subtype** for more specific classification (e.g., "floor_plan", "window_schedule")
-3. Add **content_tags** to mark semantic features relevant to downstream extractors
+You receive PDF files from a Title 24 document set. Your job is to:
+1. **Read each PDF** using the Read tool with the `pages` parameter
+2. Classify each page into one of four primary types: **schedule**, **cbecc**, **drawing**, or **other**
+3. Assign a **subtype** for more specific classification (e.g., "floor_plan", "window_schedule")
+4. Add **content_tags** to mark semantic features relevant to downstream extractors
 
 This detailed map enables intelligent page routing - each extractor receives only the pages relevant to its domain.
+
+## How to Read PDFs
+
+Use the Read tool with the `pages` parameter to read PDF pages:
+
+```
+Read(file_path="/path/to/plans.pdf", pages="1-10")
+```
+
+- The `pages` parameter accepts ranges like "1-10" or comma-separated pages like "1,3,5"
+- Maximum 20 pages per Read call - for larger PDFs, make multiple calls
+- Each page will be displayed visually for classification
 
 **IMPORTANT:** The source documents are typically **architectural plan sets** (floor plans, schedules, title blocks), NOT CBECC compliance software output. CBECC pages are rare in architectural plan sets - most documents will consist of schedules, drawings, and notes pages.
 
@@ -189,30 +202,33 @@ Return JSON matching DocumentMap schema:
 
 ```json
 {
+  "cache_version": 2,
   "total_pages": 15,
+  "source_pdfs": {
+    "plans": {"filename": "plans.pdf", "total_pages": 12},
+    "spec_sheet": {"filename": "spec_sheet.pdf", "total_pages": 3}
+  },
   "pages": [
     {
       "page_number": 1,
+      "pdf_name": "plans",
+      "pdf_page_number": 1,
       "page_type": "other",
       "confidence": "high",
       "description": "Title page - Project name and address"
     },
     {
       "page_number": 2,
+      "pdf_name": "plans",
+      "pdf_page_number": 2,
       "page_type": "cbecc",
       "confidence": "high",
       "description": "CF1R Certificate of Compliance - Climate Zone 12"
     },
     {
-      "page_number": 3,
-      "page_type": "schedule",
-      "subtype": "equipment_schedule",
-      "confidence": "high",
-      "description": "HVAC Equipment Schedule - 3 units with SEER/HSPF",
-      "content_tags": ["hvac_equipment", "hvac_specs"]
-    },
-    {
-      "page_number": 4,
+      "page_number": 12,
+      "pdf_name": "plans",
+      "pdf_page_number": 12,
       "page_type": "drawing",
       "subtype": "floor_plan",
       "confidence": "high",
@@ -220,34 +236,46 @@ Return JSON matching DocumentMap schema:
       "content_tags": ["room_labels", "area_callouts"]
     },
     {
-      "page_number": 5,
-      "page_type": "drawing",
-      "subtype": "site_plan",
-      "confidence": "high",
-      "description": "Site plan with property boundaries and north arrow",
-      "content_tags": ["north_arrow"]
-    },
-    {
-      "page_number": 6,
-      "page_type": "drawing",
-      "subtype": "elevation",
-      "confidence": "high",
-      "description": "East Elevation showing windows and entry",
-      "content_tags": ["window_callouts"]
-    },
-    {
-      "page_number": 7,
+      "page_number": 13,
+      "pdf_name": "spec_sheet",
+      "pdf_page_number": 1,
       "page_type": "schedule",
       "subtype": "window_schedule",
       "confidence": "high",
       "description": "Window schedule with U-factor and SHGC",
       "content_tags": ["glazing_performance"]
+    },
+    {
+      "page_number": 14,
+      "pdf_name": "spec_sheet",
+      "pdf_page_number": 2,
+      "page_type": "schedule",
+      "subtype": "equipment_schedule",
+      "confidence": "high",
+      "description": "HVAC equipment specifications",
+      "content_tags": ["hvac_specs"]
     }
   ]
 }
 ```
 
-**NOTE:** The `subtype` and `content_tags` fields are optional. Omit `subtype` if the page doesn't fit a specific subtype. Use an empty array `[]` or omit `content_tags` if no tags apply.
+**CRITICAL - PAGE NUMBERING:**
+- `page_number`: **GLOBAL** unique number across ALL PDFs (for routing)
+- `pdf_page_number`: **LOCAL** page within the specific PDF (for the Read tool)
+- `pdf_name`: Which PDF this page is from
+
+**Example with 2 PDFs (plans.pdf: 12 pages, spec_sheet.pdf: 3 pages):**
+| PDF | Local Page | Global Page |
+|-----|------------|-------------|
+| plans.pdf | 1 | 1 |
+| plans.pdf | 12 | 12 |
+| spec_sheet.pdf | 1 | **13** |
+| spec_sheet.pdf | 3 | **15** |
+
+The prompt will tell you the global page offsets for each PDF.
+
+**Other notes:**
+- The `subtype` and `content_tags` fields are optional. Omit `subtype` if the page doesn't fit a specific subtype
 
 ## Classification Tips
 
@@ -267,17 +295,19 @@ Return JSON matching DocumentMap schema:
 
 ## Example Classification Workflow
 
-For each page image:
+For each PDF:
 
-1. Load and examine the image
-2. Scan for explicit markers (headers, logos, form numbers)
-3. If found → Assign type with high confidence
-4. If not found → Analyze content structure (table? drawing? text?)
-5. Determine most likely type from content patterns
-6. Assign medium or low confidence based on clarity
-7. **Assign subtype** if page fits a specific category (e.g., "floor_plan", "window_schedule")
-8. **Scan for content tags** - look for features from the tag reference table
-9. Write brief description noting key identifying features
-10. Add to pages list
+1. Read the PDF using `Read(file_path="...", pages="1-20")` (batch if >20 pages)
+2. For each page:
+   a. Scan for explicit markers (headers, logos, form numbers)
+   b. If found → Assign type with high confidence
+   c. If not found → Analyze content structure (table? drawing? text?)
+   d. Determine most likely type from content patterns
+   e. Assign medium or low confidence based on clarity
+   f. **Assign subtype** if page fits a specific category (e.g., "floor_plan", "window_schedule")
+   g. **Scan for content tags** - look for features from the tag reference table
+   h. Write brief description noting key identifying features
+   i. **Record pdf_name** - which PDF this page is from
+   j. Add to pages list
 
-After all pages classified, return complete DocumentMap JSON.
+After all pages from all PDFs are classified, return complete DocumentMap JSON.

@@ -1,6 +1,6 @@
 # Zones Extractor Instructions
 
-**Version:** v2.1.0
+**Version:** v2.2.0
 **Last updated:** 2026-02-04
 
 ## Core Rule
@@ -21,12 +21,24 @@ The zones extractor extracts **orientation-based** wall and thermal boundary dat
 - `thermal_boundary`: Explicit separation of conditioned vs unconditioned zones
 - `flags`: **MANDATORY** - Every uncertainty, assumption, or discrepancy MUST have a FLAG
 
+## How to Read PDFs
+
+Use the Read tool with the `pages` parameter to read PDF pages:
+
+```
+Read(file_path="/path/to/plans.pdf", pages="1-10")
+```
+
+- The `pages` parameter accepts ranges like "1-10" or comma-separated pages like "1,3,5"
+- Maximum 20 pages per Read call - for larger PDFs, make multiple calls
+- Each page will be displayed visually for extraction
+
 ## Extraction Workflow
 
 ### 1. Input Reception
 
 You will receive:
-- **Page images:** List of PNG file paths from preprocessing phase
+- **PDF paths:** Paths to source PDFs with relevant page numbers
 - **DocumentMap JSON:** Document structure analysis from discovery phase
 
 The DocumentMap identifies key page categories:

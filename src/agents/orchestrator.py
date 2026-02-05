@@ -23,7 +23,7 @@ import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel
-from schemas.discovery import DocumentMap
+from schemas.discovery import DocumentMap, PDFSource, CACHE_VERSION
 from schemas.building_spec import (
     BuildingSpec, ProjectInfo, EnvelopeInfo, ZoneInfo, WallComponent,
     WindowComponent, HVACSystem, WaterHeatingSystem,
@@ -41,6 +41,101 @@ logger = logging.getLogger(__name__)
 
 # Limit concurrent extractor invocations to avoid overwhelming the system
 EXTRACTION_SEMAPHORE = asyncio.Semaphore(3)
+
+# Claude Read tool limit for PDF pages
+MAX_PDF_PAGES_PER_READ = 20
+
+
+def discover_source_pdfs(eval_dir: Path) -> Dict[str, PDFSource]:
+    """
+    Find all PDFs in eval directory and get page counts.
+
+    Args:
+        eval_dir: Path to evaluation directory
+
+    Returns:
+        Dict mapping PDF name (without extension) to PDFSource metadata
+    """
+    import fitz  # PyMuPDF
+
+    source_pdfs = {}
+    for pdf_path in sorted(eval_dir.glob("*.pdf")):
+        # Skip original copies
+        if "_original" in pdf_path.name:
+            continue
+
+        try:
+            doc = fitz.open(pdf_path)
+            pdf_name = pdf_path.stem  # filename without extension
+            page_count = len(doc)
+            source_pdfs[pdf_name] = PDFSource(
+                filename=pdf_path.name,
+                total_pages=page_count
+            )
+            doc.close()
+            logger.debug(f"Found PDF: {pdf_path.name} ({page_count} pages)")
+        except Exception as e:
+            logger.warning(f"Failed to read PDF {pdf_path}: {e}")
+
+    return source_pdfs
+
+
+def build_pdf_read_instructions(
+    eval_dir: Path,
+    page_numbers: List[int],
+    document_map: DocumentMap
+) -> str:
+    """
+    Build instructions for reading specific PDF pages.
+
+    Groups pages by source PDF and formats Read tool instructions.
+    Converts global page numbers to per-PDF page numbers for the Read tool.
+
+    Args:
+        eval_dir: Path to evaluation directory
+        page_numbers: List of global 1-indexed page numbers to read
+        document_map: Document map with pdf_name and pdf_page_number per page
+
+    Returns:
+        Formatted string with Read tool instructions
+    """
+    # Group pages by PDF, using pdf_page_number for the actual Read call
+    pages_by_pdf: Dict[str, List[int]] = {}
+    for page_num in page_numbers:
+        # Find the page info to get pdf_name and pdf_page_number
+        page_info = next(
+            (p for p in document_map.pages if p.page_number == page_num),
+            None
+        )
+        if page_info:
+            pdf_name = page_info.pdf_name
+            # Use pdf_page_number for the Read tool (local page within PDF)
+            local_page = page_info.pdf_page_number
+        else:
+            # Fallback for legacy cache without pdf_page_number
+            pdf_name = "plans"
+            local_page = page_num
+
+        if pdf_name not in pages_by_pdf:
+            pages_by_pdf[pdf_name] = []
+        pages_by_pdf[pdf_name].append(local_page)
+
+    # Build instructions
+    lines = ["Read these PDF pages using the Read tool:"]
+    for pdf_name, pages in sorted(pages_by_pdf.items()):
+        pdf_path = eval_dir / f"{pdf_name}.pdf"
+        pages_str = ", ".join(str(p) for p in sorted(pages))
+        lines.append(f"- {pdf_path} pages {pages_str}")
+
+    # Add example
+    first_pdf = list(pages_by_pdf.keys())[0]
+    first_pages = pages_by_pdf[first_pdf]
+    example_path = eval_dir / f"{first_pdf}.pdf"
+    example_pages = ",".join(str(p) for p in sorted(first_pages)[:3])
+    lines.append("")
+    lines.append(f'Example: Read(file_path="{example_path}", pages="{example_pages}")')
+
+    return "\n".join(lines)
 
 
 def get_relevant_pages_for_domain(domain: str, document_map: DocumentMap) -> List[int]:
@@ -260,12 +355,13 @@ def extract_json_from_response(response: str) -> Dict[str, Any]:
     raise ValueError("No valid JSON found in agent response")
 
 
-def run_discovery(page_images: List[Path]) -> DocumentMap:
+def run_discovery(eval_dir: Path, source_pdfs: Optional[Dict[str, PDFSource]] = None) -> DocumentMap:
     """
-    Run discovery agent to classify document pages.
+    Run discovery agent to classify document pages from PDFs.
 
     Args:
-        page_images: List of preprocessed page image paths
+        eval_dir: Path to evaluation directory containing PDFs
+        source_pdfs: Optional pre-discovered PDF metadata
 
     Returns:
         DocumentMap with classified pages
@@ -273,23 +369,76 @@ def run_discovery(page_images: List[Path]) -> DocumentMap:
     Raises:
         RuntimeError: If discovery agent fails
     """
-    logger.info(f"Running discovery on {len(page_images)} pages")
+    # Discover PDFs if not provided
+    if source_pdfs is None:
+        source_pdfs = discover_source_pdfs(eval_dir)
 
-    # Build prompt with page paths
-    page_list = "\n".join([f"- Page {i+1}: {p}" for i, p in enumerate(page_images)])
+    if not source_pdfs:
+        raise RuntimeError(f"No PDFs found in {eval_dir}")
+
+    # Calculate total pages
+    total_pages = sum(pdf.total_pages for pdf in source_pdfs.values())
+    logger.info(f"Running discovery on {total_pages} pages from {len(source_pdfs)} PDFs")
+
+    # Build prompt with PDF paths and page ranges
+    pdf_list_lines = []
+    for pdf_name, pdf_info in sorted(source_pdfs.items()):
+        pdf_path = eval_dir / pdf_info.filename
+        pdf_list_lines.append(f"- {pdf_path} ({pdf_info.total_pages} pages)")
+
+    pdf_list = "\n".join(pdf_list_lines)
+
+    # Build page reading instructions (for each PDF)
+    read_instructions = []
+    for pdf_name, pdf_info in sorted(source_pdfs.items()):
+        pdf_path = eval_dir / pdf_info.filename
+        if pdf_info.total_pages <= MAX_PDF_PAGES_PER_READ:
+            pages_range = f"1-{pdf_info.total_pages}"
+            read_instructions.append(f'Read(file_path="{pdf_path}", pages="{pages_range}")')
+        else:
+            # Batch into multiple reads
+            for start in range(1, pdf_info.total_pages + 1, MAX_PDF_PAGES_PER_READ):
+                end = min(start + MAX_PDF_PAGES_PER_READ - 1, pdf_info.total_pages)
+                read_instructions.append(f'Read(file_path="{pdf_path}", pages="{start}-{end}")')
+
+    read_example = read_instructions[0] if read_instructions else ""
+
+    # Calculate global page number offsets for each PDF
+    pdf_offsets = {}
+    offset = 0
+    for pdf_name in sorted(source_pdfs.keys()):
+        pdf_offsets[pdf_name] = offset
+        offset += source_pdfs[pdf_name].total_pages
+
+    offset_info = "\n".join([
+        f"  - {name}: pages {pdf_offsets[name]+1}-{pdf_offsets[name]+source_pdfs[name].total_pages} (global), 1-{source_pdfs[name].total_pages} (local)"
+        for name in sorted(source_pdfs.keys())
+    ])
 
     prompt = f"""Classify the pages in this Title 24 document.
 
-Page image paths:
-{page_list}
+Source PDFs:
+{pdf_list}
 
-Read your instructions from .claude/instructions/discovery/instructions.md, then analyze each page image and return a DocumentMap JSON with the structure:
+Global page numbering (for routing):
+{offset_info}
+
+Read each PDF using the Read tool with the pages parameter. Example:
+{read_example}
+
+Read your instructions from .claude/instructions/discovery/instructions.md, then analyze each page and return a DocumentMap JSON with the structure:
 
 {{
-  "total_pages": {len(page_images)},
+  "total_pages": {total_pages},
+  "source_pdfs": {{
+    "plans": {{"filename": "plans.pdf", "total_pages": 10}},
+    ...
+  }},
   "pages": [
     {{
       "page_number": 1,
+      "pdf_name": "plans",
+      "pdf_page_number": 1,
       "page_type": "schedule|cbecc|drawing|other",
       "confidence": "high|medium|low",
       "description": "brief description"
@@ -298,15 +447,35 @@ Read your instructions from .claude/instructions/discovery/instructions.md, then
   ]
 }}
 
-Ensure all {len(page_images)} pages are classified.
+IMPORTANT - PAGE NUMBERING:
+- `page_number`: GLOBAL unique number across all PDFs (plans pages 1-10, then spec_sheet pages 11-12, etc.)
+- `pdf_name`: Which PDF this page is from (e.g., "plans", "spec_sheet")
+- `pdf_page_number`: LOCAL page number within that PDF (for the Read tool)
+- Example: If plans.pdf has 10 pages and spec_sheet.pdf has 2 pages:
+  - plans.pdf page 1 → page_number=1, pdf_page_number=1
+  - plans.pdf page 10 → page_number=10, pdf_page_number=10
+  - spec_sheet.pdf page 1 → page_number=11, pdf_page_number=1
+  - spec_sheet.pdf page 2 → page_number=12, pdf_page_number=2
+- Ensure all pages from all PDFs are classified
 """
 
     # Invoke discovery agent
-    response = invoke_claude_agent("discovery", prompt)
+    response = invoke_claude_agent("discovery", prompt, timeout=600)
 
     # Parse response
     try:
         json_data = extract_json_from_response(response)
+
+        # Ensure source_pdfs is included
+        if "source_pdfs" not in json_data:
+            json_data["source_pdfs"] = {
+                name: {"filename": info.filename, "total_pages": info.total_pages}
+                for name, info in source_pdfs.items()
+            }
+
+        # Ensure cache_version is set
+        json_data["cache_version"] = CACHE_VERSION
+
         document_map = DocumentMap.model_validate(json_data)
 
         logger.info(f"Discovery complete: {document_map.total_pages} pages classified")
@@ -323,7 +492,7 @@ Ensure all {len(page_images)} pages are classified.
 
 
 def run_orientation_extraction(
-    page_images: List[Path],
+    eval_dir: Path,
     document_map: DocumentMap
 ) -> Dict[str, Any]:
     """
@@ -333,7 +502,7 @@ def run_orientation_extraction(
     (pages with north arrows).
 
     Args:
-        page_images: List of all page image paths
+        eval_dir: Path to evaluation directory containing PDFs
         document_map: Document structure from discovery phase
 
     Returns:
@@ -347,22 +516,12 @@ def run_orientation_extraction(
 
     # If no pages found via routing, fall back to first few pages
     if not relevant_page_numbers:
-        relevant_page_numbers = list(range(1, min(6, len(page_images) + 1)))
+        relevant_page_numbers = list(range(1, min(6, document_map.total_pages + 1)))
 
-    # Filter page images to relevant ones (page_images are 0-indexed)
-    relevant_images = [
-        page_images[page_num - 1]
-        for page_num in relevant_page_numbers
-        if page_num <= len(page_images)
-    ]
+    logger.info(f"Running orientation extraction on pages: {relevant_page_numbers}")
 
-    logger.info(f"Running orientation extraction on {len(relevant_images)} pages: {relevant_page_numbers}")
-
-    # Build prompt with page paths
-    page_list = "\n".join([
-        f"- Page {relevant_page_numbers[i]}: {p}"
-        for i, p in enumerate(relevant_images)
-    ])
+    # Build PDF read instructions
+    pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_page_numbers, document_map)
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
@@ -371,8 +530,7 @@ def run_orientation_extraction(
 Document structure (from discovery):
 {document_map_json}
 
-Drawing page image paths (site plans, floor plans):
-{page_list}
+{pdf_instructions}
 
 Read your instructions from:
 - .claude/instructions/orientation-extractor/instructions.md
@@ -423,8 +581,239 @@ Focus on:
         }
 
 
+def angular_distance(a: float, b: float) -> float:
+    """Calculate minimum angular distance between two angles."""
+    diff = abs(a - b) % 360
+    return min(diff, 360 - diff)
+
+
+async def run_orientation_pass_async(
+    eval_dir: Path,
+    document_map: DocumentMap,
+    pass_num: int,
+) -> Dict[str, Any]:
+    """
+    Run a single orientation extraction pass asynchronously.
+
+    Args:
+        eval_dir: Path to evaluation directory
+        document_map: Document structure from discovery
+        pass_num: 1 for north-arrow pass, 2 for elevation-matching pass
+
+    Returns:
+        Dict with pass results including orientation and confidence
+    """
+    relevant_pages = get_relevant_pages_for_domain("orientation", document_map)
+    if not relevant_pages:
+        relevant_pages = list(range(1, min(8, document_map.total_pages + 1)))
+
+    pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_pages, document_map)
+    document_map_json = json.dumps(document_map.model_dump(), indent=2)
+
+    instruction_file = (
+        ".claude/instructions/orientation-extractor/pass1-north-arrow.md"
+        if pass_num == 1
+        else ".claude/instructions/orientation-extractor/pass2-elevation-matching.md"
+    )
+
+    prompt = f"""Extract building orientation using the Pass {pass_num} method.
+
+Document structure:
+{document_map_json}
+
+{pdf_instructions}
+
+Read your instructions from: {instruction_file}
+
+Then analyze the pages and return JSON matching the schema in the instructions.
+Focus on outputting the structured intermediate values, not just the final answer.
+"""
+
+    try:
+        response = await invoke_claude_agent_async("orientation-extractor", prompt, timeout=300)
+        json_data = extract_json_from_response(response)
+
+        return {
+            "pass": pass_num,
+            "status": "success",
+            "orientation": json_data.get("front_orientation", 0),
+            "confidence": json_data.get("confidence", "unknown"),
+            "north_arrow_angle": json_data.get("north_arrow", {}).get("angle"),
+            "full_response": json_data,
+        }
+    except Exception as e:
+        logger.warning(f"Orientation pass {pass_num} failed: {e}")
+        return {
+            "pass": pass_num,
+            "status": "error",
+            "error": str(e)
+        }
+
+
+def verify_orientation_passes(pass1: Dict, pass2: Dict) -> Dict[str, Any]:
+    """
+    Compare two orientation pass results and determine final orientation.
+
+    Returns dict with:
+        - final_orientation: The determined orientation (or None if both failed)
+        - confidence: high/medium/low based on agreement
+        - verification: Type of verification result
+        - notes: Explanation of the verification
+    """
+    if pass1["status"] != "success" and pass2["status"] != "success":
+        return {
+            "final_orientation": 0.0,
+            "confidence": "low",
+            "verification": "both_failed",
+            "notes": "Both passes failed, using default orientation"
+        }
+
+    if pass1["status"] != "success":
+        return {
+            "final_orientation": pass2["orientation"],
+            "confidence": pass2["confidence"],
+            "verification": "pass1_failed",
+            "notes": "Only Pass 2 succeeded"
+        }
+
+    if pass2["status"] != "success":
+        return {
+            "final_orientation": pass1["orientation"],
+            "confidence": pass1["confidence"],
+            "verification": "pass2_failed",
+            "notes": "Only Pass 1 succeeded"
+        }
+
+    # Both succeeded - compare results
+    o1 = pass1["orientation"]
+    o2 = pass2["orientation"]
+    diff = angular_distance(o1, o2)
+
+    if diff <= 20:
+        # Agreement - average them
+        avg = (o1 + o2) / 2
+        if abs(o1 - o2) > 180:
+            avg = (avg + 180) % 360
+        return {
+            "final_orientation": round(avg, 1),
+            "confidence": "high",
+            "verification": "agreement",
+            "notes": f"Passes agree within {diff:.1f}°",
+            "pass1_orientation": o1,
+            "pass2_orientation": o2,
+        }
+
+    # Use confidence to decide which pass to trust
+    conf_rank = {"high": 3, "medium": 2, "low": 1, "unknown": 0}
+    c1 = conf_rank.get(pass1.get("confidence", "unknown"), 0)
+    c2 = conf_rank.get(pass2.get("confidence", "unknown"), 0)
+    chosen = o1 if c1 >= c2 else o2
+    chosen_pass = "Pass 1" if c1 >= c2 else "Pass 2"
+
+    if 70 <= diff <= 110:
+        return {
+            "final_orientation": chosen,
+            "confidence": "low",
+            "verification": "side_front_confusion",
+            "notes": f"90° difference ({diff:.1f}°) - trusting {chosen_pass} (higher confidence)",
+            "pass1_orientation": o1,
+            "pass2_orientation": o2,
+        }
+
+    if 160 <= diff <= 200:
+        return {
+            "final_orientation": chosen,
+            "confidence": "low",
+            "verification": "front_back_confusion",
+            "notes": f"180° difference ({diff:.1f}°) - trusting {chosen_pass} (higher confidence)",
+            "pass1_orientation": o1,
+            "pass2_orientation": o2,
+        }
+
+    return {
+        "final_orientation": chosen,
+        "confidence": "low",
+        "verification": "disagreement",
+        "notes": f"Passes disagree by {diff:.1f}° - trusting {chosen_pass} (higher confidence)",
+        "pass1_orientation": o1,
+        "pass2_orientation": o2,
+    }
+
+
+async def run_orientation_twopass_async(
+    eval_dir: Path,
+    document_map: DocumentMap
+) -> Dict[str, Any]:
+    """
+    Run two-pass orientation extraction with verification.
+
+    Runs both passes in parallel, then compares results to catch
+    systematic errors (90° side/front, 180° front/back confusion).
+
+    Args:
+        eval_dir: Path to evaluation directory
+        document_map: Document structure from discovery
+
+    Returns:
+        Dict with orientation data including verification metadata
+    """
+    logger.info("Running two-pass orientation extraction...")
+
+    # Run both passes in parallel
+    pass1_task = run_orientation_pass_async(eval_dir, document_map, 1)
+    pass2_task = run_orientation_pass_async(eval_dir, document_map, 2)
+    pass1, pass2 = await asyncio.gather(pass1_task, pass2_task)
+
+    # Verify and combine results
+    verification = verify_orientation_passes(pass1, pass2)
+
+    logger.info(f"Orientation two-pass complete:")
+    logger.info(f"  Pass 1: {pass1.get('orientation', 'failed')}°")
+    logger.info(f"  Pass 2: {pass2.get('orientation', 'failed')}°")
+    logger.info(f"  Final: {verification['final_orientation']}° ({verification['verification']})")
+    logger.info(f"  Confidence: {verification['confidence']}")
+
+    return {
+        "front_orientation": verification["final_orientation"],
+        "confidence": verification["confidence"],
+        "verification": verification["verification"],
+        "reasoning": verification["notes"],
+        "north_arrow_found": pass1.get("full_response", {}).get("north_arrow", {}).get("found", False),
+        "north_arrow_page": pass1.get("full_response", {}).get("north_arrow", {}).get("page"),
+        "front_direction": _azimuth_to_direction(verification["final_orientation"]),
+        "pass1": pass1,
+        "pass2": pass2,
+        "notes": verification["notes"]
+    }
+
+
+def _azimuth_to_direction(azimuth: float) -> str:
+    """Convert azimuth to compass direction string."""
+    directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                  "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    idx = int((azimuth + 11.25) / 22.5) % 16
+    return directions[idx]
+
+
+def run_orientation_twopass(
+    eval_dir: Path,
+    document_map: DocumentMap
+) -> Dict[str, Any]:
+    """
+    Synchronous wrapper for two-pass orientation extraction.
+
+    Args:
+        eval_dir: Path to evaluation directory
+        document_map: Document structure from discovery
+
+    Returns:
+        Dict with orientation data including verification metadata
+    """
+    return asyncio.run(run_orientation_twopass_async(eval_dir, document_map))
+
+
 def run_project_extraction(
-    page_images: List[Path],
+    eval_dir: Path,
     document_map: DocumentMap,
     orientation_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
@@ -434,7 +823,7 @@ def run_project_extraction(
     Uses intelligent routing to select relevant pages based on subtypes and tags.
 
     Args:
-        page_images: List of all page image paths
+        eval_dir: Path to evaluation directory containing PDFs
         document_map: Document structure from discovery phase
         orientation_data: Optional orientation data from orientation-extractor
 
@@ -451,20 +840,10 @@ def run_project_extraction(
     if not relevant_page_numbers:
         raise ValueError("No relevant pages found for project extraction")
 
-    # Filter page images to relevant ones (page_images are 0-indexed)
-    relevant_images = [
-        page_images[page_num - 1]
-        for page_num in relevant_page_numbers
-        if page_num <= len(page_images)
-    ]
+    logger.info(f"Project extraction using {len(relevant_page_numbers)} relevant pages: {relevant_page_numbers}")
 
-    logger.info(f"Project extraction using {len(relevant_images)} relevant pages: {relevant_page_numbers}")
-
-    # Build prompt with document map and relevant page paths
-    page_list = "\n".join([
-        f"- Page {relevant_page_numbers[i]}: {p}"
-        for i, p in enumerate(relevant_images)
-    ])
+    # Build PDF read instructions
+    pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_page_numbers, document_map)
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
@@ -473,8 +852,7 @@ def run_project_extraction(
 Document structure (from discovery):
 {document_map_json}
 
-Relevant page image paths (schedule, CBECC, and drawing pages):
-{page_list}
+{pdf_instructions}
 
 Read your instructions from:
 - .claude/instructions/project-extractor/instructions.md
@@ -539,6 +917,8 @@ Focus on accuracy. Use the field guide to find the correct values.
         # Include orientation data if provided
         if orientation_data:
             result["project"]["front_orientation"] = orientation_data.get("front_orientation")
+            result["project"]["orientation_confidence"] = orientation_data.get("confidence")
+            result["project"]["orientation_verification"] = orientation_data.get("verification")
             result["orientation_data"] = orientation_data
 
         return result
@@ -609,7 +989,7 @@ async def extract_with_retry(
 
 def build_domain_prompt(
     domain: str,
-    page_images: List[Path],
+    eval_dir: Path,
     document_map: DocumentMap,
     orientation_data: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -621,7 +1001,7 @@ def build_domain_prompt(
 
     Args:
         domain: Domain name (zones, windows, hvac, dhw)
-        page_images: List of all page image paths
+        eval_dir: Path to evaluation directory containing PDFs
         document_map: Document structure from discovery
         orientation_data: Optional orientation data from orientation-extractor
 
@@ -633,12 +1013,8 @@ def build_domain_prompt(
 
     logger.info(f"Routing {domain}: {len(relevant_pages)} pages selected: {relevant_pages}")
 
-    # Build page list with paths
-    page_list = "\n".join([
-        f"- Page {p}: {page_images[p-1]}"
-        for p in relevant_pages
-        if p <= len(page_images)
-    ])
+    # Build PDF read instructions
+    pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_pages, document_map)
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
@@ -680,8 +1056,7 @@ Copy the exact azimuth values above into your JSON output.
 Document structure (from discovery):
 {document_map_json}
 {orientation_context}
-Relevant page image paths:
-{page_list}
+{pdf_instructions}
 
 Read your instructions from:
 - .claude/instructions/{domain}-extractor/instructions.md
@@ -693,7 +1068,7 @@ Focus on accuracy and completeness.
 
 
 async def run_parallel_extraction(
-    page_images: List[Path],
+    eval_dir: Path,
     document_map: DocumentMap,
     orientation_data: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Tuple[Optional[Dict[str, Any]], ExtractionStatus]]:
@@ -701,7 +1076,7 @@ async def run_parallel_extraction(
     Run all domain extractors in parallel using asyncio.
 
     Args:
-        page_images: List of preprocessed page image paths
+        eval_dir: Path to evaluation directory containing PDFs
         document_map: Document structure from discovery
         orientation_data: Optional orientation data from orientation-extractor
 
@@ -711,10 +1086,10 @@ async def run_parallel_extraction(
     logger.info("Starting parallel extraction for zones, windows, hvac, dhw")
 
     # Build prompts for each domain (zones and windows get orientation context)
-    zones_prompt = build_domain_prompt("zones", page_images, document_map, orientation_data)
-    windows_prompt = build_domain_prompt("windows", page_images, document_map, orientation_data)
-    hvac_prompt = build_domain_prompt("hvac", page_images, document_map)
-    dhw_prompt = build_domain_prompt("dhw", page_images, document_map)
+    zones_prompt = build_domain_prompt("zones", eval_dir, document_map, orientation_data)
+    windows_prompt = build_domain_prompt("windows", eval_dir, document_map, orientation_data)
+    hvac_prompt = build_domain_prompt("hvac", eval_dir, document_map)
+    dhw_prompt = build_domain_prompt("dhw", eval_dir, document_map)
 
     # Create extraction tasks
     tasks = [
@@ -897,6 +1272,8 @@ def merge_to_takeoff_spec(
         stories=proj_dict.get("stories"),
         bedrooms=proj_dict.get("bedrooms"),
         front_orientation=proj_dict.get("front_orientation"),
+        orientation_confidence=proj_dict.get("orientation_confidence"),
+        orientation_verification=proj_dict.get("orientation_verification"),
         all_orientations=proj_dict.get("all_orientations", False),
         conditioned_floor_area=env_dict.get("conditioned_floor_area"),
         window_area=env_dict.get("window_area"),
@@ -1049,12 +1426,13 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
     Run extraction workflow on an evaluation case.
 
     Workflow:
-        1. Find preprocessed page images
+        1. Discover source PDFs in eval directory
         2. Invoke discovery agent -> DocumentMap
-        3. Invoke project-extractor agent -> ProjectInfo + EnvelopeInfo
-        4. If parallel=True: Invoke domain extractors in parallel (zones, windows, hvac, dhw)
-        5. Merge into TakeoffSpec (orientation-based), then transform to BuildingSpec
-        6. Return final state with both specs
+        3. Invoke orientation-extractor agent -> front_orientation
+        4. Invoke project-extractor agent -> ProjectInfo + EnvelopeInfo
+        5. If parallel=True: Invoke domain extractors in parallel (zones, windows, hvac, dhw)
+        6. Merge into TakeoffSpec (orientation-based), then transform to BuildingSpec
+        7. Return final state with both specs
 
     Args:
         eval_name: Evaluation case identifier (e.g., "chamberlin-circle")
@@ -1066,56 +1444,37 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         Final state dict with building_spec (and optionally takeoff_spec) or error
 
     Raises:
-        FileNotFoundError: If preprocessed images or PDF not found
+        FileNotFoundError: If no PDFs found in eval directory
         RuntimeError: If workflow execution fails
     """
     logger.info(f"Starting extraction for {eval_name} (parallel={parallel})")
 
     try:
-        # Find preprocessed images - look for any preprocessed subdirectory with page images
-        preprocessed_base = eval_dir / "preprocessed"
-        if not preprocessed_base.exists():
-            raise FileNotFoundError(f"Preprocessed directory not found: {preprocessed_base}")
+        # Step 0: Discover source PDFs
+        source_pdfs = discover_source_pdfs(eval_dir)
+        if not source_pdfs:
+            raise FileNotFoundError(f"No PDFs found in {eval_dir}")
 
-        # Find ALL subdirectories with page images and combine them
-        all_page_images = []
-        pdf_paths = []
-        for subdir in sorted(preprocessed_base.iterdir()):
-            if subdir.is_dir():
-                subdir_pages = sorted(subdir.glob("page-*.png"))
-                if subdir_pages:
-                    all_page_images.extend(subdir_pages)
-                    # Track matching PDF
-                    pdf_path = eval_dir / f"{subdir.name}.pdf"
-                    if pdf_path.exists():
-                        pdf_paths.append(pdf_path)
-                    logger.info(f"  Loaded {len(subdir_pages)} pages from {subdir.name}/")
+        total_pages = sum(pdf.total_pages for pdf in source_pdfs.values())
+        logger.info(f"Found {len(source_pdfs)} PDFs with {total_pages} total pages")
+        for name, info in source_pdfs.items():
+            logger.info(f"  {info.filename}: {info.total_pages} pages")
 
-        if not all_page_images:
-            raise FileNotFoundError(f"No preprocessed images found in {preprocessed_base}")
-
-        # Use first PDF for metadata (or find plans.pdf)
-        pdf_path = None
-        for p in pdf_paths:
-            if p.name == "plans.pdf":
-                pdf_path = p
-                break
-        if not pdf_path and pdf_paths:
-            pdf_path = pdf_paths[0]
-
-        # Renumber pages sequentially for consistent indexing
-        page_images = all_page_images
-
-        logger.info(f"Found {len(page_images)} preprocessed pages")
+        # Use plans.pdf as primary if available
+        pdf_path = eval_dir / "plans.pdf"
+        if not pdf_path.exists():
+            # Fall back to first PDF
+            first_pdf = list(source_pdfs.values())[0]
+            pdf_path = eval_dir / first_pdf.filename
 
         # Step 1: Discovery phase
-        document_map = run_discovery(page_images)
+        document_map = run_discovery(eval_dir, source_pdfs)
 
-        # Step 2: Orientation extraction phase (runs on drawing pages)
-        orientation_data = run_orientation_extraction(page_images, document_map)
+        # Step 2: Orientation extraction phase (two-pass with verification)
+        orientation_data = run_orientation_twopass(eval_dir, document_map)
 
         # Step 3: Project extraction phase
-        project_extraction = run_project_extraction(page_images, document_map, orientation_data)
+        project_extraction = run_project_extraction(eval_dir, document_map, orientation_data)
 
         takeoff_spec = None
 
@@ -1123,16 +1482,16 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             # Step 4: Parallel multi-domain extraction (with orientation context)
             logger.info("Starting parallel multi-domain extraction")
             domain_extractions = asyncio.run(
-                run_parallel_extraction(page_images, document_map, orientation_data)
+                run_parallel_extraction(eval_dir, document_map, orientation_data)
             )
 
-            # Step 4: Merge into TakeoffSpec (orientation-based)
+            # Step 5: Merge into TakeoffSpec (orientation-based)
             takeoff_spec, uncertainty_flags = merge_to_takeoff_spec(
                 project_extraction,
                 domain_extractions
             )
 
-            # Step 5: Transform to BuildingSpec for verification
+            # Step 6: Transform to BuildingSpec for verification
             building_spec = transform_takeoff_to_building_spec(takeoff_spec)
 
             # Also run legacy merge for conflict detection and extraction status
@@ -1166,7 +1525,7 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         result = {
             "eval_name": eval_name,
             "pdf_path": str(pdf_path),
-            "page_images": [str(p) for p in page_images],
+            "source_pdfs": {name: info.model_dump() for name, info in source_pdfs.items()},
             "document_map": document_map.model_dump(),
             "building_spec": building_spec.model_dump(),
             "error": None

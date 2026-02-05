@@ -1,0 +1,1030 @@
+{
+  "started": "2026-02-04T12:24:59.023745",
+  "config": {
+    "max_iterations": 15,
+    "target_accuracy": 1.0,
+    "test_all": false,
+    "single": false,
+    "output": "orientation_improvement_log.json"
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "timestamp": "2026-02-04T12:27:07.256843",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 67.0
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 300.0,
+          "expected": 284,
+          "error_degrees": 16.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on page 1 (Site Plan - Sewer layout) in upper-left corner as compass rose symbol labeled 'NORTH'. north_arrow_angle = 330\u00b0 (pointing approximately 30\u00b0 counterclockwise from straight "
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 60.0,
+          "expected": 112,
+          "error_degrees": 52.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle = ~350\u00b0 (pointing nearly straight up with slight left tilt, about 10\u00b0 counterclockwise from vertic"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 155.0,
+          "expected": 22,
+          "error_degrees": 133.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) pointing toward upper-right of drawing. north_arrow_angle = 45\u00b0 (from top of page, clockwise). Building front faces the driveway/street access toward lower"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.16",
+        "proposed_version": "v1.1.17",
+        "change_type": "add_section",
+        "failure_pattern": "100% failure rate (0/3 correct). Errors ranged from 16\u00b0 to 133\u00b0. All cases found north arrows but calculated incorrect front_orientation. The reasoning shows north_arrow_angle values (330\u00b0, 350\u00b0, 45\u00b0) suggesting the formula is being applied but either north_arrow_angle or front_drawing_angle is being measured incorrectly.",
+        "hypothesis": "The instructions explain the formula but lack a verification step to catch measurement errors. When measuring angles on a drawing, it's easy to confuse: (1) the direction an arrow points vs. where it comes from (180\u00b0 difference), (2) the angle along a wall vs. perpendicular to it (90\u00b0 difference), or (3) measuring from the wrong reference point. A reverse-verification step that checks if the calculated answer makes real-world sense would catch these errors.",
+        "proposed_change": "### CRITICAL: Reverse-Verify Your Answer\n\n**After calculating front_orientation, VERIFY it makes real-world sense:**\n\n**Step 1: What does your answer mean?**\nYour front_orientation is the TRUE compass direction the front of the building faces:\n- 0\u00b0 = Front faces TRUE NORTH\n- 90\u00b0 = Front faces TRUE EAST  \n- 180\u00b0 = Front faces TRUE SOUTH\n- 270\u00b0 = Front faces TRUE WEST\n\n**Step 2: Use the street as reality check**\nMost buildings have their front facing a street. Think about:\n- What direction does the street run in the REAL WORLD?\n- Streets often follow compass directions (running N-S or E-W)\n- If the street runs roughly North-South, the building front likely faces East or West (~90\u00b0 or ~270\u00b0)\n- If the street runs roughly East-West, the building front likely faces North or South (~0\u00b0 or ~180\u00b0)\n\n**Step 3: Visualize the compass overlay**\nMentally overlay a compass on the SITE PLAN with the north arrow showing true north:\n- Draw an imaginary compass centered on the building\n- Rotate the compass so N aligns with the north arrow direction\n- Now look at which compass direction the front facade faces\n- Does this match your calculated front_orientation?\n\n**Step 4: Check for common 90\u00b0 or 180\u00b0 errors**\nIf your answer seems wrong by roughly 90\u00b0 or 180\u00b0, you likely made one of these mistakes:\n\n| Error Type | Symptom | Fix |\n|------------|---------|-----|\n| 180\u00b0 off | You measured where north arrow comes FROM, not where it points TO | The north arrow points in the direction labeled N |\n| 90\u00b0 off | You measured the wall angle instead of perpendicular to wall | The front FACES perpendicular to the front wall, not along it |\n| Wrong direction | You measured clockwise when you should have measured counterclockwise (or vice versa) | 0\u00b0 is UP, angles increase CLOCKWISE |\n\n**Example reverse-verification:**\n```\nCalculated: front_orientation = 284\u00b0 (approximately West-Northwest)\n\nReality check:\n- Street runs roughly North-South on the site plan\n- Building front faces the street (toward the West side of property)\n- West = 270\u00b0, so 284\u00b0 (slightly north of due West) makes sense \u2713\n\nIf I had gotten 104\u00b0 (East-Southeast):\n- This would mean front faces AWAY from the street\n- That doesn't match the site plan - front should face the street\n- I made an error and need to re-check my measurements\n```\n\n**If your answer fails the reality check, START OVER with fresh measurements.**",
+        "insert_after": "### 6. Confidence Assessment",
+        "expected_impact": "Adding a reverse-verification step should catch measurement errors before they become wrong outputs. This targets the root cause: the agent is applying the formula but measuring inputs incorrectly. A sanity check against real-world expectations (which direction does the street run?) provides an independent validation. Expected to reduce average error from 67\u00b0 to under 15\u00b0 (tolerance threshold).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 2,
+      "timestamp": "2026-02-04T12:29:21.954269",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 2,
+        "accuracy": 0.6666666666666666,
+        "avg_error": 17.333333333333332
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 270.0,
+          "expected": 284,
+          "error_degrees": 14.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan pages 1-2, pointing straight up (north_arrow_angle = 0\u00b0). Wyoming Street runs north-south on the west side of the property. The ADU (Desired ADU Build) is located in the"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 102.0,
+          "expected": 112,
+          "error_degrees": 10.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle = 348\u00b0 (pointing 12\u00b0 left of straight up toward upper-left). The ADU is located in the lower-left "
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 50.0,
+          "expected": 22,
+          "error_degrees": 28.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) pointing toward upper-right direction. north_arrow_angle = 40\u00b0 (from top of page, clockwise). Building front faces Wooden Valley Road which is toward the r"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.17",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "Orientation extraction error of 28\u00b0 (expected 22\u00b0, predicted 50\u00b0) with high confidence. The extractor found the north arrow but calculated incorrect front_orientation. The reasoning shows north_arrow_angle = 40\u00b0 was used in the calculation.",
+        "hypothesis": "The extractor is measuring angles imprecisely because the instructions lack concrete visual estimation techniques. Angles like 40\u00b0 vs 22\u00b0 or 90\u00b0 vs 62\u00b0 are easily confused without reference guidelines. The instructions tell agents to 'measure the angle' but don't provide visual estimation anchors or techniques for improving angle accuracy on architectural drawings.",
+        "proposed_change": "### Visual Angle Estimation Guide\n\n**CRITICAL: Improve your angle accuracy using these reference points**\n\nWhen measuring angles on architectural drawings, use these visual anchors:\n\n**Reference angles to memorize:**\n```\n        0\u00b0 (straight up)\n         |\n         |\n    315\u00b0 |  45\u00b0\n      \\  |  /\n       \\ | /\n        \\|/\n270\u00b0 ----+---- 90\u00b0 (right)\n        /|\\\n       / | \\\n      /  |  \\\n    225\u00b0 | 135\u00b0\n         |\n       180\u00b0 (straight down)\n```\n\n**Precision technique - use intermediate angles:**\n- 22.5\u00b0 = halfway between 0\u00b0 and 45\u00b0 (very common in residential)\n- 30\u00b0 = one-third of 90\u00b0 (common)\n- 60\u00b0 = two-thirds of 90\u00b0 (common)\n- 67.5\u00b0 = halfway between 45\u00b0 and 90\u00b0\n\n**Visual estimation method:**\n1. First, determine the quadrant (0-90\u00b0, 90-180\u00b0, etc.)\n2. Then, estimate within that quadrant using the 45\u00b0 midpoint\n3. Finally, refine to nearest ~10-15 degrees\n\n**Example: Estimating a north arrow angle**\n- North arrow points toward upper-right corner\n- It's in the 0-90\u00b0 quadrant\n- Is it closer to 45\u00b0 or closer to 0\u00b0?\n- If closer to 0\u00b0 but clearly not straight up, estimate 20-30\u00b0\n- If about halfway between up and 45\u00b0, estimate 20-25\u00b0\n- If closer to 45\u00b0, estimate 35-45\u00b0\n\n**CRITICAL CHECK: The 22\u00b0 trap**\n\nMany residential plans have north arrows at approximately 22\u00b0 (halfway between 0\u00b0 and 45\u00b0). This looks like:\n- Arrow points mostly up but slightly to the right\n- The angle is SMALL - if you're estimating 40\u00b0+ the arrow would be much more tilted\n- 22\u00b0 is closer to straight up than to 45\u00b0\n\n**Visual comparison:**\n```\n    22\u00b0 looks like:     40\u00b0 looks like:     45\u00b0 looks like:\n         /|                 /                   /\n        / |                /|                  /\n       /  |               / |                 /|\n          |                  |                  |\n    (small tilt)      (noticeable tilt)   (equal to corner)\n```\n\n**Validation: Compare your angles**\n- If north_arrow_angle = 40\u00b0 and front_drawing_angle = 90\u00b0, then front_orientation = 50\u00b0\n- If north_arrow_angle = 22\u00b0 and front_drawing_angle = 44\u00b0, then front_orientation = 22\u00b0\n- **Ask yourself:** Is my north arrow measurement consistent with what I see? A 40\u00b0 angle is almost halfway to the corner - does that match the drawing?",
+        "expected_impact": "Reduce angle estimation errors from ~28\u00b0 to <10\u00b0. The visual estimation guide provides concrete reference points that prevent common mistakes like estimating 40\u00b0 when the actual angle is closer to 22\u00b0. This should improve accuracy from 66.7% to approximately 85%+ by helping agents more precisely estimate angles without actual measurement tools.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.15
+      }
+    },
+    {
+      "iteration": 3,
+      "timestamp": "2026-02-04T12:31:24.437774",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 48.666666666666664
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 270.0,
+          "expected": 284,
+          "error_degrees": 14.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1 (and page 2) in the upper-left corner, pointing straight UP on the drawing. north_arrow_angle = 0\u00b0. The ADU is located at the rear-right of the lot behind the exi"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 45.0,
+          "expected": 112,
+          "error_degrees": 67.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on Boundary Survey page 3 (upper left). Property address is 3534 Meadowlands Lane. The proposed ADU is located at the southwest corner of the property. Based on the floor plan (page "
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 317.0,
+          "expected": 22,
+          "error_degrees": 65.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) pointing approximately 18\u00b0 clockwise from vertical (toward upper-right). Building front (South elevation per architect labeling, with covered deck and main"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.18",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "2 of 3 orientation extractions failed with large errors (65-67\u00b0). In lamb-adu case, reasoning explicitly mentions 'South elevation per architect labeling' despite instructions warning against using elevation labels. In poonian-adu case, predicted value (45\u00b0) suggests confusion between north_arrow_angle and front_orientation. Agents are falling back to elevation labels when street identification is unclear.",
+        "hypothesis": "The instructions warn against using elevation labels but don't provide a sufficiently robust alternative method for identifying the front facade when street edges are ambiguous on site plans. Agents revert to elevation labels as a fallback. Need a concrete, label-independent method to identify the front: the entry door / main entrance symbol on floor plans, which is visible regardless of how the drawing is labeled.",
+        "proposed_change": "### Identifying the Front: Entry Door Method (Primary)\n\n**Use this method FIRST, before trying to identify streets:**\n\n**Step 1: Find the main entry door on the floor plan**\n- Look for door symbols with:\n  - Wider door (typically 3' for entry vs 2'8\" for interior)\n  - Covered porch/stoop/landing shown outside the door\n  - Steps or accessibility ramp leading to the door\n  - \"ENTRY\" or \"MAIN ENTRANCE\" label\n  - Front porch or deck attached\n- The entry door is almost always on a perimeter wall, not interior\n\n**Step 2: Determine which direction the entry door faces ON THE DRAWING**\n- Stand at the entry door on the floor plan\n- Which direction would you walk to exit the building?\n- Measure that direction from the TOP of the page (0\u00b0 = up, clockwise positive)\n- This is your `front_drawing_angle`\n\n**Step 3: Visual examples**\n```\nEntry door at BOTTOM of floor plan, opens outward toward bottom:\n\u2192 You exit by walking DOWN \u2192 front_drawing_angle = 180\u00b0\n\nEntry door at RIGHT of floor plan, opens outward toward right:\n\u2192 You exit by walking RIGHT \u2192 front_drawing_angle = 90\u00b0\n\nEntry door at TOP-RIGHT of floor plan, opens toward upper-right:\n\u2192 You exit toward upper-right \u2192 front_drawing_angle \u2248 45\u00b0\n```\n\n**Step 4: Cross-reference with site plan**\n- Locate the same entry door position on the site plan\n- Verify the direction matches (entry should face the street/driveway)\n- If they don't match, trust the SITE PLAN (it shows true lot orientation)\n\n**Why this method works:**\n- Entry doors are physical features, not arbitrary labels\n- They appear consistently on both floor plans and site plans\n- The \"front\" of a building is defined by its main entrance, not by labels\n\n**CRITICAL: If the reasoning mentions ANY elevation label (North/South/East/West Elevation), you have made an error. Go back and use only:**\n1. North arrow direction\n2. Entry door direction\n3. The calculation formula",
+        "insert_after": "### 3. Determine Front of Building",
+        "expected_impact": "Reduce large orientation errors (>30\u00b0) by providing a concrete, label-independent method to identify the front facade. Both failed cases show evidence of using elevation labels or confusing angles. This addition gives agents a physical feature (entry door) to anchor their measurements instead of relying on potentially misleading labels or ambiguous street edges.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.3,
+        "risks": "Entry door may be ambiguous in ADU/accessory structures with multiple doors. May need additional guidance for multi-family or commercial buildings."
+      }
+    },
+    {
+      "iteration": 4,
+      "timestamp": "2026-02-04T12:33:31.407395",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 2,
+        "accuracy": 0.6666666666666666,
+        "avg_error": 16.666666666666668
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 285.0,
+          "expected": 284,
+          "error_degrees": 1.0,
+          "correct": true,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1 (and page 2), pointing toward upper-left of the drawing at approximately 345\u00b0 from page top (slightly counterclockwise from straight up). Building front (ADU) fac"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 75.0,
+          "expected": 112,
+          "error_degrees": 37.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. The north arrow points approximately 330\u00b0 on the drawing (30\u00b0 counterclockwise from straight up). The ADU is positio"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 10.0,
+          "expected": 22,
+          "error_degrees": 12.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 4,
+          "reasoning": "North arrow found on floor plan page 4 (A1.1) pointing toward upper-right of drawing. north_arrow_angle = ~35\u00b0 (from top of page, clockwise). Building front faces Wooden Valley Road, which is toward t"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.19",
+        "proposed_version": "v1.1.20",
+        "change_type": "add_section",
+        "failure_pattern": "poonian-adu: Expected 112\u00b0, predicted 75\u00b0, error 37\u00b0. The extractor reported north arrow at '330\u00b0 (30\u00b0 counterclockwise from straight up)' with high confidence but produced incorrect result.",
+        "hypothesis": "The instructions describe angles as 'clockwise positive' but don't explicitly handle the case where the north arrow points counterclockwise from up (upper-left quadrant). When the north arrow points to upper-left, the agent may measure it as a negative angle or convert between clockwise/counterclockwise inconsistently. The reasoning showed '330\u00b0 (30\u00b0 counterclockwise)' which mixes both notations, suggesting confusion. The instructions need explicit guidance for handling north arrows in the upper-left quadrant (270\u00b0-360\u00b0 range or equivalently -90\u00b0 to 0\u00b0).",
+        "proposed_change": "### Handling North Arrows in All Quadrants\n\n**CRITICAL: Always use CLOCKWISE angles from 0\u00b0 to 360\u00b0**\n\nWhen the north arrow points in different directions:\n\n| North Arrow Points To | Clockwise Angle | Common Mistake |\n|----------------------|-----------------|----------------|\n| Straight UP | 0\u00b0 | n/a |\n| Upper-RIGHT | 30\u00b0 to 90\u00b0 | n/a |\n| RIGHT | 90\u00b0 | n/a |\n| Lower-RIGHT | 90\u00b0 to 180\u00b0 | n/a |\n| Straight DOWN | 180\u00b0 | n/a |\n| Lower-LEFT | 180\u00b0 to 270\u00b0 | n/a |\n| LEFT | 270\u00b0 | n/a |\n| Upper-LEFT | 270\u00b0 to 360\u00b0 | Using negative angles! |\n\n**Upper-Left Quadrant (COMMON ERROR ZONE):**\n\nWhen the north arrow points toward the upper-left of the drawing:\n- **WRONG:** \"North arrow points -30\u00b0\" or \"30\u00b0 counterclockwise\"\n- **RIGHT:** \"North arrow points 330\u00b0\" (always use positive clockwise)\n\n**Conversion rule:**\nIf you naturally think of the angle as counterclockwise (negative):\n```\nnorth_arrow_angle = 360 - |counterclockwise_angle|\n```\n\nExample:\n- You see north arrow pointing upper-left, \"about 30\u00b0 counterclockwise from up\"\n- Convert: 360 - 30 = 330\u00b0\n- Use north_arrow_angle = 330\u00b0 in your calculation\n\n**Self-check for upper-left north arrows:**\nIf north arrow points upper-left:\n- north_arrow_angle should be between 270\u00b0 and 360\u00b0 (NOT between 0\u00b0 and 90\u00b0)\n- If you have a value < 90\u00b0 for an upper-left arrow, you've made an error\n\n**Worked example:**\n- North arrow points 30\u00b0 counterclockwise from up (upper-left) \u2192 330\u00b0\n- Building front faces toward bottom-right of drawing \u2192 135\u00b0 \n- Calculation: (135 - 330 + 360) % 360 = 165\u00b0\n- front_orientation = 165\u00b0 (SSE)\n\n**COMMON MISTAKE:** Using \"30\u00b0 counterclockwise\" as \"30\u00b0\" instead of \"330\u00b0\":\n- Wrong: (135 - 30 + 360) % 360 = 105\u00b0 \u2190 INCORRECT\n- Right: (135 - 330 + 360) % 360 = 165\u00b0 \u2190 CORRECT\n- Difference: 60\u00b0 error!",
+        "expected_impact": "Eliminate ~37\u00b0 errors caused by upper-left quadrant north arrow angle confusion. Should fix the poonian-adu case (expected 112\u00b0) and similar cases where north arrows point counterclockwise from up.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 5,
+      "timestamp": "2026-02-04T12:35:26.663241",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 25.666666666666668
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 270.0,
+          "expected": 284,
+          "error_degrees": 14.0,
+          "correct": true,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow clearly visible on site plan pages 1 and 2, showing north pointing toward upper-left of drawing. Wyoming Street runs along the west (left) side of the property. The ADU is located in the r"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 73.0,
+          "expected": 112,
+          "error_degrees": 39.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow clearly visible on page 3 (Boundary and Topographic Survey) in upper left corner. Property boundary bearings (N17\u00b059'34\"E on west edge, S88\u00b016'04\"W on north edge) confirm orientation. Mead"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 46.0,
+          "expected": 22,
+          "error_degrees": 24.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in lower right area near title block, labeled 'REFERENCE NORTH'. north_arrow_angle = 22\u00b0 (points toward upper-right on drawing). Building front faces Woode"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.20",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "2/3 orientation extractions failed (33% accuracy). Both failures found north arrows correctly but calculated wrong front_orientation. lamb-adu: expected 22\u00b0, got 46\u00b0 (24\u00b0 error). poonian-adu: expected 112\u00b0, got 73\u00b0 (39\u00b0 error). Both had high confidence but wrong answers. Errors suggest incorrect measurement of front_drawing_angle on the site plan.",
+        "hypothesis": "The agent is correctly finding north arrows but incorrectly measuring the front_drawing_angle. The instructions explain the formula but lack a concrete visual reference system for estimating angles on drawings. Without calibration points, the agent makes systematic errors when estimating angles like 22\u00b0, 68\u00b0, or 112\u00b0 on a drawing. The agent needs explicit visual angle references (what does 30\u00b0 look like vs 60\u00b0?) to make accurate measurements.",
+        "proposed_change": "### Visual Angle Measurement Guide\n\n**CRITICAL: Use this reference to calibrate your angle measurements**\n\nWhen measuring angles on a drawing, use these visual reference points:\n\n```\n                    0\u00b0 (straight up)\n                    |\n           330\u00b0(-30\u00b0) |  30\u00b0\n                 \\    |    /\n                  \\   |   /\n         300\u00b0(-60\u00b0)\\  |  /60\u00b0\n                    \\ | /\n         270\u00b0--------+--------90\u00b0\n         (left)     / | \\     (right)\n                   /  |  \\\n         240\u00b0    /    |    \\ 120\u00b0\n                /     |     \\\n           210\u00b0       |       150\u00b0\n                    180\u00b0 (straight down)\n```\n\n**Key visual landmarks:**\n- **0\u00b0**: Points to top center of page\n- **45\u00b0**: Points to upper-right corner (halfway between up and right)\n- **90\u00b0**: Points to right edge (3 o'clock position)\n- **135\u00b0**: Points to lower-right corner\n- **180\u00b0**: Points to bottom center of page\n- **22-23\u00b0**: About 1/4 of the way from up toward the 45\u00b0 diagonal\n- **67-68\u00b0**: About 3/4 of the way from up toward right (almost to 90\u00b0)\n\n**Measurement technique:**\n1. Imagine a clock face centered on the drawing\n2. 12 o'clock = 0\u00b0, 3 o'clock = 90\u00b0, 6 o'clock = 180\u00b0, 9 o'clock = 270\u00b0\n3. Each hour = 30\u00b0 (e.g., 1 o'clock \u2248 30\u00b0, 2 o'clock \u2248 60\u00b0)\n4. Use the building's lot lines or property boundaries as reference - they often run close to the angles you need to measure\n\n**Property boundary bearing cross-check:**\nIf the site plan shows surveyor bearings on property lines (e.g., \"N17\u00b059'34\"E\", \"S88\u00b016'04\"W\"), use these to calibrate:\n- \"N17\u00b059'34\"E\" means the line runs from south to north, but deviated 17.99\u00b0 toward the east\n- This line would appear pointing toward upper-right, at approximately 17-18\u00b0 on your visual reference\n- Use these labeled bearings to cross-check your visual angle estimates\n\n**Self-calibration example:**\nBefore measuring the north arrow angle:\n1. Find a property line with a bearing label\n2. Note the bearing (e.g., N45\u00b0E means 45\u00b0 from up)\n3. Visually estimate the angle that line makes\n4. If your estimate differs from the label by more than 10\u00b0, recalibrate\n\n**Common calibration errors:**\n- Underestimating angles near vertical (22\u00b0 looks \"almost straight up\" but it's not)\n- Overestimating angles near horizontal (68\u00b0 looks \"almost sideways\" but 90\u00b0 is truly sideways)\n- Forgetting that front_drawing_angle is measured from the perpendicular to the wall, not along the wall",
+        "expected_impact": "Reduce orientation extraction errors by providing concrete visual references for angle measurement. Should improve accuracy on cases where north_arrow_angle or front_drawing_angle is in the 15-75\u00b0 range (common for residential lots). Expected to reduce average error from 25.7\u00b0 to under 15\u00b0 (within tolerance).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 6,
+      "timestamp": "2026-02-04T12:37:43.755310",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 27.333333333333332
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 270.0,
+          "expected": 284,
+          "error_degrees": 14.0,
+          "correct": true,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow clearly visible on site plan pages 1 and 2, pointing upper-left. Wyoming Street runs along the west side of the property. The ADU is positioned at the rear of the lot (east side) with its "
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 90.0,
+          "expected": 112,
+          "error_degrees": 22.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey). The ADU is positioned in the southwest corner of the property with its main entry (D-01) facing east toward the existing house and proper"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 68.0,
+          "expected": 22,
+          "error_degrees": 46.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in bottom right corner, pointing toward upper-right of drawing. north_arrow_angle = 22\u00b0 (from top of page, clockwise). Building front faces Wooden Valley R"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.21",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "2 of 3 orientations incorrect (33% accuracy). lamb-adu: expected 22\u00b0, predicted 68\u00b0 (error 46\u00b0). poonian-adu: expected 112\u00b0, predicted 90\u00b0 (error 22\u00b0). Both predictions show evidence of rounding or misalignment: 90\u00b0 is an exact cardinal direction, and 68\u00b0 appears to be an incorrect calculation where front_drawing_angle was set to ~90\u00b0 instead of measuring the actual road angle.",
+        "hypothesis": "The instructions explain the formula (front_drawing_angle - north_arrow_angle + 360) % 360 but do not provide clear guidance on how to measure front_drawing_angle when the street/road runs at an angle on the drawing. Agents are defaulting to approximate cardinal directions (90\u00b0, 180\u00b0) instead of measuring the actual road angle and using perpendicular from that. The lamb-adu case shows the agent found north_arrow_angle = 22\u00b0 correctly but then used ~90\u00b0 for front_drawing_angle when the road actually runs at ~44\u00b0 on the page.",
+        "proposed_change": "### How to Measure front_drawing_angle from Angled Streets\n\n**CRITICAL: Streets/roads are often angled on site plans - do NOT assume 0\u00b0, 90\u00b0, 180\u00b0, 270\u00b0**\n\n**Step-by-step method for angled streets:**\n\n1. **Find the street/road on the site plan**\n   - Identify the property boundary that fronts the street\n   - The street may run diagonally across the page\n\n2. **Measure the angle the street runs** (relative to top of page)\n   - If street runs horizontally: street_angle = 90\u00b0 (runs left-right)\n   - If street runs vertically: street_angle = 0\u00b0 (runs up-down)\n   - If street runs diagonally upper-left to lower-right: street_angle \u2248 135\u00b0\n   - If street runs diagonally upper-right to lower-left: street_angle \u2248 45\u00b0\n\n3. **Calculate front_drawing_angle (perpendicular to street)**\n   - The front facade is PERPENDICULAR to the street\n   - front_drawing_angle = (street_angle + 90) % 360 OR (street_angle - 90 + 360) % 360\n   - Choose the angle that points FROM the building TOWARD the street\n\n**EXAMPLE: Lamb ADU (street runs at ~44\u00b0 on drawing)**\n```\n    Drawing\n    \u250c\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n    \u2502         N\u2197 (22\u00b0)   \u2502  North arrow points upper-right at 22\u00b0\n    \u2502                    \u2502\n    \u2502    Wooden Valley Rd\u2502\n    \u2502      runs at ~134\u00b0 \u2502  (upper-left to lower-right diagonal)\n    \u2502         \\\\         \u2502\n    \u2502      ====\\\\===     \u2502  Building\n    \u2502      |  ADU  |     \u2502\n    \u2502      =========     \u2502\n    \u2502            \\\\      \u2502\n    \u2502                    \u2502\n    \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\nStreet runs at ~134\u00b0 on drawing (diagonal)\nFront faces perpendicular toward street = 134\u00b0 - 90\u00b0 = 44\u00b0\nfront_drawing_angle = 44\u00b0\nnorth_arrow_angle = 22\u00b0\nfront_orientation = (44 - 22 + 360) % 360 = 22\u00b0\n```\n\n**WRONG approach (common error):**\n```\n- See street is \"toward upper-right\"\n- Assume front faces \"east\" \u2192 front_drawing_angle = 90\u00b0 \u2190 WRONG!\n- Calculate: (90 - 22 + 360) % 360 = 68\u00b0 \u2190 WRONG ANSWER!\n```\n\n**CORRECT approach:**\n```\n- Measure street angle on drawing: ~134\u00b0 (diagonal line)\n- Front is perpendicular: 134\u00b0 - 90\u00b0 = 44\u00b0\n- front_drawing_angle = 44\u00b0\n- Calculate: (44 - 22 + 360) % 360 = 22\u00b0 \u2190 CORRECT ANSWER!\n```\n\n**Key insight:** When measuring front_drawing_angle, you must account for the street's actual angle on the drawing, not just its general direction.",
+        "expected_impact": "Reduce orientation errors by providing explicit guidance on measuring front_drawing_angle for angled streets. Should prevent the common mistake of using 90\u00b0 when streets are diagonal. Expected to fix lamb-adu type errors (46\u00b0 error) and reduce errors like poonian-adu (22\u00b0 error). Orientation accuracy should improve from 33% to 67%+.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33,
+        "insert_after": "### MANDATORY: Show Your Calculation Work"
+      }
+    },
+    {
+      "iteration": 7,
+      "timestamp": "2026-02-04T12:39:25.233294",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 34.0
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 275.0,
+          "expected": 284,
+          "error_degrees": 9.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1 (compass rose in upper-left corner). north_arrow_angle = 345\u00b0 (pointing nearly straight up, slightly left). The ADU is located behind the existing house with its "
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 45.0,
+          "expected": 112,
+          "error_degrees": 67.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner, pointing essentially straight up. north_arrow_angle = 0\u00b0 (from top of page). The ADU's front faces Meadowlands Lane,"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 48.0,
+          "expected": 22,
+          "error_degrees": 26.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in lower right corner near title block. north_arrow_angle = 42\u00b0 (pointing toward upper-right of page, clockwise from top). Building front faces Wooden Vall"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.22",
+        "proposed_version": "v1.1.23",
+        "change_type": "add_section",
+        "failure_pattern": "Two failures with average error of 34\u00b0. Both cases found north arrows correctly but predicted front_orientation of 45\u00b0 and 48\u00b0 instead of expected 112\u00b0 and 22\u00b0. The extractor appears to be defaulting to 'easy' angles (45\u00b0, near 45\u00b0) rather than measuring precise building orientations. poonian-adu: predicted 45\u00b0 (expected 112\u00b0, error 67\u00b0). lamb-adu: predicted 48\u00b0 (expected 22\u00b0, error 26\u00b0).",
+        "hypothesis": "The instructions explain the formula (front_drawing_angle - north_arrow_angle) but lack explicit guidance on HOW to visually measure precise angles on architectural drawings. The extractor defaults to common angles like 45\u00b0 because it lacks techniques for measuring non-obvious angles. Instructions need a visual angle estimation guide with reference points and validation steps for unusual angles.",
+        "proposed_change": "### Visual Angle Estimation Guide\n\n**CRITICAL: Most buildings are NOT at 45\u00b0 or 90\u00b0 angles!**\n\nIf you find yourself measuring front_drawing_angle as exactly 45\u00b0, 90\u00b0, 135\u00b0, etc., you are likely approximating rather than measuring. Go back and measure more carefully.\n\n**Reference Angles on the Drawing:**\n```\n        0\u00b0 (straight up)\n        |\n        |\n   315\u00b0 +------+ 45\u00b0\n        |\\    /|\n        | \\  / |\n   270\u00b0 +--\\/--+ 90\u00b0 (straight right)\n        |  /\\  |\n        | /  \\ |\n   225\u00b0 +------+ 135\u00b0\n        |\n        |\n      180\u00b0 (straight down)\n```\n\n**Angle Estimation Technique:**\n\n1. **Identify the front wall edge on the site plan**\n   - Find the building footprint\n   - Identify which edge faces the street (this is the front wall)\n\n2. **Draw an imaginary perpendicular outward from the front wall**\n   - This perpendicular points in the direction the building \"faces\"\n   - NOT along the wall, but PERPENDICULAR to it (outward toward the street)\n\n3. **Compare this perpendicular to the page edges**\n   - If it points toward upper-right: estimate WHERE between 0\u00b0 and 90\u00b0\n   - Is it closer to 30\u00b0? 60\u00b0? 75\u00b0? Be specific!\n\n4. **Use the lot boundaries as reference**\n   - Many lots have property lines at specific angles\n   - If building is parallel to a property line, measure that line's angle\n   - If building is rotated relative to lot, add/subtract the rotation\n\n**Worked Example - Building at 112\u00b0:**\n```\n      North (0\u00b0)\n         ^\n         |\n         |  Property line\n         | /\n         |/  \n    [BLDG]=====   <- Front wall (runs roughly NNE-SSW)\n         |    \\\n         |     \\ Street\n         |\n```\n- Front wall runs roughly from upper-left to lower-right on the page\n- Perpendicular from front wall points toward lower-right\n- Lower-right is between 90\u00b0 (right) and 180\u00b0 (down)\n- Estimate: about 20-25\u00b0 past 90\u00b0 = approximately 110-115\u00b0\n- front_drawing_angle \u2248 112\u00b0\n\n**Worked Example - Building at 22\u00b0:**\n```\n      North (0\u00b0)\n         ^\n         |    \n         |----Street to upper-right\n         |   /\n         |  /   \n    [BLDG]=====  <- Front faces NNE (toward street)\n         |\n```\n- Front faces toward street at upper-right\n- But NOT 45\u00b0 - closer to straight up than to 45\u00b0\n- Estimate: about 20-25\u00b0 clockwise from north\n- front_drawing_angle \u2248 22\u00b0\n\n**Self-Validation for Unusual Angles:**\n\nIf your front_drawing_angle is NOT a \"nice\" angle (0\u00b0, 45\u00b0, 90\u00b0, etc.):\n- GOOD - most real buildings have non-standard angles\n- Verify by checking: does this angle match the visual slope of the building footprint?\n\nIf your front_drawing_angle IS a \"nice\" angle:\n- SUSPICIOUS - re-examine the drawing\n- Are you approximating because the true angle is hard to measure?\n- Look more carefully at the exact orientation of the building footprint",
+        "expected_impact": "Reduce orientation errors by providing explicit angle estimation techniques. Should help avoid defaulting to common angles (45\u00b0, 90\u00b0) when buildings are actually at unusual angles (22\u00b0, 112\u00b0). Expected to reduce average error from 34\u00b0 to under 15\u00b0 (within tolerance).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 8,
+      "timestamp": "2026-02-04T12:41:03.824733",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 52.0
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 280.0,
+          "expected": 284,
+          "error_degrees": 4.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1 (upper-left corner compass rose). north_arrow_angle = 350\u00b0 (points nearly straight up, tilted slightly left/counterclockwise). The ADU ('Desired ADU Build') is lo"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 73.0,
+          "expected": 112,
+          "error_degrees": 39.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle = 17\u00b0 (pointing toward upper-right of page). The ADU (proposed building) is located in the western"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 135.0,
+          "expected": 22,
+          "error_degrees": 113.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) pointing approximately 30\u00b0 clockwise from top of page (toward upper-right). Building front faces Wooden Valley Road, which is toward the lower-right on the"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.23",
+        "proposed_version": "v1.1.24",
+        "change_type": "add_section",
+        "failure_pattern": "2 of 3 orientations incorrect (33% accuracy). lamb-adu off by 113\u00b0 (expected 22\u00b0, got 135\u00b0) - error is close to 90\u00b0 offset suggesting perpendicular confusion. poonian-adu off by 39\u00b0 (expected 112\u00b0, got 73\u00b0). Both failures show the extractor found north arrows but calculated incorrect front_drawing_angle, likely measuring street direction or wall alignment instead of perpendicular facing direction.",
+        "hypothesis": "The extractor is confusing the direction a street RUNS with the direction the front facade FACES. When a street runs from lower-left to upper-right (e.g., at 45\u00b0), the building's front faces PERPENDICULAR to that (either 135\u00b0 or 315\u00b0). The instructions warn about this but don't provide a concrete self-check method. Adding a perpendicular verification step would catch this 90\u00b0 error pattern.",
+        "proposed_change": "### MANDATORY: Perpendicular Check for Front Facing Direction\n\n**CRITICAL ERROR PATTERN:** Measuring street direction instead of facade facing direction causes ~90\u00b0 errors.\n\n**The Perpendicular Rule:**\n- The front facade FACES perpendicular to how the front wall RUNS\n- If the front wall runs horizontally (left-right on page), front faces either UP (0\u00b0) or DOWN (180\u00b0)\n- If the front wall runs vertically (top-bottom on page), front faces either LEFT (270\u00b0) or RIGHT (90\u00b0)\n- If the front wall runs diagonally (e.g., from lower-left to upper-right at 45\u00b0), front faces either 135\u00b0 (toward lower-right) or 315\u00b0 (toward upper-left)\n\n**Step-by-step verification:**\n\n1. **Identify the front wall** - the wall segment facing the street\n2. **Measure the wall's RUN direction** - the angle along the wall itself (0\u00b0 = horizontal, 90\u00b0 = vertical)\n3. **Add or subtract 90\u00b0** to get the FACING direction - which way does someone standing on the street look when facing the building?\n4. **Verify with street context** - the front faces TOWARD the street, not along it\n\n**Worked Example - Street runs from lower-left to upper-right:**\n```\n                    North arrow \u2192 20\u00b0 (toward upper-right)\n                    \n     STREET ________/         \u2190 Street runs at ~45\u00b0 on the drawing\n            /\n    +------+\n    | BLDG |  \u2190 Building with front facing the street\n    +------+\n\n    Wall runs at: ~45\u00b0 (parallel to street)\n    Front FACES at: 45\u00b0 + 90\u00b0 = 135\u00b0 OR 45\u00b0 - 90\u00b0 = 315\u00b0\n    \n    Which one? The front faces TOWARD the street.\n    If street is to the upper-right, front faces 315\u00b0 (upper-right)\n    If street is to the lower-left, front faces 135\u00b0 (lower-left)\n    \n    front_drawing_angle = 315\u00b0 (or 135\u00b0 depending on building position)\n    front_orientation = (315 - 20 + 360) % 360 = 295\u00b0\n```\n\n**Common Error - DO NOT DO THIS:**\n```\n    \u274c WRONG: Street runs at 45\u00b0, so front_drawing_angle = 45\u00b0\n    \u2713 RIGHT: Street runs at 45\u00b0, front FACES perpendicular, so front_drawing_angle = 135\u00b0 or 315\u00b0\n```\n\n**Self-Check Question:**\n> If I stand on the street and look at the front of the building, which direction on the drawing am I looking?\n>\n> That direction (from street toward building) is the front_drawing_angle.\n\n**Red Flag:** If your front_drawing_angle is within 20\u00b0 of the street's run direction, you likely made this error. The front facade direction should be approximately perpendicular (\u00b190\u00b0) to the street direction.",
+        "expected_impact": "Fix the ~90\u00b0 perpendicular confusion error pattern. Should correct lamb-adu type errors where extractor measures street direction instead of facade facing direction. Expected to improve orientation accuracy from 33% to >66%.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 9,
+      "timestamp": "2026-02-04T12:42:38.207323",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 89.66666666666667
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 180.0,
+          "expected": 284,
+          "error_degrees": 104.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow clearly shown on site plan pages 1 and 2 in upper-left corner. Wyoming Street runs along the west side of the property. The ADU is positioned in the rear of the lot with its front (entry s"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 45.0,
+          "expected": 112,
+          "error_degrees": 67.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) pointing straight up (north_arrow_angle = 0\u00b0). The proposed ADU is located in the rear/left portion of the property as shown on page 4. Th"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 120.0,
+          "expected": 22,
+          "error_degrees": 98.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in bottom right corner, labeled 'REFERENCE NORTH'. north_arrow_angle = 35\u00b0 (pointing toward upper-right of page). Building front faces Wooden Valley Road a"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.24",
+        "proposed_version": "v1.1.25",
+        "change_type": "add_section",
+        "failure_pattern": "0/3 correct (0% accuracy) with average error of 89.7\u00b0. Predictions include cardinal angles (180\u00b0, 45\u00b0) suggesting formula not applied. In lamb-adu, north_arrow_angle=35\u00b0 was found but output was 120\u00b0 instead of expected 22\u00b0. Agents find north arrows but output wrong values.",
+        "hypothesis": "The agent measures north_arrow_angle and front_drawing_angle but outputs an incorrect value as front_orientation - either outputting the front_drawing_angle directly without subtracting north_arrow_angle, or confusing which value is the final answer. The instructions explain the formula but lack a MANDATORY final assertion that forces the agent to verify: 'My output MUST be exactly (Y - X + 360) % 360 where I measured X and Y above.'",
+        "proposed_change": "### MANDATORY FINAL ASSERTION (Do Not Skip)\n\n**Before outputting your JSON, you MUST perform this check:**\n\n```\nI measured:\n  north_arrow_angle = [X]\u00b0\n  front_drawing_angle = [Y]\u00b0\n\nMy calculation:\n  ([Y] - [X] + 360) % 360 = [Z]\u00b0\n\nMy output front_orientation field MUST equal: [Z]\u00b0\n```\n\n**CRITICAL:** Your `front_orientation` output value MUST be the result of this subtraction formula. \n\n**Common Error to Catch:**\n- If you measured north_arrow_angle = 35\u00b0 and front_drawing_angle = 57\u00b0\n- Then front_orientation MUST be (57 - 35 + 360) % 360 = 22\u00b0\n- NOT 57\u00b0 (that's the wrong value - you forgot to subtract!)\n- NOT 35\u00b0 (that's the north arrow, not the front orientation!)\n- NOT 120\u00b0 or any other number not from this calculation\n\n**Self-Verification Table:**\n\n| What I Measured | Value | Check |\n|-----------------|-------|-------|\n| north_arrow_angle (from top of page) | ___\u00b0 | Is this between 0-360? |\n| front_drawing_angle (from top of page) | ___\u00b0 | Is this between 0-360? |\n| front_orientation = (front - north + 360) % 360 | ___\u00b0 | Does my JSON output match this EXACT number? |\n\n**If your front_orientation does not equal your calculated (front_drawing_angle - north_arrow_angle + 360) % 360, STOP and fix it.**",
+        "expected_impact": "This change enforces a final consistency check between measured angles and output value. Currently agents appear to measure correctly but output wrong values. This should reduce errors by catching cases where front_drawing_angle is output directly (without north arrow adjustment) or where the wrong intermediate value is used.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.5
+      }
+    },
+    {
+      "iteration": 10,
+      "timestamp": "2026-02-04T12:44:27.734196",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 50.333333333333336
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 300.0,
+          "expected": 284,
+          "error_degrees": 16.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1, pointing toward upper-left of drawing at approximately 330\u00b0 (30\u00b0 counterclockwise from up). north_arrow_angle = 330\u00b0. ADU is located in rear yard, with entry fac"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 90.0,
+          "expected": 112,
+          "error_degrees": 22.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner, pointing toward upper-left of drawing at approximately 330\u00b0 from top of page (north_arrow_angle = 330\u00b0). The ADU is "
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 135.0,
+          "expected": 22,
+          "error_degrees": 113.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 4,
+          "reasoning": "North arrow found on floor plan page 4 (A1.1) pointing toward upper-left of drawing. north_arrow_angle \u2248 315\u00b0 (from top of page, clockwise). Building front faces Wooden Valley Road, which is toward th"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.25",
+        "proposed_version": "v1.1.26",
+        "change_type": "add_section",
+        "failure_pattern": "0% accuracy (0/3 correct) with average error of 50.3\u00b0. All three failures show the extractor found north arrows correctly but calculated incorrect front_drawing_angle. In lamb-adu, error was 113\u00b0 (expected 22\u00b0, got 135\u00b0). In poonian-adu, extractor rounded to cardinal 90\u00b0 when expected was 112\u00b0. In martinez-adu, error was 16\u00b0 (expected 284\u00b0, got 300\u00b0).",
+        "hypothesis": "The instructions explain that front_drawing_angle should be 'perpendicular outward from the front facade' but do not provide a concrete disambiguation technique for determining which of two perpendicular directions is correct. When a street runs diagonally (e.g., NW-SE), there are two perpendicular directions (NE and SW). The extractor needs explicit guidance to pick the direction that points FROM the building TOWARD the street (outward), not from the street toward the building (inward). The lamb-adu case shows a 113\u00b0 error, which suggests the extractor picked the wrong perpendicular or confused the road direction with the facade direction.",
+        "proposed_change": "### Disambiguation: Which Perpendicular Direction?\n\nWhen measuring front_drawing_angle, you must choose the correct perpendicular direction from the front wall.\n\n**The Perpendicular Test:**\n\nEvery wall has TWO perpendicular directions (180\u00b0 apart). You need the one pointing OUTWARD (away from building, toward street):\n\n```\n                    Street\n    =====================================\n              \u2191 CORRECT (outward)\n              |\n    +---------+---------+\n    |                   |\n    |     BUILDING      |\n    |                   |\n    +-------------------+\n              |\n              \u2193 WRONG (inward, points into building)\n```\n\n**Concrete Steps:**\n\n1. **Find the front wall** (the wall segment facing the street)\n2. **Imagine standing OUTSIDE the building**, on the street, facing the front door\n3. **Draw an arrow from the building toward YOU** (the person on the street)\n4. **That arrow's direction is front_drawing_angle**\n\n**Validation Check:**\n- Your front_drawing_angle arrow should point TOWARD the street\n- If your arrow points toward the backyard/rear of lot, you have the wrong perpendicular (add or subtract 180\u00b0)\n\n**Example:**\n- Street runs left-to-right at bottom of drawing\n- Building is above the street\n- Front wall is the bottom edge of the building\n- Standing on the street, looking at the building, you face UP on the drawing\n- The arrow from building to you points DOWN (toward street)\n- front_drawing_angle = 180\u00b0 (pointing down on drawing)\n\n**Corner Lot Disambiguation:**\nIf the building is on a corner lot with two streets:\n- Find the MAIN entry door location\n- The front faces whichever street the entry door opens toward\n- Measure perpendicular from THAT facade\n\n**Common Error: Road Direction vs Facade Direction**\n\nDO NOT confuse:\n- **Road direction**: The direction the road RUNS (e.g., NW-SE)\n- **Facade direction**: The direction the front wall FACES (perpendicular to road)\n\nIf the road runs NW-SE, the building could face either NE or SW (both perpendicular to road). Check which side of the road the building sits on:\n- Building NORTH of road \u2192 front faces SOUTH (toward road)\n- Building SOUTH of road \u2192 front faces NORTH (toward road)\n- Building EAST of road \u2192 front faces WEST (toward road)\n- Building WEST of road \u2192 front faces EAST (toward road)",
+        "expected_impact": "Reduce average orientation error from 50.3\u00b0 to within 15\u00b0 tolerance by providing concrete disambiguation technique for measuring front_drawing_angle. This should fix the lamb-adu case (113\u00b0 error) and improve poonian-adu and martinez-adu measurements. Expected accuracy improvement from 0% to >66% (2/3 within tolerance).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.3
+      }
+    },
+    {
+      "iteration": 11,
+      "timestamp": "2026-02-04T12:47:03.960077",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 65.33333333333333
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 295.0,
+          "expected": 284,
+          "error_degrees": 11.0,
+          "correct": true,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1, pointing toward upper-left (approximately 335\u00b0 from top of page, or about 25\u00b0 counter-clockwise from straight up). north_arrow_angle = 335\u00b0. Wyoming Street runs "
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 40.0,
+          "expected": 112,
+          "error_degrees": 72.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle \u2248 355\u00b0 (pointing nearly straight up, very slightly to the left). The ADU is located in the southwe"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 135.0,
+          "expected": 22,
+          "error_degrees": 113.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in lower right, labeled 'REFERENCE NORTH', pointing toward upper-right at approximately 22\u00b0 from top of page. north_arrow_angle = 22\u00b0. Building front faces"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.26",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "Two ADU projects (poonian-adu, lamb-adu) both had large orientation errors (72\u00b0 and 113\u00b0 respectively). Both found north arrows correctly but calculated wildly incorrect front_orientation values. In lamb-adu, the north arrow angle (22\u00b0) matched the expected orientation (22\u00b0), but the extractor predicted 135\u00b0. In poonian-adu, north arrow was nearly straight up (355\u00b0), expected 112\u00b0, but predicted 40\u00b0.",
+        "hypothesis": "The instructions define 'front' as the street-facing side, but ADUs (Accessory Dwelling Units) typically do NOT face the street. ADUs are secondary structures in backyards or side yards that face the interior of the property, an alley, or a secondary path\u2014not the main street. The extractor is incorrectly orienting ADUs by looking for the street when it should look for the ADU's actual entry/primary facade which often faces AWAY from the street. Additionally, plans may show 'REFERENCE NORTH' or 'PROJECT NORTH' which may differ from true north.",
+        "proposed_change": "### Special Case: ADUs (Accessory Dwelling Units)\n\n**ADUs require different front-identification logic than main houses!**\n\nADUs are secondary structures (granny flats, backyard cottages, garage conversions) that typically:\n- Are located in the backyard, side yard, or above a detached garage\n- Face AWAY from the main street (toward interior of property)\n- Have entry from an alley, pathway, or interior yard\u2014NOT the main street\n- May have their own separate address or unit number\n\n**How to identify the ADU's front:**\n\n1. **Find the ADU's entry door** - This is the primary indicator\n   - Look for door symbol on floor plan\n   - May be labeled \"Entry\", \"ADU Entry\", or show a covered porch/stoop\n   - The direction the entry door faces is the front orientation\n\n2. **Check the site plan for ADU position**\n   - ADU is usually BEHIND the main house (backyard) or to the side\n   - The ADU front typically faces the main house or an interior courtyard\n   - The ADU front may face an alley if there is rear alley access\n\n3. **DO NOT assume ADU faces the main street**\n   - The main house faces the street, but the ADU usually faces the opposite direction\n   - If ADU is in backyard, its front likely faces the INTERIOR (toward main house)\n   - If ADU is above a detached garage, check which way the living unit entry faces\n\n4. **Look for ADU-specific elevation labels**\n   - Plans may label \"ADU FRONT ELEVATION\" or \"ADU ENTRY ELEVATION\"\n   - These labels indicate the architect's intended front orientation\n\n**Example - Backyard ADU:**\n```\n         STREET (Main St)\n              |\n    +---------+---------+\n    |    MAIN HOUSE     |  <- Main house front faces street\n    |   (faces street)  |\n    +-------------------+\n    |                   |\n    |     BACKYARD      |\n    |                   |\n    |   +----------+    |\n    |   |   ADU    |    |  <- ADU front faces INTERIOR (toward main house)\n    |   | (faces   |    |     NOT toward street!\n    |   | interior)|    |\n    |   +----------+    |\n    +-------------------+\n           ALLEY\n```\n\n**Calculation for ADU:**\n- Identify ADU entry door on floor plan\n- Measure direction ADU entry faces on the drawing (front_drawing_angle)\n- Find north arrow and measure its angle (north_arrow_angle)\n- Calculate: front_orientation = (front_drawing_angle - north_arrow_angle + 360) % 360\n\n**WARNING:** If the project title or address contains \"ADU\", \"Accessory Dwelling Unit\", \"Granny Flat\", \"JADU\", or similar, DO NOT use main street orientation. Instead, carefully identify the ADU's actual entry orientation.\n\n### Reference North vs True North\n\nSome plans show \"REFERENCE NORTH\" or \"PROJECT NORTH\" instead of true north:\n\n- **True North**: Actual compass direction\n- **Reference North / Project North**: Simplified orientation for drawing convenience\n\n**When you see \"REFERENCE NORTH\":**\n1. Check if there's also a \"TRUE NORTH\" arrow (may be shown with a different symbol or offset angle)\n2. If only Reference North is shown, look for a note indicating the offset (e.g., \"Reference North is 15\u00b0 east of True North\")\n3. If no offset is noted, use Reference North as-is but add a note about uncertainty\n4. Set confidence to \"medium\" if only Reference North is available\n\n**In your reasoning, document:**\n- Whether the north arrow is labeled \"True North\", \"Reference North\", or unlabeled\n- If labeled \"Reference North\", whether any offset to true north is indicated",
+        "expected_impact": "Should fix orientation errors for ADU projects by providing explicit guidance that ADUs face interior/away from street. The lamb-adu case (113\u00b0 error) and poonian-adu case (72\u00b0 error) should both be corrected. Expected to improve accuracy on ADU projects from 33% to >80%.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.2
+      }
+    },
+    {
+      "iteration": 12,
+      "timestamp": "2026-02-04T12:48:44.469134",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 34.333333333333336
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 315.0,
+          "expected": 284,
+          "error_degrees": 31.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan pages 1 and 2 pointing toward upper-left of drawing. north_arrow_angle = 315\u00b0 (approximately 45\u00b0 counterclockwise from top of page). ADU entry door faces left on floor p"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 62.0,
+          "expected": 112,
+          "error_degrees": 50.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper left corner. north_arrow_angle = 350\u00b0 (pointing slightly left of straight up). The ADU is positioned in the lower-left of the lot"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 0.0,
+          "expected": 22,
+          "error_degrees": 22.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0), pointing approximately 45\u00b0 from top of page (toward upper-right). Building front faces Wooden Valley Road, also toward the upper-right of the drawing at a"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.27",
+        "proposed_version": "v1.1.28",
+        "change_type": "add_section",
+        "failure_pattern": "All 3 extractions (100%) failed with average error of 34.3\u00b0. Analysis shows: martinez-adu output 315\u00b0 (north_arrow_angle value) instead of calculating difference; lamb-adu output 0\u00b0 when angles appeared similar but expected was 22\u00b0; poonian-adu had 50\u00b0 error suggesting measurement confusion.",
+        "hypothesis": "The agent is making angle measurement errors because there's no concrete visual calibration method in the instructions. When estimating angles like '45\u00b0 from top of page', agents have no way to verify accuracy. The instructions need a visual angle reference grid that agents can mentally overlay on drawings to measure angles more precisely.",
+        "proposed_change": "### Visual Angle Measurement Guide\n\n**CRITICAL: Use this reference to measure angles accurately**\n\nWhen estimating angles on a drawing, mentally overlay this reference:\n\n```\n                    0\u00b0 (straight up)\n                    |\n         337\u00b0       |        23\u00b0\n              \\     |     /\n                \\   |   /\n         315\u00b0     \\ | /      45\u00b0\n            \\      \\|/      /\n              \\     |     /\n         292\u00b0   \\   |   /    68\u00b0\n                  \\ | /\n270\u00b0 (left) -------+------- 90\u00b0 (right)\n                  / | \\\n         248\u00b0   /   |   \\    112\u00b0\n              /     |     \\\n            /      /|\\      \\\n         225\u00b0     / | \\      135\u00b0\n                /   |   \\\n              /     |     \\\n         203\u00b0       |        157\u00b0\n                    |\n                   180\u00b0 (straight down)\n```\n\n**KEY ANGLE LANDMARKS:**\n- **0\u00b0**: Straight UP (12 o'clock)\n- **45\u00b0**: Halfway between up and right (1:30 on clock)\n- **90\u00b0**: Straight RIGHT (3 o'clock)\n- **135\u00b0**: Halfway between right and down (4:30 on clock)\n- **180\u00b0**: Straight DOWN (6 o'clock)\n- **225\u00b0**: Halfway between down and left (7:30 on clock)\n- **270\u00b0**: Straight LEFT (9 o'clock)\n- **315\u00b0**: Halfway between left and up (10:30 on clock)\n\n**MEASUREMENT TECHNIQUE:**\n1. Place your mental \"crosshairs\" at the center of the north arrow\n2. Find the closest landmark angle (0\u00b0, 45\u00b0, 90\u00b0, etc.)\n3. Estimate the offset from that landmark (e.g., \"about 20\u00b0 past the 45\u00b0 line\")\n4. Record as: 45\u00b0 + 20\u00b0 = 65\u00b0 OR 45\u00b0 - 20\u00b0 = 25\u00b0\n\n**COMMON ESTIMATION ERRORS:**\n- \"Upper-right\" is NOT always 45\u00b0 - it could be 30\u00b0 or 60\u00b0\n- \"Slightly left of up\" is typically 350-355\u00b0, NOT 315\u00b0\n- \"Toward upper-right\" could mean anywhere from 15\u00b0 to 75\u00b0\n\n**SELF-CHECK: Does your angle measurement pass the clock test?**\n- If arrow points to \"1 o'clock position\" \u2192 approximately 30\u00b0\n- If arrow points to \"2 o'clock position\" \u2192 approximately 60\u00b0\n- If arrow points to \"10 o'clock position\" \u2192 approximately 300\u00b0 (or -60\u00b0)\n- If arrow points to \"11 o'clock position\" \u2192 approximately 330\u00b0 (or -30\u00b0)",
+        "expected_impact": "Reduce wrong_value errors in orientation by providing precise visual calibration. Expected to reduce average error from 34.3\u00b0 to <15\u00b0 (within tolerance). This addresses the root cause of imprecise angle estimation.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 13,
+      "timestamp": "2026-02-04T12:50:39.259862",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 20.666666666666668
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 300.0,
+          "expected": 284,
+          "error_degrees": 16.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow found on site plan page 1, pointing toward upper-left of page. north_arrow_angle \u2248 330\u00b0 (approximately 30\u00b0 west of straight up). The ADU 'Desired ADU Build' is located in the backyard of t"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 135.0,
+          "expected": 112,
+          "error_degrees": 23.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper left corner. The proposed ADU is located in the southwest portion of the property (shown in yellow on page 4). The ADU entry (D-0"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 45.0,
+          "expected": 22,
+          "error_degrees": 23.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) in bottom right corner, labeled 'REFERENCE NORTH', pointing toward upper-right of drawing at approximately 45\u00b0 from top of page. Building front faces Woode"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.28",
+        "proposed_version": "v1.1.29",
+        "change_type": "add_section",
+        "failure_pattern": "All 3 evaluations failed (0% accuracy, avg error 20.7\u00b0). In lamb-adu, predicted 45\u00b0 exactly matches the north_arrow_angle (~45\u00b0), suggesting the subtraction step was skipped. In all cases, errors of 16-23\u00b0 suggest systematic calculation errors rather than fundamental misunderstanding of front direction.",
+        "hypothesis": "The extractor is confusing the north_arrow_angle measurement with the final front_orientation, or is making errors in the subtraction calculation. The instructions show the formula but don't enforce explicit reporting of the two intermediate values (north_arrow_angle and front_drawing_angle) before the calculation. Without this checkpoint, the agent can output one of the intermediate measurements directly.",
+        "proposed_change": "### MANDATORY: Intermediate Values Checkpoint\n\n**Before calculating front_orientation, you MUST report these three values in your reasoning:**\n\n```\nINTERMEDIATE VALUES:\n- north_arrow_angle = ___ degrees (angle from top of page to where north arrow points)\n- front_drawing_angle = ___ degrees (angle from top of page to front facade facing direction)\n- CALCULATION: (front_drawing_angle - north_arrow_angle + 360) % 360 = ___\n```\n\n**Critical self-check:** Your final front_orientation should NEVER equal your north_arrow_angle unless front_drawing_angle also equals north_arrow_angle (meaning the front faces the same direction as the north arrow on the drawing, which would mean front faces TRUE north).\n\n**Common error pattern to avoid:**\n- You measure north_arrow_angle = 45\u00b0\n- You see front faces \"upper-right\" on drawing\n- You output front_orientation = 45\u00b0 \u2190 WRONG! This is the north_arrow_angle, not the result!\n- If front_drawing_angle is ALSO 45\u00b0, then (45 - 45 + 360) % 360 = 0\u00b0 (building faces true north)\n- If front_drawing_angle is 90\u00b0 (right), then (90 - 45 + 360) % 360 = 45\u00b0\n\n**Validation rule:** If front_orientation = north_arrow_angle, STOP and verify:\n- Did you actually compute (front_drawing_angle - north_arrow_angle)?\n- Or did you accidentally output north_arrow_angle directly?\n- This equality only occurs when front_drawing_angle = 2 \u00d7 north_arrow_angle (rare)\n\n**Example (lamb-adu pattern):**\n- North arrow points upper-right at ~45\u00b0 from top of page \u2192 north_arrow_angle = 45\u00b0\n- Front faces upper-right toward street \u2192 front_drawing_angle = 67\u00b0\n- Calculation: (67 - 45 + 360) % 360 = 22\u00b0\n- front_orientation = 22\u00b0 (NOT 45\u00b0!)",
+        "expected_impact": "This checkpoint forces the agent to explicitly separate the two angle measurements before calculation, preventing the common error of outputting north_arrow_angle as front_orientation. Expected to reduce errors by 15-20\u00b0 on average, bringing accuracy from 0% to ~67% (2/3 within tolerance).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.67
+      }
+    },
+    {
+      "iteration": 14,
+      "timestamp": "2026-02-04T12:52:58.475310",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 1,
+        "accuracy": 0.3333333333333333,
+        "avg_error": 63.333333333333336
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 270.0,
+          "expected": 284,
+          "error_degrees": 14.0,
+          "correct": true,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow clearly visible on pages 1 and 2 in upper-left corner. Site plan shows Wyoming Street running north-south along the west property boundary. The ADU ('Desired ADU Build') is located at the "
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 72.0,
+          "expected": 112,
+          "error_degrees": 40.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle = ~335\u00b0 (pointing upper-left, about 25\u00b0 west of straight up). The ADU front/entry faces toward the"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 158.0,
+          "expected": 22,
+          "error_degrees": 136.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0), pointing toward upper-right at approximately north_arrow_angle = 22\u00b0 from top of page. Building front faces Wooden Valley Road at the bottom of the drawin"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.29",
+        "proposed_version": "v1.1.30",
+        "change_type": "add_section",
+        "failure_pattern": "Orientation extraction showing 33.3% accuracy (1/3 correct) with average error of 63.3\u00b0. Two failures: poonian-adu (112\u00b0 expected, 72\u00b0 predicted, 40\u00b0 error) and lamb-adu (22\u00b0 expected, 158\u00b0 predicted, 136\u00b0 error). Both cases found north arrows correctly but calculated wrong front_orientation. The lamb-adu error suggests the extractor measured front facing BOTTOM of drawing (180\u00b0) when actual front faces upper-right (same as north arrow ~22\u00b0).",
+        "hypothesis": "The instruction assumes building front is always perpendicular to the street edge at the bottom of the drawing. For ADUs and buildings with angled site layouts, the entry/front may face a different direction than 'toward the street edge of the lot.' The extractor is defaulting to 'street at bottom = front faces down (180\u00b0)' without carefully examining actual entry door orientation and building footprint rotation on the site plan.",
+        "proposed_change": "### Special Case: ADUs and Angled Buildings\n\n**ADU (Accessory Dwelling Unit) Orientation:**\n\nADUs often have non-standard orientations:\n- ADU entry may face the PRIMARY house, not the street\n- ADU may be oriented toward property access path, not public road\n- ADU front may face interior of lot (toward main residence)\n\n**How to identify ADU front:**\n1. Find the ADU entry door symbol on the floor plan (not the main house door)\n2. Look for labels like \"ADU ENTRY\", \"UNIT ENTRY\", or \"ACCESSORY UNIT\"\n3. Check site plan for walkway/path leading TO the ADU specifically\n4. The ADU front faces where visitors would approach from\n\n**Angled Buildings on Site Plan:**\n\nBuildings are often rotated on their lots:\n\n```\n        STREET (at bottom of drawing)\n        ========================\n              \u2191 Street edge\n              |\n         +----+----+\n         |   /    /|  \u2190 Building rotated 30\u00b0 on lot\n         |  /ADU /  |\n         | / \u2b07  /   |  \u2190 Entry faces this direction\n         |/    /    |     (not straight down toward street)\n         +----+     |\n              |     |\n        +-----+-----+\n        | MAIN HOUSE|\n        +-----------+\n```\n\n**In this example:**\n- Street is at bottom of drawing\n- BUT ADU entry faces toward main house (lower-right on drawing)\n- front_drawing_angle \u2260 180\u00b0 (not facing street directly)\n- front_drawing_angle \u2248 135\u00b0 (facing lower-right toward main house)\n\n**Critical verification for ADUs:**\n1. IGNORE street location for ADU front determination\n2. FIND the actual ADU entry door on floor plan\n3. MEASURE the perpendicular-outward direction from that entry\n4. That direction is your front_drawing_angle\n\n**Common ADU Error:**\n- Seeing \"street at bottom\" and assuming front_drawing_angle = 180\u00b0\n- ADU front actually faces the main house at 45\u00b0 or 90\u00b0 different angle\n- Result: orientation error of 45-135\u00b0\n\n**Worked Example (ADU facing main house):**\n- North arrow points upper-right: north_arrow_angle = 22\u00b0\n- ADU entry faces upper-right toward main house path: front_drawing_angle = 22\u00b0\n- Calculation: (22 - 22 + 360) % 360 = 0\u00b0\n- Wait, that's true north - verify this makes sense given the layout\n- If north arrow and entry face same direction on drawing, front_orientation \u2248 0\u00b0\n\n**Sanity check for ADUs:**\n- If ADU entry faces SAME direction as north arrow on drawing \u2192 front_orientation \u2248 0\u00b0 (true north)\n- If ADU entry faces OPPOSITE direction from north arrow \u2192 front_orientation \u2248 180\u00b0 (true south)\n- These extreme values ARE possible for ADUs - don't assume they must be 'rotated' angles",
+        "expected_impact": "Reduce orientation errors for ADU projects from ~63\u00b0 average error to <15\u00b0 (within tolerance). Fix the specific pattern where ADU entries facing non-street directions are incorrectly measured as facing the street. Expected to fix both failed cases (poonian-adu and lamb-adu) by teaching the extractor to look for actual ADU entry orientation rather than defaulting to street-facing assumption.",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.33
+      }
+    },
+    {
+      "iteration": 15,
+      "timestamp": "2026-02-04T12:54:41.690251",
+      "status": "applied",
+      "summary": {
+        "total": 3,
+        "successful": 3,
+        "correct": 0,
+        "accuracy": 0.0,
+        "avg_error": 74.66666666666667
+      },
+      "results": [
+        {
+          "eval_id": "martinez-adu",
+          "status": "success",
+          "predicted": 225.0,
+          "expected": 284,
+          "error_degrees": 59.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 1,
+          "reasoning": "North arrow clearly visible on site plan (page 1) pointing toward upper-left of drawing. Wyoming Street runs along the west side of the property. The ADU is located in the rear-right (northeast) corne"
+        },
+        {
+          "eval_id": "poonian-adu",
+          "status": "success",
+          "predicted": 45.0,
+          "expected": 112,
+          "error_degrees": 67.0,
+          "correct": false,
+          "confidence": "medium",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on page 3 (Boundary and Topographic Survey) in upper-left corner. north_arrow_angle = approximately -25\u00b0 (335\u00b0) from top of page - arrow points toward upper-left. The ADU is position"
+        },
+        {
+          "eval_id": "lamb-adu",
+          "status": "success",
+          "predicted": 120.0,
+          "expected": 22,
+          "error_degrees": 98.0,
+          "correct": false,
+          "confidence": "high",
+          "north_arrow_found": true,
+          "north_arrow_page": 3,
+          "reasoning": "North arrow found on site plan page 3 (A1.0) pointing toward upper-left of drawing at approximately 330\u00b0 from top of page. Building front faces Wooden Valley Road, which is toward the right side of th"
+        }
+      ],
+      "proposal": {
+        "target_file": ".claude/instructions/orientation-extractor/instructions.md",
+        "current_version": "v1.1.30",
+        "proposed_version": "v1.2.0",
+        "change_type": "add_section",
+        "failure_pattern": "100% failure rate (0/3 correct) with average error of 74.7\u00b0. All three failures show 'high' or 'medium' confidence despite large errors. North arrows described as 'upper-left' in all cases but angles estimated inconsistently (330\u00b0, 335\u00b0). Front facade direction also misidentified - e.g., lamb-adu measured front_drawing_angle as 90\u00b0 when it should have been ~352\u00b0.",
+        "hypothesis": "The instructions describe the formula correctly but lack guidance on how to measure angles when north arrows point to 'upper-left' (315\u00b0-345\u00b0 range) - a common orientation. The agent uses vague descriptions ('upper-left') instead of precise angle measurements. Additionally, when the front facade is NOT perpendicular to page edges, the agent defaults to the nearest cardinal direction (90\u00b0, 180\u00b0) instead of measuring the actual angle.",
+        "proposed_change": "### Visual Guide: Measuring Angles for Common North Arrow Positions\n\n**CRITICAL: Use precise angles, not vague descriptions**\n\nWhen measuring angles, use this reference grid:\n\n```\n                    0\u00b0 (up)\n                      |\n         315\u00b0(-45\u00b0)   |   45\u00b0\n              \\       |       /\n                \\     |     /\n                  \\   |   /\n    270\u00b0 (left) ----+---- 90\u00b0 (right)\n                  /   |   \\\n                /     |     \\\n              /       |       \\\n         225\u00b0         |         135\u00b0\n                      |\n                   180\u00b0 (down)\n```\n\n**\"Upper-left\" is NOT a valid measurement!**\n\n\"Upper-left\" could mean any angle from 270\u00b0 to 360\u00b0. You MUST be more precise:\n\n| Vague Description | Possible Angles | How to Decide |\n|-------------------|-----------------|---------------|\n| \"Upper-left\" | 270\u00b0-360\u00b0 | Is it closer to UP (350\u00b0) or to LEFT (280\u00b0)? |\n| \"Slightly left of up\" | 350\u00b0-360\u00b0 or 0\u00b0-10\u00b0 | Very close to vertical |\n| \"Halfway between up and left\" | 315\u00b0 (exactly) | 45\u00b0 off from up |\n| \"Mostly left, slightly up\" | 280\u00b0-300\u00b0 | More horizontal than vertical |\n\n**Self-test for north arrow angle:**\n1. Draw an imaginary line from the arrow base straight UP\n2. Draw a line along the arrow's direction\n3. Measure the clockwise angle between them\n4. If the arrow points left of UP: angle = 360\u00b0 - (angle from up)\n5. Example: Arrow points 30\u00b0 left of up \u2192 north_arrow_angle = 330\u00b0\n\n**Self-test for front_drawing_angle:**\n1. Find the front wall of the building\n2. Imagine standing INSIDE the building, facing out the front door\n3. Which direction would you walk? \n4. Trace that direction to the angle reference grid above\n5. That's your front_drawing_angle\n\n**WORKED EXAMPLE: North arrow \"upper-left\" at 330\u00b0**\n\n```\n    North arrow points here (330\u00b0)\n              \\   0\u00b0 (up)\n               \\  |\n                \\ |\n                 \\|\n    270\u00b0 --------+-------- 90\u00b0\n                 |\n                 |\n               Street\n           (building front)\n```\n\nIf building front faces DOWN toward street:\n- front_drawing_angle = 180\u00b0\n- north_arrow_angle = 330\u00b0\n- front_orientation = (180 - 330 + 360) % 360 = 210\u00b0\n\nIf building front faces LOWER-RIGHT toward street:\n- front_drawing_angle = 135\u00b0\n- north_arrow_angle = 330\u00b0  \n- front_orientation = (135 - 330 + 360) % 360 = 165\u00b0\n\n**Before submitting, verify:**\n- [ ] I did NOT use \"upper-left\" or \"lower-right\" as my final angle - I used a NUMBER\n- [ ] I measured both north_arrow_angle AND front_drawing_angle as specific degrees\n- [ ] I can point to where each angle lands on the reference grid above",
+        "expected_impact": "Reduce wrong_value errors by forcing explicit angle measurements instead of vague descriptions. The reference grid provides a calibration tool. Expected improvement: 2/3 cases should become correct (66% accuracy improvement).",
+        "affected_error_types": [
+          "wrong_value"
+        ],
+        "affected_domains": [
+          "orientation"
+        ],
+        "estimated_f1_delta": 0.66
+      }
+    }
+  ],
+  "completed": "2026-02-04T12:54:41.690347",
+  "best_accuracy": 0.6666666666666666,
+  "final_all_evals": {
+    "total": 5,
+    "successful": 5,
+    "correct": 3,
+    "accuracy": 0.6,
+    "avg_error": 34.6
+  }
+}

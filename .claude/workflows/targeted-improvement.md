@@ -116,20 +116,6 @@ git commit -m "feat(instructions): improve orientation-extractor accuracy
 - Accuracy: X/5 → Y/5"
 ```
 
-## Ground Truth Reference
-
-### Orientation Extractor
-
-| Eval | Expected | Notes |
-|------|----------|-------|
-| chamberlin-circle | 73° | Single-family, front faces ENE |
-| canterbury-rd | 90° | Single-family, front faces E |
-| martinez-adu | 284° | ADU, entry faces WNW toward main house |
-| poonian-adu | 112° | ADU, entry faces ESE |
-| lamb-adu | 22° | ADU, entry faces NNE |
-
-Tolerance: ±15°
-
 ## Troubleshooting
 
 ### High Run-to-Run Variability

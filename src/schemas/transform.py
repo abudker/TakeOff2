@@ -348,6 +348,8 @@ def _transform_project(takeoff: TakeoffSpec) -> ProjectInfo:
         bedrooms=proj.bedrooms,
         attached_garage=proj.attached_garage,
         front_orientation=proj.front_orientation,
+        orientation_confidence=proj.orientation_confidence,
+        orientation_verification=proj.orientation_verification,
     )
 
 

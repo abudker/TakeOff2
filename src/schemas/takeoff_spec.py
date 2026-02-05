@@ -343,6 +343,8 @@ class TakeoffProjectInfo(BaseModel):
 
     # Orientation
     front_orientation: Optional[float] = Field(default=None, ge=0, lt=360, description="Front orientation in degrees")
+    orientation_confidence: Optional[str] = Field(default=None, description="Orientation extraction confidence: high/medium/low")
+    orientation_verification: Optional[str] = Field(default=None, description="Two-pass verification: agreement/side_front_confusion/front_back_confusion/disagreement")
     all_orientations: Optional[bool] = Field(default=None, description="All orientations analysis (CBECC-only, non-extractable)")
 
     # Envelope aggregates (from CBECC)

@@ -1,6 +1,6 @@
 # Orientation Extractor Instructions
 
-**Version:** v2.2.0
+**Version:** v2.8.0
 **Last updated:** 2026-02-04
 
 ## Overview
@@ -9,6 +9,18 @@ The orientation extractor determines the building's front orientation from archi
 - All wall azimuths depend on front_orientation
 - Window azimuths must match their parent wall orientation
 - Incorrect orientation cascades to 10+ field errors
+
+## How to Read PDFs
+
+Use the Read tool with the `pages` parameter to read PDF pages:
+
+```
+Read(file_path="/path/to/plans.pdf", pages="1-5")
+```
+
+- The `pages` parameter accepts ranges like "1-5" or comma-separated pages like "1,3,5"
+- For orientation, focus on site plans and floor plans (typically early pages)
+- Read all pages mentioned in the prompt to find north arrows and building footprints
 
 ## Key Output
 
@@ -71,14 +83,27 @@ Determine what angle the north arrow points relative to the TOP of the page:
 | Upper-left (~315°) | 315° |
 
 **IMPORTANT: Carefully identify which way the arrow points:**
-- Look at the ARROW HEAD (the pointed tip), not the tail
-- Draw an imaginary vertical line straight up from the arrow's base
-- Ask: "Is the arrow head to the LEFT or RIGHT of this vertical line?"
-  - Arrow head LEFT of vertical → angle is 340°-360° (e.g., 345°, 350°)
-  - Arrow head RIGHT of vertical → angle is 0°-30° (e.g., 10°, 15°, 20°)
-  - Arrow pointing straight UP → angle is 0°
-- **Double-check:** If you said "left" but the arrow visually leans toward the right side of the page, you made an error
-- Common error: Confusing the direction. Look at where the TIP points, not the base
+
+**Step 1: Which side does the arrow TIP lean toward?**
+Look at the arrowhead (the pointed end). Does it lean toward the LEFT side of the page or the RIGHT side?
+- Tip leans LEFT → arrow points upper-left → angle is 315°-359° (NOT 1°-45°)
+- Tip leans RIGHT → arrow points upper-right → angle is 1°-45°
+- Tip points straight up → angle is 0°
+
+**Step 2: Estimate the tilt magnitude**
+How many degrees off vertical?
+- **Nearly vertical** = If the tilt is barely perceptible, use 0°
+- Slight tilt = 10°-15°
+- Moderate tilt = 20°-30°
+- Strong tilt = 30°-45°
+
+**NOTE:** If the arrow looks "almost straight up" with only a tiny tilt, use 0°. Don't over-analyze subtle tilts.
+
+**Step 3: Calculate final angle**
+- Tip leans LEFT by X° → north_arrow_angle = 360° - X° (e.g., 20° left = 340°)
+- Tip leans RIGHT by X° → north_arrow_angle = X° (e.g., 20° right = 20°)
+
+**SANITY CHECK:** If you see a clear tilt but calculated 10°-30° (right), double-check that the arrow doesn't actually tilt left (330°-350°). However, some arrows point straight up (0°) - don't add tilt that isn't there.
 
 **Most site plans have rotated north arrows** (10-45° off vertical). Do NOT assume north = up.
 
@@ -117,12 +142,11 @@ Imagine standing at the front door, walking straight out. Which direction on the
 **For ADUs, use this method:**
 
 **Method A: Use Elevation Labels (Most Reliable)**
-1. Check the elevations sheet for which elevation shows the entry door
-2. **Identifying the entry elevation:**
-   - Look for a covered porch, overhang, or canopy at ground level
-   - The entry side usually has the most prominent architectural features
-   - Look for a human-scale door (not garage doors or utility doors)
-   - The entry door often has steps or a landing
+1. Check the elevations sheet for which elevation shows the main entry door
+2. **Finding the entry door on elevations:**
+   - Look for a single 3'0" swing door (not 6'0"+ sliding glass doors)
+   - Entry doors have steps or a landing; sliding doors lead to decks/patios
+   - If unclear, the entry is usually on the same elevation as the walkway/path from parking
 3. If "North Elevation" shows the entry → front faces nominal North
 4. **CRITICAL: Buildings are often rotated on their lots!** The building's "North" side usually does NOT face page north.
 5. On the site plan, find the ADU footprint and identify the edge that corresponds to the entry (by matching building shape)
@@ -130,7 +154,10 @@ Imagine standing at the front door, walking straight out. Which direction on the
 7. Don't assume building "North" = page north. Measure the actual edge direction.
 
 **Method B: Match Floor Plan to Site Plan**
-1. Find the entry door on the floor plan (D-01, D-1, or door near Living Room)
+1. Find the entry door on the floor plan:
+   - Look for "ENTRY" label or arrow pointing to entry
+   - Or find door D-01/D-1 (usually the main entry)
+   - Or find the door nearest the Living Room/Foyer
 2. Note the building shape and which edge has the entry
 3. On the site plan, find the ADU footprint and match the shape
 4. Identify which edge on the site plan corresponds to the entry edge

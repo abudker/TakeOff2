@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-02-04T16:54:20.096251",
+  "tolerance_degrees": 15,
+  "evals_tested": [
+    "chamberlin-circle",
+    "canterbury-rd",
+    "martinez-adu",
+    "poonian-adu",
+    "lamb-adu"
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "correct": 1,
+    "accuracy": 0.2,
+    "avg_error": 44.6
+  },
+  "results": [
+    {
+      "eval_id": "chamberlin-circle",
+      "status": "success",
+      "predicted": 163.0,
+      "expected": 73,
+      "error_degrees": 90.0,
+      "correct": false,
+      "confidence": "medium",
+      "north_arrow_found": true,
+      "north_arrow_page": 3,
+      "reasoning": "north_arrow_angle = 0\u00b0 (arrow points straight up on site plan page 3). This is an ADU - front is determined by entry door location, not street. North Elevation (page 6) shows the entry door D01 with covered porch. On site plan, the ADU's north-facing side (entry) faces toward the existing house and walkway, which is toward the lower-right of the page. front_drawing_angle \u2248 163\u00b0 (SSE direction on page). Calculation: (163 - 0 + 360) % 360 = 163\u00b0"
+    },
+    {
+      "eval_id": "canterbury-rd",
+      "status": "success",
+      "predicted": 90.0,
+      "expected": 90,
+      "error_degrees": 0.0,
+      "correct": true,
+      "confidence": "high",
+      "north_arrow_found": true,
+      "north_arrow_page": 5,
+      "reasoning": "north_arrow_angle = 0\u00b0 (arrow points straight up on site plan - essentially vertical). front_drawing_angle = 90\u00b0 (entry/front faces right on site plan toward existing house and Canterbury Rd). Calculation: (90 - 0 + 360) % 360 = 90\u00b0. This is an SB-9 single-family dwelling with entry patio facing the existing house to the east."
+    },
+    {
+      "eval_id": "martinez-adu",
+      "status": "success",
+      "predicted": 240.0,
+      "expected": 284,
+      "error_degrees": 44.0,
+      "correct": false,
+      "confidence": "medium",
+      "north_arrow_found": true,
+      "north_arrow_page": 1,
+      "reasoning": "north_arrow_angle = 330\u00b0 (compass rose points upper-left, approximately 30\u00b0 left of vertical). ADU entry identified on floor plan - ENTRY label shows front door facing downward on floor plan. FRONT elevation shows covered porch with entry. On site plan, ADU is in upper-right of lot with main house to lower-left. ADU front faces toward main house, which is lower-left on site plan. front_drawing_angle = 210\u00b0 (lower-left direction). Calculation: (210 - 330 + 360) % 360 = 240\u00b0"
+    },
+    {
+      "eval_id": "poonian-adu",
+      "status": "success",
+      "predicted": 70.0,
+      "expected": 112,
+      "error_degrees": 42.0,
+      "correct": false,
+      "confidence": "medium",
+      "north_arrow_found": true,
+      "north_arrow_page": 12,
+      "reasoning": "north_arrow_angle = 340\u00b0 (arrow points upper-left, approximately 20\u00b0 left of vertical on Foundation Plan S1.0). ADU entry identified from floor plan (D-01 is 3'0\" swing door on east side of building). Elevations show 'East Exterior Elevation' views. On site plan, ADU's east edge faces toward pool/main house area, pointing approximately 50\u00b0 on the page (upper-right direction). Calculation: (50 - 340 + 360) % 360 = 70\u00b0. front_orientation = 70\u00b0 (ENE)."
+    },
+    {
+      "eval_id": "lamb-adu",
+      "status": "success",
+      "predicted": 335.0,
+      "expected": 22,
+      "error_degrees": 47.0,
+      "correct": false,
+      "confidence": "medium",
+      "north_arrow_found": true,
+      "north_arrow_page": 3,
+      "reasoning": "north_arrow_angle = 340\u00b0 (REFERENCE NORTH arrow on site plan points upper-left, approximately 20\u00b0 left of vertical). front_drawing_angle = 315\u00b0 (ADU entry is on North Elevation per sheet A2.1, which shows entry door with steps. On site plan, the ADU's north edge faces upper-left direction on page). Calculation: (315 - 340 + 360) % 360 = 335\u00b0. The entry faces NNW in true compass terms."
+    }
+  ]
+}

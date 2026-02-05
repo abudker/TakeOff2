@@ -5,6 +5,7 @@ Optimizations:
 - Caches discovery results to avoid re-running discovery each time
 - Runs orientation extraction in parallel across evals
 - Option to test only failing evals for faster iteration
+- Uses native PDFs instead of rasterized PNGs for better quality
 """
 import asyncio
 import json
@@ -22,8 +23,10 @@ from agents.orchestrator import (
     invoke_claude_agent_async,
     extract_json_from_response,
     get_relevant_pages_for_domain,
+    discover_source_pdfs,
+    build_pdf_read_instructions,
 )
-from schemas.discovery import DocumentMap
+from schemas.discovery import DocumentMap, PDFSource, CACHE_VERSION
 
 logging.basicConfig(
     level=logging.INFO,
@@ -49,15 +52,9 @@ TOLERANCE = 15  # degrees
 CACHE_DIR = Path("evals/.cache")
 
 
-def get_page_images(eval_dir: Path) -> List[Path]:
-    """Get all preprocessed page images for an eval."""
-    preprocessed_base = eval_dir / "preprocessed"
-    all_pages = []
-    for subdir in sorted(preprocessed_base.iterdir()):
-        if subdir.is_dir():
-            pages = sorted(subdir.glob("page-*.png"))
-            all_pages.extend(pages)
-    return all_pages
+def get_source_pdfs(eval_dir: Path) -> Dict[str, PDFSource]:
+    """Get source PDFs for an eval."""
+    return discover_source_pdfs(eval_dir)
 
 
 def angular_distance(a: float, b: float) -> float:
@@ -67,12 +64,23 @@ def angular_distance(a: float, b: float) -> float:
 
 
 def get_cached_discovery(eval_id: str) -> Optional[DocumentMap]:
-    """Load cached discovery result if available."""
+    """Load cached discovery result if available.
+
+    Returns None if cache is missing, invalid, or from an older schema version.
+    """
     cache_file = CACHE_DIR / f"{eval_id}_discovery.json"
     if cache_file.exists():
         try:
             with open(cache_file) as f:
                 data = json.load(f)
+
+            # Check cache version - invalidate old caches
+            cached_version = data.get("cache_version", 1)
+            if cached_version < CACHE_VERSION:
+                logger.info(f"[{eval_id}] Cache version {cached_version} < {CACHE_VERSION}, invalidating")
+                cache_file.unlink()
+                return None
+
             return DocumentMap.model_validate(data)
         except Exception as e:
             logger.warning(f"Failed to load cache for {eval_id}: {e}")
@@ -88,51 +96,47 @@ def save_discovery_cache(eval_id: str, document_map: DocumentMap):
     logger.info(f"Cached discovery for {eval_id}")
 
 
-def ensure_discovery(eval_id: str, evals_dir: Path) -> tuple[DocumentMap, List[Path]]:
-    """Get discovery result, using cache if available."""
+def ensure_discovery(eval_id: str, evals_dir: Path) -> tuple[DocumentMap, Path]:
+    """Get discovery result, using cache if available.
+
+    Returns:
+        Tuple of (DocumentMap, eval_dir Path)
+    """
     eval_dir = evals_dir / eval_id
-    page_images = get_page_images(eval_dir)
+    source_pdfs = get_source_pdfs(eval_dir)
 
     # Try cache first
     document_map = get_cached_discovery(eval_id)
     if document_map:
         logger.info(f"[{eval_id}] Using cached discovery ({len(document_map.drawing_pages)} drawing pages)")
-        return document_map, page_images
+        return document_map, eval_dir
 
     # Run discovery and cache
-    logger.info(f"[{eval_id}] Running discovery on {len(page_images)} pages...")
-    document_map = run_discovery(page_images)
+    total_pages = sum(pdf.total_pages for pdf in source_pdfs.values())
+    logger.info(f"[{eval_id}] Running discovery on {total_pages} pages from {len(source_pdfs)} PDFs...")
+    document_map = run_discovery(eval_dir, source_pdfs)
     save_discovery_cache(eval_id, document_map)
 
-    return document_map, page_images
+    return document_map, eval_dir
 
 
 async def run_orientation_async(
     eval_id: str,
-    page_images: List[Path],
+    eval_dir: Path,
     document_map: DocumentMap
 ) -> Dict:
-    """Run orientation extraction asynchronously."""
+    """Run orientation extraction asynchronously using native PDFs."""
     # Use intelligent routing to select relevant pages
     relevant_page_numbers = get_relevant_pages_for_domain("orientation", document_map)
 
     # Fallback if routing returns nothing
     if not relevant_page_numbers:
-        relevant_page_numbers = list(range(1, min(6, len(page_images) + 1)))
-
-    relevant_images = [
-        page_images[page_num - 1]
-        for page_num in relevant_page_numbers
-        if page_num <= len(page_images)
-    ]
+        relevant_page_numbers = list(range(1, min(6, document_map.total_pages + 1)))
 
     logger.info(f"[{eval_id}] Running orientation on pages {relevant_page_numbers}")
 
-    # Build prompt
-    page_list = "\n".join([
-        f"- Page {relevant_page_numbers[i]}: {p}"
-        for i, p in enumerate(relevant_images)
-    ])
+    # Build PDF read instructions
+    pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_page_numbers, document_map)
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
@@ -141,8 +145,7 @@ async def run_orientation_async(
 Document structure (from discovery):
 {document_map_json}
 
-Drawing page image paths (site plans, floor plans):
-{page_list}
+{pdf_instructions}
 
 Read your instructions from:
 - .claude/instructions/orientation-extractor/instructions.md
@@ -204,15 +207,15 @@ async def run_parallel_orientation_test(
     # First, ensure all discovery results are cached (sequential - uses sync agent)
     discoveries = {}
     for eval_id in eval_ids:
-        document_map, page_images = ensure_discovery(eval_id, evals_dir)
-        discoveries[eval_id] = (document_map, page_images)
+        document_map, eval_dir = ensure_discovery(eval_id, evals_dir)
+        discoveries[eval_id] = (document_map, eval_dir)
 
     # Now run orientation extraction in parallel
     logger.info(f"Running orientation extraction in parallel on {len(eval_ids)} evals...")
 
     tasks = [
-        run_orientation_async(eval_id, page_images, document_map)
-        for eval_id, (document_map, page_images) in discoveries.items()
+        run_orientation_async(eval_id, eval_dir, document_map)
+        for eval_id, (document_map, eval_dir) in discoveries.items()
     ]
 
     results = await asyncio.gather(*tasks)

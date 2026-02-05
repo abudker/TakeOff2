@@ -1,7 +1,11 @@
 """Pydantic models for document structure mapping during discovery phase."""
 from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 from enum import Enum
+
+
+# Cache version for migration - increment when schema changes require cache invalidation
+CACHE_VERSION = 2
 
 
 class PageType(str, Enum):
@@ -51,10 +55,14 @@ CONTENT_TAGS = [
 
 class PageInfo(BaseModel):
     """Information about a single page in the document."""
-    page_number: int = Field(ge=1, description="1-indexed page number")
+    page_number: int = Field(ge=1, description="Global 1-indexed page number (unique across all PDFs)")
     page_type: PageType = Field(description="Classified page type")
     confidence: Literal["high", "medium", "low"] = Field(description="Classification confidence level")
     description: Optional[str] = Field(default=None, description="Brief description of page content")
+
+    # PDF source tracking (added in v2.0 for native PDF mode)
+    pdf_name: str = Field(default="plans", description="Name of source PDF (without .pdf extension)")
+    pdf_page_number: int = Field(default=1, ge=1, description="1-indexed page number within the source PDF")
 
     # Optional fields for intelligent routing (added in v2.0)
     subtype: Optional[str] = Field(
@@ -67,10 +75,21 @@ class PageInfo(BaseModel):
     )
 
 
+class PDFSource(BaseModel):
+    """Metadata about a source PDF file."""
+    filename: str = Field(description="PDF filename (e.g., 'plans.pdf')")
+    total_pages: int = Field(ge=1, description="Total number of pages in this PDF")
+
+
 class DocumentMap(BaseModel):
     """Map of document structure with classified pages."""
+    cache_version: int = Field(default=CACHE_VERSION, description="Schema version for cache migration")
     total_pages: int = Field(ge=1, description="Total number of pages in document")
     pages: List[PageInfo] = Field(description="List of classified pages")
+    source_pdfs: Dict[str, PDFSource] = Field(
+        default_factory=dict,
+        description="Metadata about source PDFs keyed by name (e.g., {'plans': PDFSource(...)})"
+    )
 
     # ========================================================================
     # Core type properties (existing)

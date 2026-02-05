@@ -55,11 +55,9 @@ def build_orientation_analysis(results: List[Dict]) -> Dict:
             "north_arrow_found": r.get("north_arrow_found"),
             "north_arrow_page": r.get("north_arrow_page"),
             "reasoning": r.get("reasoning", ""),
-            # Image paths for critic to examine (diagnosis only, not for memorization)
-            "image_paths": [
-                f"evals/{eval_id}/preprocessed/plans/page-{i:03d}.png"
-                for i in range(1, 8)  # Pages 1-7
-            ],
+            # PDF path for critic to examine (diagnosis only, not for memorization)
+            "pdf_path": f"evals/{eval_id}/plans.pdf",
+            "relevant_pages": "1-7",  # First 7 pages typically contain site plan
         })
 
     return {
@@ -96,10 +94,12 @@ def format_analysis_for_critic(analysis: Dict) -> str:
             output.append(f"- Confidence: {d['confidence']}")
             output.append(f"- North arrow: {'found' if d['north_arrow_found'] else 'NOT FOUND'} (page {d['north_arrow_page']})")
             output.append(f"- Reasoning: {d['reasoning'][:2000]}{'...' if len(d['reasoning']) > 2000 else ''}")
-            # Include image paths for critic to examine
-            image_paths = d.get("image_paths", [])
-            if image_paths:
-                output.append(f"- **Source images:** {', '.join(image_paths)}")
+            # Include PDF path for critic to examine
+            pdf_path = d.get("pdf_path")
+            relevant_pages = d.get("relevant_pages", "1-7")
+            if pdf_path:
+                output.append(f"- **Source PDF:** {pdf_path} (pages {relevant_pages})")
+                output.append(f"  Read with: Read(file_path=\"{pdf_path}\", pages=\"{relevant_pages}\")")
             output.append("")
 
     return "\n".join(output)

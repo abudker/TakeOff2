@@ -92,6 +92,8 @@ class ProjectInfo(BaseModel):
     bedrooms: Optional[int] = Field(default=None, ge=0, description="Number of bedrooms")
     attached_garage: Optional[bool] = Field(default=None, description="Has attached garage")
     front_orientation: Optional[float] = Field(default=None, description="Front orientation in degrees")
+    orientation_confidence: Optional[str] = Field(default=None, description="Orientation extraction confidence: high/medium/low")
+    orientation_verification: Optional[str] = Field(default=None, description="Two-pass verification result: agreement/side_front_confusion/front_back_confusion/disagreement")
 
 
 # ============================================================================
