@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Multi-Domain Extraction** - Complete extraction system
 - [x] **Phase 5: Manual Improvement Loop** - Critic analysis + proposal system
 - [ ] **Phase 6: Automated Improvement Loop** - Full automation + iteration management
+- [ ] **Phase 7: CV Sensors** - Deterministic geometry sensing to reduce orientation variance
 
 ## Phase Details
 
@@ -126,10 +127,30 @@ Plans:
 - [ ] 06-02-PLAN.md — CLI commands (loop, history)
 - [ ] 06-03-PLAN.md — End-to-end verification (checkpoint)
 
+### Phase 7: CV Sensors
+**Goal**: Reduce orientation extraction variance and eliminate systematic ±90° and ±180° failures by introducing a deterministic geometry sensing layer that assists (but does not replace) the existing LLM two-pass orientation system
+**Depends on**: Phase 6
+**Non-Goals**:
+  - No changes to discovery logic, verification logic, or domain extractors (zones, windows, HVAC, DHW)
+  - No ML model training
+  - No replacement of LLM reasoning with CV decisions
+  - No door-swing detection or window/wall labeling changes
+**Success Criteria** (what must be TRUE):
+  1. Orientation run-to-run variance decreases on existing evals
+  2. Frequency of 90° / 180° errors decreases
+  3. Two-pass agreement rate increases
+  4. Orientation instruction files shrink or simplify
+  5. Critic produces fewer instruction patches for orientation
+**Plans**: 2 plans in 2 waves
+
+Plans:
+- [ ] 07-01-PLAN.md — Core CV sensor module (rendering, north arrow detection, wall edge measurement)
+- [ ] 07-02-PLAN.md — Integration into orientation pipeline and instruction updates
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -139,6 +160,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Multi-Domain Extraction | 4/4 | Complete | 2026-02-04 |
 | 5. Manual Improvement Loop | 3/3 | Complete | 2026-02-04 |
 | 6. Automated Improvement Loop | 0/3 | Planned | - |
+| 7. CV Sensors | 0/2 | Planned | - |
 
 ---
-*Last updated: 2026-02-04 after Phase 6 planning*
+*Last updated: 2026-02-05 after Phase 7 addition*
