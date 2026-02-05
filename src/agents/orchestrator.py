@@ -24,6 +24,9 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from pydantic import BaseModel
 from schemas.discovery import DocumentMap, PDFSource, CACHE_VERSION
+from cv_sensors import detect_north_arrow_angle, measure_wall_edge_angles
+from cv_sensors.wall_detection import estimate_building_rotation
+import numpy as np
 from schemas.building_spec import (
     BuildingSpec, ProjectInfo, EnvelopeInfo, ZoneInfo, WallComponent,
     WindowComponent, HVACSystem, WaterHeatingSystem,
@@ -78,6 +81,119 @@ def discover_source_pdfs(eval_dir: Path) -> Dict[str, PDFSource]:
             logger.warning(f"Failed to read PDF {pdf_path}: {e}")
 
     return source_pdfs
+
+
+def _convert_numpy_types(obj: Any) -> Any:
+    """
+    Recursively convert numpy types to native Python types for JSON serialization.
+
+    Args:
+        obj: Object potentially containing numpy types
+
+    Returns:
+        Object with all numpy types converted to Python types
+    """
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {key: _convert_numpy_types(val) for key, val in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [_convert_numpy_types(item) for item in obj]
+    else:
+        return obj
+
+
+def run_cv_sensors(eval_dir: Path, document_map: DocumentMap) -> Dict[str, Any]:
+    """
+    Run CV sensors on site plan page to extract deterministic angle measurements.
+
+    Args:
+        eval_dir: Path to evaluation directory containing PDFs
+        document_map: Document structure from discovery phase
+
+    Returns:
+        Dict with CV sensor results:
+        {
+            "north_arrow": {"angle": float, "confidence": str, "method": str},
+            "wall_edges": [{"angle_from_horizontal": float, "length": float, ...}, ...],
+            "building_rotation": {"rotation_from_horizontal": float, "confidence": str},
+            "site_plan_page": int
+        }
+    """
+    # Find best candidate site plan page
+    relevant_pages = get_relevant_pages_for_domain("orientation", document_map)
+    if not relevant_pages:
+        relevant_pages = list(range(1, min(8, document_map.total_pages + 1)))
+
+    # Prefer site plan pages
+    site_plan_pages = [p for p in relevant_pages if p in document_map.site_plan_pages]
+    if site_plan_pages:
+        target_page = site_plan_pages[0]
+    else:
+        target_page = relevant_pages[0]
+
+    # Find PDF path and local page number
+    page_info = next(
+        (p for p in document_map.pages if p.page_number == target_page),
+        None
+    )
+    if not page_info:
+        logger.warning(f"Page {target_page} not found in document map")
+        return {
+            "north_arrow": {"angle": None, "confidence": "none", "method": "none"},
+            "wall_edges": [],
+            "building_rotation": {"rotation_from_horizontal": None, "confidence": "none"},
+            "site_plan_page": target_page
+        }
+
+    pdf_name = page_info.pdf_name
+    local_page_num = page_info.pdf_page_number
+    pdf_path = eval_dir / f"{pdf_name}.pdf"
+
+    logger.info(f"Running CV sensors on {pdf_path} page {local_page_num} (global page {target_page})")
+
+    # Run north arrow detection
+    north_arrow = {"angle": None, "confidence": "none", "method": "none"}
+    try:
+        north_result = detect_north_arrow_angle(pdf_path, local_page_num)
+        if north_result:
+            north_arrow = _convert_numpy_types(north_result)
+            logger.info(f"CV: North arrow detected at {north_arrow['angle']}° (confidence: {north_arrow['confidence']})")
+    except Exception as e:
+        logger.warning(f"CV: North arrow detection failed: {e}")
+
+    # Run wall edge measurement
+    wall_edges = []
+    try:
+        wall_result = measure_wall_edge_angles(pdf_path, local_page_num)
+        if wall_result:
+            wall_edges = _convert_numpy_types(wall_result)
+            logger.info(f"CV: Detected {len(wall_edges)} wall edges")
+    except Exception as e:
+        logger.warning(f"CV: Wall edge measurement failed: {e}")
+
+    # Run building rotation estimation
+    building_rotation = {"rotation_from_horizontal": None, "confidence": "none"}
+    try:
+        rotation_result = estimate_building_rotation(pdf_path, local_page_num)
+        if rotation_result:
+            building_rotation = _convert_numpy_types(rotation_result)
+            logger.info(f"CV: Building rotation {rotation_result['rotation_from_horizontal']}° (confidence: {rotation_result['confidence']})")
+    except Exception as e:
+        logger.warning(f"CV: Building rotation estimation failed: {e}")
+
+    cv_hints = {
+        "north_arrow": north_arrow,
+        "wall_edges": wall_edges,
+        "building_rotation": building_rotation,
+        "site_plan_page": target_page
+    }
+
+    return cv_hints
 
 
 def build_pdf_read_instructions(
@@ -520,14 +636,32 @@ def run_orientation_extraction(
 
     logger.info(f"Running orientation extraction on pages: {relevant_page_numbers}")
 
+    # Run CV sensors first
+    cv_hints = None
+    try:
+        cv_hints = run_cv_sensors(eval_dir, document_map)
+    except Exception as e:
+        logger.warning(f"CV sensors failed, proceeding without hints: {e}")
+
     # Build PDF read instructions
     pdf_instructions = build_pdf_read_instructions(eval_dir, relevant_page_numbers, document_map)
 
     document_map_json = json.dumps(document_map.model_dump(), indent=2)
 
+    # Inject CV hints if available
+    cv_section = ""
+    if cv_hints:
+        cv_section = f"""
+CV SENSOR MEASUREMENTS (deterministic, from computer vision):
+{json.dumps(cv_hints, indent=2)}
+
+These measurements are precise and repeatable. Use them as described in your instructions.
+
+"""
+
     prompt = f"""Extract building orientation from this Title 24 document.
 
-Document structure (from discovery):
+{cv_section}Document structure (from discovery):
 {document_map_json}
 
 {pdf_instructions}
@@ -591,6 +725,7 @@ async def run_orientation_pass_async(
     eval_dir: Path,
     document_map: DocumentMap,
     pass_num: int,
+    cv_hints: Optional[Dict] = None,
 ) -> Dict[str, Any]:
     """
     Run a single orientation extraction pass asynchronously.
@@ -599,6 +734,7 @@ async def run_orientation_pass_async(
         eval_dir: Path to evaluation directory
         document_map: Document structure from discovery
         pass_num: 1 for north-arrow pass, 2 for elevation-matching pass
+        cv_hints: Optional CV sensor measurements to inject into prompt
 
     Returns:
         Dict with pass results including orientation and confidence
@@ -616,9 +752,20 @@ async def run_orientation_pass_async(
         else ".claude/instructions/orientation-extractor/pass2-elevation-matching.md"
     )
 
+    # Inject CV hints if provided
+    cv_section = ""
+    if cv_hints:
+        cv_section = f"""
+CV SENSOR MEASUREMENTS (deterministic, from computer vision):
+{json.dumps(cv_hints, indent=2)}
+
+These measurements are precise and repeatable. Use them as described in your instructions.
+
+"""
+
     prompt = f"""Extract building orientation using the Pass {pass_num} method.
 
-Document structure:
+{cv_section}Document structure:
 {document_map_json}
 
 {pdf_instructions}
@@ -759,9 +906,16 @@ async def run_orientation_twopass_async(
     """
     logger.info("Running two-pass orientation extraction...")
 
-    # Run both passes in parallel
-    pass1_task = run_orientation_pass_async(eval_dir, document_map, 1)
-    pass2_task = run_orientation_pass_async(eval_dir, document_map, 2)
+    # Run CV sensors first
+    cv_hints = None
+    try:
+        cv_hints = run_cv_sensors(eval_dir, document_map)
+    except Exception as e:
+        logger.warning(f"CV sensors failed, proceeding without hints: {e}")
+
+    # Run both passes in parallel with CV hints
+    pass1_task = run_orientation_pass_async(eval_dir, document_map, 1, cv_hints)
+    pass2_task = run_orientation_pass_async(eval_dir, document_map, 2, cv_hints)
     pass1, pass2 = await asyncio.gather(pass1_task, pass2_task)
 
     # Verify and combine results
@@ -783,6 +937,7 @@ async def run_orientation_twopass_async(
         "front_direction": _azimuth_to_direction(verification["final_orientation"]),
         "pass1": pass1,
         "pass2": pass2,
+        "cv_hints": cv_hints,
         "notes": verification["notes"]
     }
 
