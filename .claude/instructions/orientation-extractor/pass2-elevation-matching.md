@@ -60,14 +60,13 @@ Look at the ELEVATIONS sheet (usually shows all 4 sides).
 ### Using CV Hints (if provided)
 
 If the prompt includes CV wall edge measurements:
-- The `wall_edges` list contains precisely measured wall angles from the site plan
+- The `wall_edges` list contains measured wall angles from the site plan
 - After identifying which wall is the entry wall (using spatial reasoning from Step 1), match it to a CV wall edge:
   - Match by position ("top", "right", "bottom", "left") relative to your entry wall identification
-  - Use the matched edge's actual `angle_from_horizontal` for measurement
-  - Use the matched edge's `perpendicular_angle` as `entry_drawing_angle`
-- This replaces manual wall edge tracing — CV measurement is more precise
+  - Use the matched edge's `perpendicular_angle` as a reference for `entry_drawing_angle`
+- Verify the CV angle matches your spatial analysis — if it seems inconsistent with where the entry actually faces, use your own measurement instead
 
-### Fallback (no CV hints)
+### Visual Estimation (no CV hints or CV seems wrong)
 
 On the SITE PLAN, find the building footprint and identify which wall is the entry wall.
 
@@ -85,10 +84,10 @@ Trace the entry wall edge, measure its angle from horizontal, then determine the
 
 ### Using CV Hints
 
-If CV north arrow angle is provided with confidence != "none", use it directly.
-Do NOT re-estimate the north arrow visually.
+If CV north arrow angle is provided with confidence != "none", use it as a reference.
+Verify it matches what you see visually — if inconsistent, use your own estimate.
 
-### Fallback (no CV hints)
+### Visual Estimation
 
 Estimate visually — left-of-vertical = 360° - tilt, right = tilt, vertical = 0°.
 

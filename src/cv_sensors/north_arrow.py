@@ -41,14 +41,17 @@ def detect_north_arrow_angle(
     img = render_page_to_numpy(pdf_path, page_num, zoom)
     h, w = img.shape[:2]
 
-    # Define search regions (quadrants) if not specified
+    # Define search regions (corner margins) if not specified
     if search_region is None:
-        # Search bottom-right and bottom-left quadrants (common arrow locations)
+        # Search 25% corner regions — north arrows appear in margins/corners,
+        # not page center. Smaller regions exclude page borders.
+        margin_w = int(w * 0.25)
+        margin_h = int(h * 0.25)
         search_regions = [
-            (w // 2, h // 2, w // 2, h // 2),  # Bottom-right
-            (0, h // 2, w // 2, h // 2),        # Bottom-left
-            (w // 2, 0, w // 2, h // 2),        # Top-right
-            (0, 0, w // 2, h // 2),             # Top-left
+            (w - margin_w, h - margin_h, margin_w, margin_h),  # Bottom-right
+            (0, h - margin_h, margin_w, margin_h),              # Bottom-left
+            (w - margin_w, 0, margin_w, margin_h),              # Top-right
+            (0, 0, margin_w, margin_h),                         # Top-left
         ]
     else:
         search_regions = [search_region]
@@ -101,23 +104,62 @@ def _detect_via_lines(img: np.ndarray) -> Dict[str, Any]:
             "debug": {"lines_count": 0, "longest_line_length": 0}
         }
 
-    # Find longest line (likely arrow shaft)
-    max_length = 0
-    best_line = None
+    # Filter lines to arrow-sized range (skip page borders and noise)
+    MIN_ARROW_LENGTH = 30   # Too short = noise
+    MAX_ARROW_LENGTH = 250  # Too long = page border or dimension line
 
+    candidates = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
         length = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-        if length > max_length:
-            max_length = length
-            best_line = (x1, y1, x2, y2)
+        if MIN_ARROW_LENGTH <= length <= MAX_ARROW_LENGTH:
+            dy = y2 - y1
+            dx = x2 - x1
+            compass = (90 - np.degrees(np.arctan2(-dy, dx))) % 360
+            candidates.append((x1, y1, x2, y2, length, compass))
 
-    if best_line is None:
+    if not candidates:
         return {
             "angle": None,
             "confidence": "none",
             "method": "lines",
-            "debug": {"lines_count": len(lines), "longest_line_length": 0}
+            "debug": {"lines_count": len(lines), "filtered_count": 0}
+        }
+
+    # Prefer non-axis-aligned lines: architectural drawings are full of
+    # horizontal (90°/270°) and vertical (0°/180°) lines from dimensions,
+    # text, and borders. A tilted north arrow stands out as non-axis-aligned.
+    AXIS_TOLERANCE = 15  # degrees from axis to be considered "axis-aligned"
+    non_axis = []
+    axis_aligned = []
+    for c in candidates:
+        compass = c[5]
+        near_axis = any(
+            abs((compass - a + 180) % 360 - 180) < AXIS_TOLERANCE
+            for a in [0, 90, 180, 270]
+        )
+        if near_axis:
+            axis_aligned.append(c)
+        else:
+            non_axis.append(c)
+
+    # Use non-axis lines if available (more likely to be the arrow)
+    if non_axis:
+        non_axis.sort(key=lambda c: c[4], reverse=True)
+        best_line = non_axis[0][:4]
+        max_length = non_axis[0][4]
+    else:
+        # Only axis-aligned lines found — likely not the arrow, just drawing elements.
+        # Return "none" to avoid feeding wrong data to the LLM.
+        return {
+            "angle": None,
+            "confidence": "none",
+            "method": "lines",
+            "debug": {
+                "lines_count": len(lines),
+                "filtered_count": len(candidates),
+                "all_axis_aligned": True
+            }
         }
 
     # Calculate angle
@@ -172,8 +214,13 @@ def _detect_via_contours(img: np.ndarray) -> Dict[str, Any]:
             "debug": {"contours_count": 0}
         }
 
-    # Look for triangular contours (arrow tips)
+    # Look for triangular contours (arrow tips) with size filtering
     for contour in contours:
+        # Skip contours that are too small (noise) or too large (page-level shapes)
+        area = cv2.contourArea(contour)
+        if area < 100 or area > 10000:
+            continue
+
         # Approximate polygon
         peri = cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, 0.04 * peri, True)
@@ -221,7 +268,7 @@ def _combine_results(
     line_angle = line_result.get("angle")
     contour_angle = contour_result.get("angle")
 
-    # If both methods agree (within 20 degrees), high confidence
+    # If both methods agree (within 20 degrees), combine them
     if line_angle is not None and contour_angle is not None:
         angle_diff = abs(line_angle - contour_angle)
         # Handle wraparound (e.g., 355 vs 5 degrees)
@@ -231,9 +278,13 @@ def _combine_results(
         if angle_diff <= 20:
             # Average the angles
             avg_angle = (line_angle + contour_angle) / 2
+            # Only upgrade to "high" if line method had at least "medium" confidence
+            # (i.e., found a line in the valid arrow-size range with decent length)
+            line_conf = line_result.get("confidence", "none")
+            combined_conf = "high" if line_conf in ("medium", "high") else "medium"
             return {
                 "angle": avg_angle,
-                "confidence": "high",
+                "confidence": combined_conf,
                 "method": "lines+contours",
                 "debug": {
                     "line": line_result["debug"],

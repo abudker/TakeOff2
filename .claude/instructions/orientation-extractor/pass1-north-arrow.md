@@ -38,13 +38,12 @@ You MUST output this exact JSON structure:
 ### Using CV Hints (if provided)
 
 If the prompt includes a "CV SENSOR MEASUREMENTS" section:
-- **North arrow angle:** Use `north_arrow.angle` directly as the north arrow angle. Do NOT re-estimate visually.
-  Only fall back to visual estimation if `north_arrow.confidence` is "none" (meaning CV could not detect the arrow).
-- **Building rotation:** The `building_rotation.rotation_from_horizontal` tells you how the building sits on the page.
-  This can help you estimate the drawing_angle more precisely.
+- **North arrow angle:** Use `north_arrow.angle` as a starting reference. Verify it matches what you see visually — if the CV angle seems inconsistent with the visual north arrow direction, use your own visual estimate instead.
+  Ignore if `north_arrow.confidence` is "none".
+- **Building rotation:** The `building_rotation.rotation_from_horizontal` can help estimate drawing_angle, but verify against what you see on the site plan.
 - Record the CV values in your output JSON.
 
-### Fallback (no CV hints)
+### Visual Estimation
 
 Search pages in this order:
 1. Site plan (most reliable)
@@ -69,12 +68,12 @@ Estimate visually — see the direction table in Step 3.
 
 ### Using CV Wall Edge Hints
 
-If CV wall edges are provided, use them to determine the drawing_angle precisely:
+If CV wall edges are provided, use them as a reference for drawing_angle:
 - Find the wall edge that best matches the front/entry wall based on your Step 2 analysis
-- The `perpendicular_angle` of that wall edge IS the drawing_angle
-- This is more precise than visual estimation from the page direction table
+- The `perpendicular_angle` of that wall edge is a reference for the drawing_angle
+- Verify this matches your visual analysis — if it seems inconsistent with where the front actually faces, use your own visual estimate
 
-### Fallback (no CV hints)
+### Visual Estimation
 
 Estimate the direction the front faces on the page. Use cardinal directions: 0°=top, 90°=right, 180°=bottom, 270°=left. Interpolate for diagonals.
 

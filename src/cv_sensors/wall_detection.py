@@ -61,10 +61,24 @@ def measure_wall_edge_angles(
     if lines is None or len(lines) == 0:
         return []
 
+    # Length bounds to filter page borders (too long) and noise (too short)
+    # At zoom=2.0, building walls on site plans are ~100-600px, page borders are 2000+
+    MIN_WALL_LENGTH = 50
+    MAX_WALL_LENGTH = 800
+
     wall_edges = []
 
     for line in lines:
         x1, y1, x2, y2 = line[0]
+
+        # Calculate line length early for filtering
+        dx = x2 - x1
+        dy = y2 - y1
+        length = np.sqrt(dx**2 + dy**2)
+
+        # Skip page borders and noise
+        if length < MIN_WALL_LENGTH or length > MAX_WALL_LENGTH:
+            continue
 
         # Convert to absolute coordinates
         x1 += offset_x
@@ -73,16 +87,11 @@ def measure_wall_edge_angles(
         y2 += offset_y
 
         # Calculate angle from horizontal
-        dx = x2 - x1
-        dy = y2 - y1
         angle_rad = np.arctan2(dy, dx)
         angle_deg = np.degrees(angle_rad)
 
         # Normalize to [0, 180) (direction doesn't matter for walls)
         angle_from_horizontal = angle_deg % 180
-
-        # Calculate line length
-        length = np.sqrt(dx**2 + dy**2)
 
         # Determine position relative to image
         center_x = (x1 + x2) / 2
