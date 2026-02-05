@@ -57,9 +57,21 @@ Look at the ELEVATIONS sheet (usually shows all 4 sides).
 
 ## Step 2: Find the Entry Wall on the Site Plan (CRITICAL)
 
+### Using CV Hints (if provided)
+
+If the prompt includes CV wall edge measurements:
+- The `wall_edges` list contains precisely measured wall angles from the site plan
+- After identifying which wall is the entry wall (using spatial reasoning from Step 1), match it to a CV wall edge:
+  - Match by position ("top", "right", "bottom", "left") relative to your entry wall identification
+  - Use the matched edge's actual `angle_from_horizontal` for measurement
+  - Use the matched edge's `perpendicular_angle` as `entry_drawing_angle`
+- This replaces manual wall edge tracing — CV measurement is more precise
+
+### Fallback (no CV hints)
+
 On the SITE PLAN, find the building footprint and identify which wall is the entry wall.
 
-### How to identify the entry wall on the site plan:
+**How to identify the entry wall on the site plan:**
 
 **For single-family homes:** The entry wall faces the STREET. Find the street name label and identify the wall closest to it.
 
@@ -67,36 +79,18 @@ On the SITE PLAN, find the building footprint and identify which wall is the ent
 
 **Cross-check:** If there's a walkway or path drawn from the street/house to the building, it connects to the entry wall.
 
-### Measure the entry direction:
-
-Once you've identified the entry wall on the site plan:
-
-1. Trace the wall edge line — what angle does it make with the HORIZONTAL page edge?
-2. The entry faces PERPENDICULAR to this wall, outward from the building
-
-**The entry_drawing_angle is the direction the entry FACES on the page:**
-- 0° = faces toward TOP of page
-- 90° = faces toward RIGHT of page
-- 180° = faces toward BOTTOM of page
-- 270° = faces toward LEFT of page
-
-**Examples:**
-- Wall runs horizontally, entry faces UP → entry_drawing_angle = 0°
-- Wall runs horizontally, entry faces DOWN → entry_drawing_angle = 180°
-- Wall runs vertically, entry faces RIGHT → entry_drawing_angle = 90°
-- Wall runs vertically, entry faces LEFT → entry_drawing_angle = 270°
-- Wall tilted 30° from horizontal, entry faces upper-right → entry_drawing_angle = 60°
-
-**Precision matters:** Measure the actual wall edge angle, don't just pick the nearest cardinal direction.
+Trace the entry wall edge, measure its angle from horizontal, then determine the perpendicular outward direction. See direction reference: 0°=top, 90°=right, 180°=bottom, 270°=left.
 
 ## Step 3: Measure North Arrow
 
-Find the north arrow on the site plan:
+### Using CV Hints
 
-- Arrow tip leans LEFT of vertical → angle = 360° - tilt (e.g., 20° left = 340°)
-- Arrow tip leans RIGHT of vertical → angle = tilt (e.g., 20° right = 20°)
-- Arrow points straight UP → angle = 0°
-- If barely perceptible tilt, use 0°
+If CV north arrow angle is provided with confidence != "none", use it directly.
+Do NOT re-estimate the north arrow visually.
+
+### Fallback (no CV hints)
+
+Estimate visually — left-of-vertical = 360° - tilt, right = tilt, vertical = 0°.
 
 ## Step 4: Calculate
 

@@ -35,19 +35,23 @@ You MUST output this exact JSON structure:
 
 ## Step 1: Find North Arrow
 
+### Using CV Hints (if provided)
+
+If the prompt includes a "CV SENSOR MEASUREMENTS" section:
+- **North arrow angle:** Use `north_arrow.angle` directly as the north arrow angle. Do NOT re-estimate visually.
+  Only fall back to visual estimation if `north_arrow.confidence` is "none" (meaning CV could not detect the arrow).
+- **Building rotation:** The `building_rotation.rotation_from_horizontal` tells you how the building sits on the page.
+  This can help you estimate the drawing_angle more precisely.
+- Record the CV values in your output JSON.
+
+### Fallback (no CV hints)
+
 Search pages in this order:
 1. Site plan (most reliable)
 2. Floor plan
 3. Cover sheet
 
-**Measure the arrow angle:**
-- Look at the ARROW HEAD (pointed tip)
-- Which side of vertical does it lean?
-  - Leans LEFT → `tilt_direction: "left"`, angle = 360 - magnitude (e.g., 20° left = 340°)
-  - Leans RIGHT → `tilt_direction: "right"`, angle = magnitude (e.g., 20° right = 20°)
-  - Straight UP → `tilt_direction: "vertical"`, angle = 0°
-
-**If arrow looks nearly vertical:** Use angle = 0°. Don't over-analyze subtle tilts.
+Estimate visually — see the direction table in Step 3.
 
 ## Step 2: Identify Building Front
 
@@ -63,18 +67,16 @@ Search pages in this order:
 
 ## Step 3: Measure Front Drawing Angle
 
-What direction does the front face ON THE PAGE?
+### Using CV Wall Edge Hints
 
-| Front faces... | drawing_angle |
-|----------------|---------------|
-| TOP of page | 0° |
-| Upper-right | 45° |
-| RIGHT of page | 90° |
-| Lower-right | 135° |
-| BOTTOM of page | 180° |
-| Lower-left | 225° |
-| LEFT of page | 270° |
-| Upper-left | 315° |
+If CV wall edges are provided, use them to determine the drawing_angle precisely:
+- Find the wall edge that best matches the front/entry wall based on your Step 2 analysis
+- The `perpendicular_angle` of that wall edge IS the drawing_angle
+- This is more precise than visual estimation from the page direction table
+
+### Fallback (no CV hints)
+
+Estimate the direction the front faces on the page. Use cardinal directions: 0°=top, 90°=right, 180°=bottom, 270°=left. Interpolate for diagonals.
 
 ## Step 4: Calculate
 
