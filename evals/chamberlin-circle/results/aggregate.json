@@ -476,8 +476,50 @@
         "format_error": 0
       },
       "trend": 0.06630036630036618
+    },
+    {
+      "iteration": 43,
+      "f1": 0.6106870229007634,
+      "precision": 0.5797101449275363,
+      "recall": 0.6451612903225806,
+      "timestamp": "2026-02-06T02:22:18.289118Z",
+      "error_counts": {
+        "omission": 44,
+        "hallucination": 15,
+        "wrong_value": 43,
+        "format_error": 0
+      },
+      "trend": -0.06330565109191055
+    },
+    {
+      "iteration": 44,
+      "f1": 0.7226277372262773,
+      "precision": 0.7021276595744681,
+      "recall": 0.7443609022556391,
+      "timestamp": "2026-02-06T03:27:11.016745Z",
+      "error_counts": {
+        "omission": 34,
+        "hallucination": 8,
+        "wrong_value": 34,
+        "format_error": 0
+      },
+      "trend": 0.11194071432551389
+    },
+    {
+      "iteration": 45,
+      "f1": 0.7132352941176471,
+      "precision": 0.6879432624113475,
+      "recall": 0.7404580152671756,
+      "timestamp": "2026-02-06T04:35:24.404512Z",
+      "error_counts": {
+        "omission": 34,
+        "hallucination": 8,
+        "wrong_value": 36,
+        "format_error": 0
+      },
+      "trend": -0.009392443108630188
     }
   ],
-  "best_f1": 0.6739926739926739,
-  "best_iteration": 35
+  "best_f1": 0.7226277372262773,
+  "best_iteration": 44
 }

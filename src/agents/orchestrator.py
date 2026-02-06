@@ -1654,18 +1654,46 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         # These are independent — project doesn't need orientation data
         t0 = time.monotonic()
 
+        # Check orientation cache (orientation doesn't change between instruction iterations)
+        orient_cache_file = cache_dir / f"{eval_name}_orientation.json"
+        cached_orientation = None
+        if orient_cache_file.exists():
+            try:
+                with open(orient_cache_file) as cf:
+                    cached_orientation = json.load(cf)
+                logger.info(f"Using cached orientation for {eval_name}: {cached_orientation.get('front_orientation')}°")
+            except Exception:
+                cached_orientation = None
+
+        # Check project cache
+        project_cache_file = cache_dir / f"{eval_name}_project.json"
+        cached_project = None
+        if project_cache_file.exists():
+            try:
+                with open(project_cache_file) as cf:
+                    cached_project = json.load(cf)
+                logger.info(f"Using cached project extraction for {eval_name}")
+            except Exception:
+                cached_project = None
+
         async def _run_orientation_and_project():
             t_orient = time.monotonic()
             t_project = time.monotonic()
 
             async def _orientation():
                 nonlocal t_orient
+                if cached_orientation:
+                    timing["orientation"] = 0.0
+                    return cached_orientation
                 result = await run_orientation_twopass_async(eval_dir, document_map)
                 timing["orientation"] = round(time.monotonic() - t_orient, 1)
                 return result
 
             async def _project():
                 nonlocal t_project
+                if cached_project:
+                    timing["project"] = 0.0
+                    return cached_project
                 result = await asyncio.to_thread(
                     run_project_extraction, eval_dir, document_map
                 )
@@ -1677,6 +1705,14 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         orientation_data, project_extraction = asyncio.run(
             _run_orientation_and_project()
         )
+
+        # Save orientation and project caches
+        if not cached_orientation and orientation_data:
+            with open(orient_cache_file, "w") as cf:
+                json.dump(orientation_data, cf, indent=2)
+        if not cached_project and project_extraction:
+            with open(project_cache_file, "w") as cf:
+                json.dump(project_extraction, cf, indent=2)
 
         takeoff_spec = None
 

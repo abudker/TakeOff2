@@ -281,6 +281,8 @@ non_extractable_fields:
   - "envelope.pv_generation_max_credit"
   - "envelope.credit_available_for_pv"
   - "envelope.final_pv_credit"
+  - "envelope.fenestration_u_factor"  # area-weighted aggregate computed by CBECC
+  - "envelope.window_to_floor_ratio"  # computed ratio (window_area / conditioned_floor_area)
 
   # Software classifications
   - "envelope.zonal_control"

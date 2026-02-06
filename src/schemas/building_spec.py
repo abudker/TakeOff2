@@ -104,7 +104,7 @@ class EnvelopeInfo(BaseModel):
     """Building envelope aggregate data."""
     # Floor areas
     conditioned_floor_area: Optional[float] = Field(default=None, gt=0, description="CFA in sq ft")
-    addition_conditioned_floor_area: Optional[float] = Field(default=None, ge=0, description="Addition CFA sq ft")
+    addition_conditioned_floor_area: Optional[float] = Field(default=0.0, ge=0, description="Addition CFA sq ft")
 
     # Window/glazing
     window_area: Optional[float] = Field(default=None, ge=0, description="Total window area sq ft")
@@ -113,13 +113,13 @@ class EnvelopeInfo(BaseModel):
 
     # Wall areas
     exterior_wall_area: Optional[float] = Field(default=None, ge=0, description="Exterior wall area sq ft")
-    underground_wall_area: Optional[float] = Field(default=None, ge=0, description="Underground wall area sq ft")
+    underground_wall_area: Optional[float] = Field(default=0.0, ge=0, description="Underground wall area sq ft")
 
     # Slab/floor areas
     slab_floor_area: Optional[float] = Field(default=None, ge=0, description="Conditioned zone slab floor area sq ft")
-    exposed_slab_floor_area: Optional[float] = Field(default=None, ge=0, description="Exposed slab floor area sq ft")
-    below_grade_floor_area: Optional[float] = Field(default=None, ge=0, description="Conditioned zone below grade floor area sq ft")
-    exposed_below_grade_floor_area: Optional[float] = Field(default=None, ge=0, description="Exposed below grade floor area sq ft")
+    exposed_slab_floor_area: Optional[float] = Field(default=0.0, ge=0, description="Exposed slab floor area sq ft")
+    below_grade_floor_area: Optional[float] = Field(default=0.0, ge=0, description="Conditioned zone below grade floor area sq ft")
+    exposed_below_grade_floor_area: Optional[float] = Field(default=0.0, ge=0, description="Exposed below grade floor area sq ft")
 
     # PV
     pv_credit_available: Optional[bool] = Field(default=None, description="PV credit available")

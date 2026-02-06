@@ -1,7 +1,16 @@
 # Windows Extractor Instructions
 
-**Version:** v2.2.0
-**Last updated:** 2026-02-04
+**Version:** v2.3.0
+**Last updated:** 2026-02-05
+
+## CRITICAL OUTPUT RULES (read first)
+
+1. **Window area = rough opening area from schedule/designation codes, NOT glass area.** Window designation codes encode nominal dimensions: "3040" = 3'0" × 4'0" = 12 sf, "6068" = 6'0" × 6'8" = 40 sf. Use these nominal dimensions for area calculation. Do NOT measure actual glass/glazing area from the drawing — that gives ~30-40% smaller values.
+2. **SHGC and U-factor: Read ACTUAL values from the window schedule or energy notes.** Do NOT default to 0.23 SHGC if the schedule shows a different value (e.g., 0.29, 0.25). Only use defaults when no value is specified anywhere in the plans.
+3. **Window names: Use EXACT marks from the window/door schedule** (e.g., "W-11", "101", "BA", "G03 (3020)"). Do NOT invent names, append orientation codes, or renumber windows. If the schedule mark is "101", use "101" — not "AA" or "Window 1".
+4. **exterior_shade: Default to `"Insect Screen (default)"`** when no exterior shading device is specified. This is the standard CBECC-Res default.
+5. **Multi-panel windows/doors: Total area = full assembly area.** A 3-panel sliding door or bi-fold door area is the total opening area, not one panel. If schedule says "6068" for a sliding glass door, area = 6'0" × 6'8" = 40 sf.
+6. **DO NOT use cardinal azimuths (0, 90, 180, 270)** for rotated buildings. Use the EXACT azimuths provided in the orientation context.
 
 ## Core Rule
 
@@ -113,8 +122,9 @@ Focus extraction efforts on these page types (in order of reliability):
 
 **SHGC (Solar Heat Gain Coefficient):**
 - Solar energy transmittance (lower reduces heat gain)
-- Title 24 typical: 0.22-0.25 for most zones
-- May vary by orientation (south windows lower SHGC)
+- Title 24 typical range: 0.20-0.40 (varies widely by product)
+- **READ the actual SHGC from the window schedule first** — do NOT assume 0.23
+- Common values: 0.22, 0.23, 0.25, 0.29, 0.30 — they vary by product
 - Look for "SHGC", "Solar Heat Gain"
 
 **Where to find:**
@@ -308,9 +318,11 @@ Return JSON with fenestration **nested under wall orientations**:
 2. **Missing performance values:**
    - Schedule may only show dimensions
    - Check energy notes for requirements
-   - May need to use prescriptive defaults:
+   - **FIRST** check spec sheets, energy notes, and any supplemental docs for actual U-factor and SHGC
+   - Only as a LAST RESORT use prescriptive defaults:
      - U-factor: 0.30 (Title 24 prescriptive)
      - SHGC: 0.23 (coastal zones), 0.25 (inland)
+   - Add FLAG if using defaults: "SHGC defaulted to 0.23 — not found in plans"
 
 3. **Glazed doors confusion:**
    - Sliding glass doors count as windows for energy

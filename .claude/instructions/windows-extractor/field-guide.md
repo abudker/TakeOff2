@@ -243,11 +243,22 @@ This guide maps each WindowComponent schema field to its source location in Titl
 
 ### area
 **Type:** float >= 0 (optional)
-**Description:** Window area in square feet
+**Description:** Window area in square feet — use ROUGH OPENING / NOMINAL area, NOT net glazing area
 
 **Document sources:**
 1. **Window schedule:** Area column (per unit or total) (PRIMARY SOURCE)
-2. **Calculated:** Height x Width x Multiplier
+2. **Calculated from designation codes:** Decode nominal dimensions from window type code
+3. **Calculated from schedule dimensions:** Width x Height from schedule
+
+**CRITICAL: Area = nominal/rough opening area**
+- Window designation codes encode nominal dimensions:
+  - "3040" = 3'0" wide × 4'0" tall = 12.0 sf
+  - "3020" = 3'0" wide × 2'0" tall = 6.0 sf
+  - "6068" = 6'0" wide × 6'8" tall = 40.0 sf
+  - "4080" = 4'0" wide × 8'0" tall = 32.0 sf
+  - "8050" = 8'0" wide × 5'0" tall = 40.0 sf
+- Do NOT compute area from actual glazing/glass dimensions (which are ~30-40% smaller)
+- Do NOT deduct frame width from nominal dimensions
 
 **Common labels in documents:**
 - "Area (sf)", "Area", "Sq Ft", "SF"
@@ -255,21 +266,24 @@ This guide maps each WindowComponent schema field to its source location in Titl
 - "Unit Area" (single window)
 
 **Extraction tips:**
-- Check if area is per-unit or total
-- Per-unit: multiply by quantity for total
-- Total: divide by quantity for per-unit
-- Verify: height x width should match per-unit area
+- If schedule has an "Area" column, use that value directly
+- If no area column, calculate from nominal width × height
+- For multi-panel assemblies (sliding doors, bi-folds): area = total assembly opening, not one panel
+- Check if area is per-unit or total (per-unit × multiplier = total)
 
 **Example values:**
+- 9.0 (3' x 3' window)
 - 12.0 (3' x 4' window)
-- 24.0 (3' x 4' x 2 multiplier)
+- 24.0 (3' x 4' x 2 multiplier, or 4' x 6' single)
 - 40.0 (6' x 6.67' sliding door)
-- 20.0 (4' x 5' window)
+- 54.6 (large multi-panel assembly)
+- 64.0 (8' x 8' sliding glass door)
 
 **Calculation:**
 ```
-area = height x width x multiplier
+area = nominal_width x nominal_height x multiplier
 Example: 4 ft x 3 ft x 2 = 24 sf
+Example: 6 ft x 6.67 ft = 40 sf (sliding glass door)
 ```
 
 ---
@@ -331,16 +345,18 @@ Example: 4 ft x 3 ft x 2 = 24 sf
 
 **Extraction tips:**
 - Lower SHGC = less solar heat gain
-- Title 24 2022 prescriptive: SHGC 0.23-0.25 (varies by zone)
-- Coastal zones (cool): SHGC 0.23 typical
-- Inland zones (hot): SHGC 0.22 typical (reduce heat gain)
-- North-facing may have higher SHGC allowed
+- **ALWAYS read the actual SHGC from the window schedule or spec sheets first**
+- Do NOT assume 0.23 — actual values vary widely: 0.22, 0.23, 0.25, 0.29, 0.30
+- Only use 0.23 as a default when NO SHGC value appears anywhere in the plans
+- Check spec sheets (separate PDFs) for product-specific SHGC ratings
+- If the spec sheet or energy notes state a different SHGC than 0.23, USE that value
 
 **Example values:**
-- 0.23 (meets prescriptive, coastal)
-- 0.22 (hot climate compliance)
-- 0.25 (slightly higher, acceptable)
-- 0.30 (north-facing allowable)
+- 0.22 (low solar gain product)
+- 0.23 (common prescriptive value, but NOT always correct)
+- 0.25 (moderate performance)
+- 0.29 (higher solar gain, common in mild climates)
+- 0.30 (north-facing or mild climate)
 - 0.18 (very low solar gain, hot climates)
 
 **Typical ranges:**
