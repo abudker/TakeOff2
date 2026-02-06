@@ -1,6 +1,6 @@
 # Zones Extractor Instructions
 
-**Version:** v2.3.0
+**Version:** v2.2.0
 **Last updated:** 2026-02-04
 
 ## CRITICAL OUTPUT RULES (read first)
@@ -445,75 +445,3 @@ The extracted JSON will be:
 5. Used in self-improvement loop
 
 Extraction accuracy target: F1 >= 0.90 across all zone and wall fields.
-
-### 3.5. Mandatory Ceiling Height Resolution (BEFORE Wall Area Calculation)
-
-**This step MUST be completed before calculating ANY wall areas.**
-
-Ceiling height directly determines all wall areas (area = length × height). An error of even 0.5 ft in ceiling height cascades to every wall, the zone exterior_wall_area, volume, and downstream envelope calculations.
-
-**Procedure:**
-
-1. **Read section drawings FIRST.** Look for vertical dimensions labeled:
-   - "Level 1" to "B.O. Roof" or "T.O. Plate" or "Ceiling"
-   - "Floor to Ceiling" or "Clg Ht"
-   - Any vertical dimension in a building section
-
-2. **Convert architectural notation to decimal feet:**
-   - 8'-0" = 8.0 ft
-   - 8'-4" = 8.333 ft
-   - 8'-6" = 8.5 ft (very common in ADUs/small residential)
-   - 8'-8" = 8.667 ft
-   - 9'-0" = 9.0 ft
-
-3. **Record the resolved ceiling height** and use it for ALL subsequent calculations.
-
-4. **NEVER assume 8.0 ft.** The default of 8.0 ft may ONLY be used if:
-   - No section drawings exist in the document set, AND
-   - No room schedule with heights exists, AND
-   - No wall schedule with wall heights exists, AND
-   - No elevation showing floor-to-ceiling dimension exists
-   - In this case, add a HIGH severity flag: "No ceiling height found in documents, using 8.0 ft default"
-
-**Worked example:**
-
-Given: A rectangular building, 20 ft × 16 ft, section drawing shows ceiling at 8'-6" (8.5 ft)
-
-| Wall | Length | Height | Gross Area |
-|------|--------|--------|------------|
-| North | 20 ft | 8.5 ft | 170.0 sf |
-| East | 16 ft | 8.5 ft | 136.0 sf |
-| South | 20 ft | 8.5 ft | 170.0 sf |
-| West | 16 ft | 8.5 ft | 136.0 sf |
-| **Total** | | | **612.0 sf** |
-
-❌ **WRONG** (using default 8.0): 20×8.0=160, 16×8.0=128, total=576 sf
-✅ **CORRECT** (using actual 8.5): 20×8.5=170, 16×8.5=136, total=612 sf
-
-The 0.5 ft difference causes a 6.25% error in every wall area.
-
-### 4.5. Door-to-Wall Assignment Procedure
-
-**Doors must be assigned to the correct wall orientation. Misassignment is a common error.**
-
-**Step-by-step procedure:**
-
-1. **Locate all exterior door marks on the floor plan** (e.g., D1, D2, D3). Ignore interior doors.
-2. **For each door mark, identify which wall segment it sits on** by its position on the floor plan perimeter.
-3. **Determine that wall segment's cardinal orientation** using the north arrow:
-   - Is the wall segment on the top of the plan? Check north arrow to determine if that's N, S, E, or W.
-   - Is the door on a wall running left-right or up-down on the plan?
-4. **Look up door dimensions** from the door schedule (width × height).
-5. **Calculate door area** = width × height in square feet.
-6. **Assign the door area to the correct wall orientation.**
-
-**Common mistakes:**
-- Assuming the entry door is on the "front" wall without checking the floor plan
-- Assigning all doors to the first wall listed in the output
-- Confusing the wall the door hinges on vs. the wall it appears in on the plan
-- Mixing up orientations when the building is rotated relative to the page
-
-**Verification check:** After assigning all doors:
-- Sum of all door areas across walls should equal total exterior door area from the door schedule
-- Each door should appear in exactly ONE wall
-- Walls with no exterior doors should have `opaque_doors: []`
