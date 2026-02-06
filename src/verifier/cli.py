@@ -385,11 +385,17 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
 
     for eval_id in manifest.get('evals', {}).keys():
         # Find latest extraction result
+        # Priority: root extracted.json (freshest) > results dir > iteration dirs
         results_dir = evals_path / eval_id / results_subdir
         extracted_path = None
 
-        if results_dir.exists():
-            # Look for extracted.json directly in results dir
+        # First check: eval root directory (where extractor saves output)
+        root_extracted = evals_path / eval_id / "extracted.json"
+        if root_extracted.exists():
+            extracted_path = root_extracted
+
+        # Fallback: results subdirectory
+        if not extracted_path and results_dir.exists():
             if (results_dir / "extracted.json").exists():
                 extracted_path = results_dir / "extracted.json"
             else:

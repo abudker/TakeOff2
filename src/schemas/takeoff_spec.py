@@ -10,7 +10,7 @@ component lists. This aligns with how human takeoff instructions work:
 The TakeoffSpec is transformed to BuildingSpec for verification against ground truth.
 """
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Any, Optional, List
 from enum import Enum
 
 
@@ -56,7 +56,7 @@ class UncertaintyFlag(BaseModel):
     field_path: str = Field(description="Dot-path to field, e.g., 'house_walls.north.gross_wall_area'")
     severity: FlagSeverity = Field(description="How uncertain this value is")
     reason: str = Field(description="Why this value is uncertain")
-    source_page: Optional[int] = Field(default=None, description="Page number where value was found")
+    source_page: Optional[Any] = Field(default=None, description="Page number or reference where value was found")
     alternative_value: Optional[str] = Field(default=None, description="Alternative interpretation if any")
 
 
