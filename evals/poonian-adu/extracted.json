@@ -292,22 +292,7 @@
       "exterior_shade": "Insect Screen (default)"
     }
   ],
-  "ceilings": [
-    {
-      "name": "Ceiling 1",
-      "zone": "ADU",
-      "status": "New",
-      "construction_type": "R-38 Ceiling",
-      "orientation": null,
-      "area": 1160.0,
-      "roof_rise": null,
-      "roof_pitch": null,
-      "roof_tilt": null,
-      "roof_reflectance": null,
-      "roof_emittance": null,
-      "framing_factor": null
-    }
-  ],
+  "ceilings": [],
   "ceiling_constructions": [],
   "slab_floors": [
     {

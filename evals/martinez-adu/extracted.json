@@ -49,7 +49,7 @@
       "ceiling_height": 8.0,
       "stories": 1,
       "volume": 5968.0,
-      "exterior_wall_area": 922.67,
+      "exterior_wall_area": 922.7,
       "exterior_wall_door_area": null,
       "ceiling_below_attic_area": 746.0,
       "cathedral_ceiling_area": 0.0,
@@ -64,8 +64,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 194.0,
-      "area": 170.67,
-      "window_area": 108.0,
+      "area": 170.7,
+      "window_area": 48.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -76,7 +76,7 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 284.0,
-      "area": 290.67,
+      "area": 290.7,
       "window_area": 113.0,
       "door_area": 20.0,
       "tilt": 90.0,
@@ -88,7 +88,7 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 14.0,
-      "area": 170.67,
+      "area": 170.7,
       "window_area": 12.0,
       "door_area": 0.0,
       "tilt": 90.0,
@@ -100,7 +100,7 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 104.0,
-      "area": 290.67,
+      "area": 290.7,
       "window_area": 34.0,
       "door_area": 0.0,
       "tilt": 90.0,
@@ -110,20 +110,20 @@
   "wall_constructions": [],
   "windows": [
     {
-      "name": "3040",
+      "name": "3040 H.S.",
       "wall": "N Wall",
       "status": "New",
       "azimuth": 194.0,
       "height": 4.0,
       "width": 3.0,
-      "multiplier": 3,
-      "area": 36.0,
+      "multiplier": 2,
+      "area": 24.0,
       "u_factor": 0.3,
       "shgc": 0.23,
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "4040",
+      "name": "4040 H.S.",
       "wall": "E Wall",
       "status": "New",
       "azimuth": 284.0,
@@ -149,7 +149,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3040",
+      "name": "3040 H.S.",
       "wall": "E Wall",
       "status": "New",
       "azimuth": 284.0,
@@ -162,7 +162,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "Door 4 (6068)",
+      "name": "Door 4 (6068 Slider)",
       "wall": "E Wall",
       "status": "New",
       "azimuth": 284.0,
@@ -175,7 +175,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3040",
+      "name": "3040 H.S.",
       "wall": "S Wall",
       "status": "New",
       "azimuth": 14.0,
@@ -188,7 +188,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "4040",
+      "name": "4040 H.S.",
       "wall": "W Wall",
       "status": "New",
       "azimuth": 104.0,
@@ -201,7 +201,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3020",
+      "name": "3020 H.S.",
       "wall": "W Wall",
       "status": "New",
       "azimuth": 104.0,
@@ -214,7 +214,7 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3040",
+      "name": "3040 H.S.",
       "wall": "W Wall",
       "status": "New",
       "azimuth": 104.0,
@@ -250,7 +250,7 @@
       "zone": "ADU",
       "status": "New",
       "area": 746.0,
-      "perimeter": 115.33,
+      "perimeter": 115.3,
       "edge_insulation_r_value": null,
       "carpeted_fraction": 0.8,
       "heated": false

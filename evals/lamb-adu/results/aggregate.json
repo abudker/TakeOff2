@@ -98,6 +98,20 @@
         "format_error": 4
       },
       "trend": -0.04743818885910034
+    },
+    {
+      "iteration": 47,
+      "f1": 0.6312849162011174,
+      "precision": 0.6208791208791209,
+      "recall": 0.6420454545454546,
+      "timestamp": "2026-02-06T06:08:03.671957Z",
+      "error_counts": {
+        "omission": 63,
+        "hallucination": 8,
+        "wrong_value": 57,
+        "format_error": 4
+      },
+      "trend": -0.007603972687771576
     }
   ],
   "best_f1": 0.6863270777479893,

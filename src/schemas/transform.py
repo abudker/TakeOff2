@@ -214,8 +214,26 @@ def _transform_ceiling(ceiling: CeilingEntry) -> CeilingComponent:
 
 
 def _transform_ceilings(takeoff: TakeoffSpec) -> List[CeilingComponent]:
-    """Transform all ceilings from TakeoffSpec to BuildingSpec format."""
-    return [_transform_ceiling(c) for c in takeoff.ceilings]
+    """Transform cathedral/vaulted ceilings from TakeoffSpec to BuildingSpec format.
+
+    Only includes cathedral/vaulted ceilings — NOT 'below attic' or standard ceilings.
+    The ground truth CSV section 'Cathedral Ceilings:' only lists cathedral ceilings.
+    Regular attic ceilings are tracked in a separate section ('Ceiling Below Attic:').
+    """
+    cathedral_ceilings = []
+    for c in takeoff.ceilings:
+        ceiling_type = (c.ceiling_type or "").lower()
+        construction = (c.construction_type or "").lower()
+        name_lower = (c.name or "").lower()
+        # Only include if explicitly cathedral or vaulted
+        is_cathedral = (
+            "cathedral" in ceiling_type or "vaulted" in ceiling_type or
+            "cathedral" in construction or "vaulted" in construction or
+            "cathedral" in name_lower or "vaulted" in name_lower
+        )
+        if is_cathedral:
+            cathedral_ceilings.append(_transform_ceiling(c))
+    return cathedral_ceilings
 
 
 # ============================================================================
