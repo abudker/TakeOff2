@@ -1,6 +1,6 @@
 # Zones Extractor Field Guide
 
-**Version:** v1.0.0
+**Version:** v1.1.0
 **Last updated:** 2026-02-04
 
 ## Overview
@@ -734,3 +734,121 @@ Before finalizing extraction:
 ---
 
 *End of Field Guide*
+
+### ceiling_height
+**Type:** float > 0 (optional)
+**Description:** Ceiling height in feet
+
+**Document sources:**
+1. **Section drawings:** Vertical dimensions from floor to ceiling (PRIMARY SOURCE - ALWAYS CHECK)
+2. **Room schedules:** Height column
+3. **Wall schedules:** Wall height (implies ceiling height)
+4. **Elevations:** Floor-to-floor heights
+
+**Common labels in documents:**
+- "Ceiling Height", "Clg Ht", "Height", "Room Height"
+- "FT", "ft", "feet"
+- Look for dimensions labeled "Level 1" to "B.O. Roof", "T.O. Plate", or "Ceiling"
+
+**Extraction tips:**
+- **CRITICAL: Do NOT default to 8.0 ft.** Always read the ACTUAL dimension from section drawings first.
+- ADUs and small residential buildings commonly have 8'-6" (8.5 ft) ceilings, NOT 8'-0"
+- Architectural dimensions often show as feet-inches: "8'-6"" = 8.5 ft, "8'-7 1/2"" ≈ 8.625 ft
+- If section drawings show a height between 8'-0" and 8'-8", read the EXACT value — do not round down to 8.0
+- Only use 8.0 ft if the section drawing explicitly shows "8'-0"" or if no section drawing is available and no other height data exists
+- For vaulted/cathedral sections, use average height
+- **Getting ceiling height wrong cascades to ALL wall area calculations** (wall area = perimeter length × ceiling height)
+
+**Conversion reference:**
+| Architectural Notation | Decimal Feet |
+|----------------------|-------------|
+| 8'-0" | 8.0 |
+| 8'-4" | 8.333 |
+| 8'-6" | 8.5 |
+| 8'-7 1/2" | 8.625 |
+| 8'-8" | 8.667 |
+| 9'-0" | 9.0 |
+| 9'-4" | 9.333 |
+| 10'-0" | 10.0 |
+
+**Example values:**
+- 8.5 (8'-6" ceiling — common in ADUs and small residential)
+- 8.0 (8'-0" ceiling — only if explicitly dimensioned)
+- 9.0 (9-foot ceiling)
+- 10.0 (high ceiling)
+
+---
+
+### door_area
+**Type:** float >= 0 (optional)
+**Description:** Door area in this wall in square feet
+
+**Document sources:**
+1. **Door schedules:** Doors by mark/ID with dimensions (PRIMARY SOURCE)
+2. **Floor plans:** Door marks showing which wall the door is on (CRITICAL for wall assignment)
+3. **Elevations:** Door sizes visible per wall
+
+**Common labels in documents:**
+- "Door Area", "Ext Door Area"
+- "Door", "Entry"
+
+**Extraction tips:**
+- Only exterior doors (not interior)
+- Standard door: ~21 sf (3' x 7')
+- Sliding glass: ~33 sf per panel
+- Should match door schedule totals
+
+**CRITICAL — Assigning doors to the correct wall:**
+1. Find each exterior door mark on the FLOOR PLAN (e.g., D1, D2)
+2. Determine which wall the door swings through by its position on the floor plan
+3. Match that wall to its cardinal orientation (N/E/S/W) using the north arrow
+4. Only then assign the door area to that orientation's wall
+5. Do NOT guess — if a door mark is on the south wall of the floor plan, it goes in the south wall entry
+6. Entry doors are often on the FRONT wall but verify from floor plan position
+7. If door schedule gives orientation (e.g., "North Entry"), use that directly
+
+**Common mistakes to avoid:**
+- Assigning the entry door to the wrong orientation because of confusion about which direction the building faces
+- Placing all doors on the first wall listed instead of checking floor plan position
+- Confusing sliding glass doors (fenestration) with opaque doors
+
+**Example values:**
+- 0.0 (no exterior door in wall)
+- 21.0 (single standard door: 3' × 7')
+- 18.9 (single 2'-8" × 6'-8" door, or 2.67' × 7.08')
+- 42.0 (double door or two singles)
+- 66.0 (6' sliding glass door)
+
+---
+
+### construction_type
+**Type:** string (optional)
+**Description:** Wall construction assembly type
+
+**Document sources:**
+1. **Wall schedules:** Wall type or assembly column (PRIMARY SOURCE)
+2. **Construction details:** Wall section details
+3. **Energy notes:** Insulation requirements
+
+**Common labels in documents:**
+- "Construction Type", "Wall Type", "Assembly"
+- "R-21 Wall", "2x6 @ 16 o.c.", "Wood Frame Wall"
+
+**Extraction tips:**
+- **CRITICAL: Use CBECC short form ONLY.** Format: `"R-{value} Wall"`
+- Do NOT include framing details (no "2x6", "Wood Frame", "@ 16 o.c.")
+- Extract the R-value from the wall schedule or energy notes, then format as "R-{value} Wall"
+- If plans say "R-21 2x6 Wood Frame Wall", output `"R-21 Wall"`
+- If plans say "2x4 R-13 stud wall @ 16 o.c.", output `"R-13 Wall"`
+
+**Example values (CBECC short form only):**
+- "R-21 Wall" (most common residential exterior)
+- "R-13 Wall" (2x4 framed wall)
+- "R-38 Wall" (high performance)
+- "R-15 Wall" (continuous insulation)
+
+**WRONG formats (do NOT use):**
+- ❌ "R-21 Wood Frame Wall"
+- ❌ "R-13 2x4 Stud Wall"
+- ❌ "WoodFramedWall-R21"
+- ❌ "2x6 @ 24 o.c. R-21 Cavity"
