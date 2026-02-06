@@ -25,16 +25,17 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 - "Conditioned Zone 1", "Zone 1", "Living Zone"
 
 **Extraction tips:**
-- For ADU projects, use "ADU" as the zone name
+- Use the zone name from the CBECC output, plans, or schedules
+- If no explicit name is given, derive from the project type (e.g., "ADU", "Single-Family Dwelling")
 - Single-zone buildings often just have one conditioned zone
 - Multi-zone buildings may name by function: "Living Zone", "Bedroom Zone"
 - Garage zones typically named "Garage" or "Unconditioned Zone"
 
 **Example values:**
+- "ADU"
+- "Single-Family Dwelling"
 - "Zone 1"
-- "Conditioned Zone 1"
-- "Living Area"
-- "ADU Zone"
+- "Living Zone"
 
 ---
 
@@ -458,16 +459,16 @@ Example: 800 sf x 9 ft = 7200 cf
 - "R-21 Wall", "2x6 @ 16 o.c.", "Wood Frame Wall"
 
 **Extraction tips:**
-- Often includes R-value: "R-21 Wood Frame"
-- May reference assembly library: "Wall Type A"
-- Common residential: "R-21 Wood Frame", "R-13 2x4"
-- High performance: "R-38 Advanced Frame"
+- Use the name from CBECC output or wall schedule (preferred source)
+- CBECC typically uses `"R-{value} Wall"` format (e.g., "R-21 Wall")
+- Plans may use longer descriptions; check CBECC output for the canonical name
+- Common residential: R-13 (2x4), R-21 (2x6), R-30+ (advanced)
 
 **Example values:**
-- "R-21 Wood Frame Wall"
-- "R-13 2x4 Stud Wall"
-- "WoodFramedWall-R21"
-- "2x6 @ 24 o.c. R-21 Cavity"
+- "R-21 Wall" (CBECC short form, most common)
+- "R-13 Wall"
+- "R-38 Wall"
+- "Wood Framed Wall" (if R-value not available)
 
 ---
 
@@ -735,7 +736,7 @@ Before finalizing extraction:
 
 *End of Field Guide*
 
-### ceiling_height
+### ceiling_height (detailed)
 **Type:** float > 0 (optional)
 **Description:** Ceiling height in feet
 
@@ -751,13 +752,11 @@ Before finalizing extraction:
 - Look for dimensions labeled "Level 1" to "B.O. Roof", "T.O. Plate", or "Ceiling"
 
 **Extraction tips:**
-- **CRITICAL: Do NOT default to 8.0 ft.** Always read the ACTUAL dimension from section drawings first.
-- ADUs and small residential buildings commonly have 8'-6" (8.5 ft) ceilings, NOT 8'-0"
-- Architectural dimensions often show as feet-inches: "8'-6"" = 8.5 ft, "8'-7 1/2"" ≈ 8.625 ft
-- If section drawings show a height between 8'-0" and 8'-8", read the EXACT value — do not round down to 8.0
-- Only use 8.0 ft if the section drawing explicitly shows "8'-0"" or if no section drawing is available and no other height data exists
+- Always read the ACTUAL dimension from section drawings — do not assume a default
+- Architectural dimensions use feet-inches notation: convert to decimal feet
+- Read the EXACT value shown; do not round to the nearest foot
 - For vaulted/cathedral sections, use average height
-- **Getting ceiling height wrong cascades to ALL wall area calculations** (wall area = perimeter length × ceiling height)
+- Getting ceiling height wrong cascades to all wall area calculations (wall area = perimeter x height)
 
 **Conversion reference:**
 | Architectural Notation | Decimal Feet |
@@ -765,17 +764,18 @@ Before finalizing extraction:
 | 8'-0" | 8.0 |
 | 8'-4" | 8.333 |
 | 8'-6" | 8.5 |
-| 8'-7 1/2" | 8.625 |
 | 8'-8" | 8.667 |
 | 9'-0" | 9.0 |
-| 9'-4" | 9.333 |
+| 9'-6" | 9.5 |
 | 10'-0" | 10.0 |
+| 12'-0" | 12.0 |
 
 **Example values:**
-- 8.5 (8'-6" ceiling — common in ADUs and small residential)
-- 8.0 (8'-0" ceiling — only if explicitly dimensioned)
+- 8.0 (standard 8-foot ceiling)
+- 8.5 (8'-6" ceiling)
 - 9.0 (9-foot ceiling)
 - 10.0 (high ceiling)
+- 12.0 (great room / loft)
 
 ---
 
@@ -835,20 +835,14 @@ Before finalizing extraction:
 - "R-21 Wall", "2x6 @ 16 o.c.", "Wood Frame Wall"
 
 **Extraction tips:**
-- **CRITICAL: Use CBECC short form ONLY.** Format: `"R-{value} Wall"`
-- Do NOT include framing details (no "2x6", "Wood Frame", "@ 16 o.c.")
-- Extract the R-value from the wall schedule or energy notes, then format as "R-{value} Wall"
-- If plans say "R-21 2x6 Wood Frame Wall", output `"R-21 Wall"`
-- If plans say "2x4 R-13 stud wall @ 16 o.c.", output `"R-13 Wall"`
+- Use the construction type name as it appears in the CBECC output or wall schedule
+- CBECC typically uses a short form like `"R-{value} Wall"` (e.g., "R-21 Wall")
+- If the plans use a longer description (e.g., "R-21 2x6 Wood Frame Wall"), check the CBECC output or energy compliance forms for the canonical name
+- If no CBECC output is available, normalize to `"R-{value} Wall"` format based on the cavity R-value
 
-**Example values (CBECC short form only):**
-- "R-21 Wall" (most common residential exterior)
+**Example values:**
+- "R-21 Wall" (common residential exterior, 2x6 framed)
 - "R-13 Wall" (2x4 framed wall)
 - "R-38 Wall" (high performance)
 - "R-15 Wall" (continuous insulation)
-
-**WRONG formats (do NOT use):**
-- ❌ "R-21 Wood Frame Wall"
-- ❌ "R-13 2x4 Stud Wall"
-- ❌ "WoodFramedWall-R21"
-- ❌ "2x6 @ 24 o.c. R-21 Cavity"
+- "Wood Framed Wall" (if R-value not specified)

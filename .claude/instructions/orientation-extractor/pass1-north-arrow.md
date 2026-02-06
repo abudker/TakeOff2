@@ -20,15 +20,15 @@ You MUST output this exact JSON structure:
   "front_identification": {
     "building_type": "adu|single_family",
     "method": "street_facing|entry_door|elevation_label",
-    "description": "Front faces Canterbury Rd on the east side",
-    "drawing_direction": "right",
-    "drawing_angle": 90
+    "description": "Front faces the street on the south side",
+    "drawing_direction": "bottom",
+    "drawing_angle": 180
   },
   "calculation": {
-    "formula": "(90 - 340 + 360) % 360 = 110",
-    "result": 110
+    "formula": "(180 - 340 + 360) % 360 = 200",
+    "result": 200
   },
-  "front_orientation": 110,
+  "front_orientation": 200,
   "confidence": "high|medium|low"
 }
 ```

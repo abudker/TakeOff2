@@ -26,10 +26,10 @@ Read(file_path="/path/to/plans.pdf", pages="1-5")
 
 ```json
 {
-  "front_orientation": 73.0,
+  "front_orientation": 155.0,
   "north_arrow_found": true,
   "north_arrow_page": 3,
-  "front_direction": "ENE",
+  "front_direction": "SSE",
   "confidence": "high",
   "reasoning": "...",
   "notes": "..."
@@ -183,28 +183,28 @@ front_orientation = (front_drawing_angle - north_arrow_angle + 360) % 360
 ```
 
 **Example 1: Single-Family Home with Rotated North**
-- North arrow points ~17° (slightly right of up)
-- Front faces street on right side of drawing → front_drawing_angle ≈ 90°
-- front_orientation = (90 - 17 + 360) % 360 = 73°
+- North arrow points ~25° (slightly right of up)
+- Front faces street on bottom of drawing → front_drawing_angle ≈ 180°
+- front_orientation = (180 - 25 + 360) % 360 = 155° (SSE)
 
-**Example 2: ADU with East-Facing Entry**
-- North arrow points ~340° (slightly left of up) on site plan
-- "East Elevation" shows entry door with covered porch → front faces nominal East
-- On site plan, find ADU and measure which edge faces ~90° from north arrow
-- That edge faces RIGHT on the site plan → front_drawing_angle ≈ 90°
-- front_orientation = (90 - 340 + 360) % 360 = 110° (ESE)
+**Example 2: ADU with South-Facing Entry**
+- North arrow points ~300° (upper-left) on site plan
+- "South Elevation" shows entry door with covered porch → front faces nominal South
+- On site plan, find ADU and measure which edge corresponds to the south elevation
+- That edge faces lower-right on the site plan → front_drawing_angle ≈ 135°
+- front_orientation = (135 - 300 + 360) % 360 = 195° (SSW)
 
 **Example 3: ADU with West-Facing Entry**
-- North arrow points straight up → north_arrow_angle ≈ 0°
-- ADU entry faces toward main house/access path (left side of drawing)
-- front_drawing_angle ≈ 284° (WNW direction on drawing)
-- front_orientation = (284 - 0 + 360) % 360 = 284°
+- North arrow points ~10° right of up → north_arrow_angle ≈ 10°
+- ADU entry faces toward main house/access path (lower-left of drawing)
+- front_drawing_angle ≈ 260° (WSW direction on drawing)
+- front_orientation = (260 - 10 + 360) % 360 = 250° (WSW)
 
-**Example 4: ADU with North-Facing Entry**
-- North arrow points ~20° (slightly right of up)
-- "North Elevation" shows entry with covered porch/overhang → front faces nominal North
-- On site plan, the ADU's north edge faces UPPER-RIGHT → front_drawing_angle ≈ 40°
-- front_orientation = (40 - 20 + 360) % 360 = 20° (NNE)
+**Example 4: ADU with Entry Facing Upper-Left**
+- North arrow points ~45° (upper-right)
+- "West Elevation" shows entry with covered porch/overhang → front faces nominal West
+- On site plan, the ADU's west edge faces UPPER-LEFT → front_drawing_angle ≈ 320°
+- front_orientation = (320 - 45 + 360) % 360 = 275° (W)
 
 ### Step 6: Sanity Check
 
@@ -261,12 +261,12 @@ front_orientation = Z°
 
 ```json
 {
-  "front_orientation": 73.0,
+  "front_orientation": 155.0,
   "north_arrow_found": true,
   "north_arrow_page": 3,
-  "front_direction": "ENE",
+  "front_direction": "SSE",
   "confidence": "high",
-  "reasoning": "north_arrow_angle = 17° (points upper-right). front_drawing_angle = 90° (front faces right toward street). Calculation: (90 - 17 + 360) % 360 = 73°",
+  "reasoning": "north_arrow_angle = 25° (points upper-right). front_drawing_angle = 180° (front faces bottom toward street). Calculation: (180 - 25 + 360) % 360 = 155°",
   "notes": "Single-family home. Front faces street."
 }
 ```

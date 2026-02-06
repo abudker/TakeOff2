@@ -141,21 +141,21 @@ Focus extraction efforts on these page types (in order of reliability):
 - Use the north arrow on the site plan to determine true orientation
 
 **Step 2: Calculate ACTUAL window azimuth for rotated buildings**
-If the building has a front_orientation (e.g., 73° for NE-facing):
+If the building has a front_orientation (e.g., 155° for SSE-facing):
 - Window azimuth = wall azimuth (from zones-extractor)
 - **Do NOT use cardinal azimuths (0, 90, 180, 270) for rotated buildings**
-- Example: Front = 73°
-  - North wall windows → azimuth = 343° (73 - 90, wrapped)
-  - East wall windows → azimuth = 73°
-  - South wall windows → azimuth = 163° (73 + 90)
-  - West wall windows → azimuth = 253° (73 + 180)
+- Example: Front = 155°
+  - North wall windows → azimuth = 65° (155 - 90, wrapped)
+  - East wall windows → azimuth = 155°
+  - South wall windows → azimuth = 245° (155 + 90)
+  - West wall windows → azimuth = 335° (155 + 180)
 
 **Step 3: Place in correct orientation slot**
 - Use cardinal direction as JSON key: `house_walls.{north|east|south|west}.fenestration[]`
 - But set `azimuth` to the ACTUAL value (not cardinal)
-- Example: Window on "North Wall" with building front at 73° →
+- Example: Window on "North Wall" with building front at 155° →
   - Key: `house_walls.north.fenestration[]`
-  - Azimuth: 343° (actual orientation)
+  - Azimuth: 65° (actual orientation)
 
 **Step 4: Handle ambiguous assignments**
 If orientation is unclear:

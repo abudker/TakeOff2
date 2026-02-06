@@ -112,7 +112,7 @@ When extracting from multiple pages:
 **Step 3: Determine front_orientation**
 - Look for north arrow on site plan or floor plan
 - Determine front of building from street orientation or main entry
-- Example: "Front: 73°" means front wall faces NE (73 degrees clockwise from north)
+- Example: "Front: 155°" means front wall faces SSE (155 degrees clockwise from north)
 - 0 = North, 90 = East, 180 = South, 270 = West
 - This is CRITICAL for multi-orientation energy analysis
 
@@ -283,7 +283,7 @@ The front_orientation is the azimuth angle (degrees clockwise from true north) t
 1. Find the site plan with north arrow
 2. Identify the building's front (usually faces the street or main entry)
 3. Measure the angle from true north to the front direction
-4. Example: If front faces NE at 73°, front_orientation = 73
+4. Example: If front faces SSE at 155°, front_orientation = 155
 
 **Common orientations:**
 - 0° = North facing

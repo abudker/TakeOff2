@@ -5,9 +5,9 @@
 
 ## CRITICAL OUTPUT RULES (read first)
 
-1. **Zone naming:** For ADU projects, the zone name MUST be `"ADU"` — never "Zone 1", "Living Zone", or other generic names.
-2. **Construction type format:** MUST use CBECC short form: `"R-21 Wall"`, `"R-13 Wall"`. Never include framing details like "2x6", "Wood Frame", or "2x4 @ 16" — just `"R-{value} Wall"`.
-3. **Ceiling height:** If sections show ceiling heights between 8'-0" and 8'-8", read the EXACT dimension. ADU/small buildings commonly have 8'-6" (= 8.5 ft), NOT 8'-0". Getting this wrong cascades to all wall area calculations.
+1. **Zone naming:** Use the zone name from the CBECC output or plans. Common names include `"ADU"`, `"Single-Family Dwelling"`, `"Zone 1"`, or `"Living Zone"`. Match whatever the documents use rather than inventing a name.
+2. **Construction type format:** Use the construction type name as it appears in the CBECC output or wall schedule. Typical CBECC format is `"R-{value} Wall"` (e.g., `"R-21 Wall"`, `"R-13 Wall"`). If the plans use a longer form like "R-21 2x6 Wood Frame Wall", check the CBECC output for the canonical short name.
+3. **Ceiling height:** Always read the EXACT dimension from section drawings. Do not assume a default — residential ceilings commonly range from 8'-0" to 10'-0". Getting this wrong cascades to all wall area calculations.
 4. **Door area:** Every wall MUST have `opaque_doors` populated. If a wall has no doors, use an empty list `[]`. If a wall has a door, include it with the correct area (width x height in sq ft). Do NOT omit the `opaque_doors` field.
 5. **Wall area = perimeter segment x ceiling height.** Use the ACTUAL ceiling height from rule 3, not a default of 8.0.
 
@@ -91,8 +91,8 @@ Focus extraction efforts on these page types (in order of reliability):
 - For simple buildings (ADUs), entire building may be one zone
 
 **Step 2: Extract zone names**
-- For ADU projects, use "ADU" as the zone name
-- Standard naming: "Zone 1", "Living Zone", "Bedroom Zone"
+- Use the zone name from the plans, schedules, or CBECC output
+- Common names: "ADU", "Single-Family Dwelling", "Zone 1", "Living Zone"
 - May be single zone for small buildings (entire ADU = one zone)
 - Multi-zone for larger buildings with different HVAC areas
 
@@ -108,10 +108,10 @@ Focus extraction efforts on these page types (in order of reliability):
   - If stated as "320 SF" on plans, use 320 - do not recalculate
 - Ceiling height from section drawings (MANDATORY for accuracy):
   - Look for "Level 1" to "B.O. Roof" or "Ceiling" dimension on sections
-  - ADU/small buildings typically have 8'-6" to 8'-8" ceilings (8.5 ft)
-  - May show as "8'-7 1/2"" (convert to decimal: 8.625 ft ≈ 8.5)
+  - Common residential heights: 8'-0" (8.0), 8'-6" (8.5), 9'-0" (9.0), 10'-0" (10.0)
+  - Convert architectural notation to decimal feet (e.g., 8'-6" = 8.5 ft)
   - For vaulted/cathedral ceilings, use average height
-  - **If sections show ~8'-6" to 8'-8", use 8.5 ft**
+  - Read the EXACT dimension — do not round or assume a default
   - Wall areas depend on ceiling height (area = perimeter x height)
 - Volume (calculated: area x height)
 - Wall area totals calculated from perimeter dimensions x ceiling height
@@ -139,7 +139,7 @@ Use floor plan orientation and north arrow. Group walls into cardinal directions
 For each cardinal direction, extract:
 - `gross_wall_area`: Total thermal boundary wall area (sq ft) - **DO NOT DEDUCT OPENINGS**
 - `azimuth`: True azimuth in degrees (ACTUAL orientation, not cardinal - see Step 5)
-- `construction_type`: Use CBECC-style short form: "R-21 Wall" (not "R-21 2x6", "R-21 2x6 Wall", or "R-21 2x6 Wood Frame")
+- `construction_type`: Use the construction type name from CBECC output or wall schedule (e.g., "R-21 Wall", "R-13 Wall")
 - `framing_factor`: Framing fraction (default 0.25 if not specified)
 - `status`: New, Existing, or Altered
 - `fenestration`: Leave empty - windows-extractor will populate this
@@ -154,11 +154,11 @@ If the building is not aligned to cardinal directions:
   - East wall offset: 0° (faces same direction as front)
   - South wall offset: +90°
   - West wall offset: +180°
-- Example: Front = 73° (NE facing)
-  - "north" slot → azimuth = 73 - 90 = 343° (wrapping)
-  - "east" slot → azimuth = 73°
-  - "south" slot → azimuth = 73 + 90 = 163°
-  - "west" slot → azimuth = 73 + 180 = 253°
+- Example: Front = 155° (SSE facing)
+  - "north" slot → azimuth = (155 - 90 + 360) % 360 = 65°
+  - "east" slot → azimuth = 155°
+  - "south" slot → azimuth = (155 + 90) % 360 = 245°
+  - "west" slot → azimuth = (155 + 180) % 360 = 335°
 - Add FLAG: "Building rotated {X}° from true north"
 
 **Step 6: Validate against plans**
@@ -169,10 +169,9 @@ If plans include opening-percentage or facade calculations:
 ### 5. Naming Conventions
 
 **Zone names (in thermal_boundary):**
-- **ADU projects:** Use "ADU" as the zone name (not "Zone 1")
-- **Single-family homes:** Use descriptive name from plans or "Living Zone"
+- Use the zone name from the CBECC output, plans, or schedules
+- If no explicit name is given, derive from the project type (e.g., "ADU", "Single-Family Dwelling")
 - **Multi-zone buildings:** Use room-based names like "Living Zone", "Bedroom Zone"
-- Derive zone name from project type on title block when possible
 - Keep consistent with other extractors for deduplication
 
 **Orientation keys (in house_walls):**
@@ -293,10 +292,10 @@ Return JSON matching this **orientation-based** structure:
   "thermal_boundary": {
     "conditioned_zones": [
       {
-        "name": "ADU",
+        "name": "Zone 1",
         "floor_area": 450.0,
-        "ceiling_height": 8.5,
-        "volume": 3825.0,
+        "ceiling_height": 9.0,
+        "volume": 4050.0,
         "stories": 1,
         "exterior_wall_area": 660.0,
         "ceiling_below_attic_area": 450.0,
@@ -311,7 +310,7 @@ Return JSON matching this **orientation-based** structure:
     {
       "name": "Ceiling 1",
       "ceiling_type": "Below Attic",
-      "zone": "ADU",
+      "zone": "Zone 1",
       "status": "New",
       "area": 450.0,
       "construction_type": "R-38 Roof Rafter"
@@ -320,7 +319,7 @@ Return JSON matching this **orientation-based** structure:
   "slab_floors": [
     {
       "name": "Slab 1",
-      "zone": "ADU",
+      "zone": "Zone 1",
       "status": "New",
       "area": 450.0,
       "perimeter": 85.0,
@@ -359,7 +358,7 @@ Return JSON matching this **orientation-based** structure:
 
 1. **Multiple zone naming schemes:**
    - Plans may use "Living Area" while schedules say "Zone 1"
-   - For ADU projects, use "ADU" as the zone name
+   - Prefer the name from the CBECC output or energy compliance forms if available
    - Note alternate names in extraction notes
 
 2. **Wall-zone linking ambiguity:**
