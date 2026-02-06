@@ -63,9 +63,9 @@
       "zone": "ADU",
       "status": "New",
       "construction_type": "R-21 Wall",
-      "orientation": 210.0,
+      "orientation": 194.0,
       "area": 170.67,
-      "window_area": 124.0,
+      "window_area": 108.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -75,7 +75,7 @@
       "zone": "ADU",
       "status": "New",
       "construction_type": "R-21 Wall",
-      "orientation": 300.0,
+      "orientation": 284.0,
       "area": 290.67,
       "window_area": 113.0,
       "door_area": 20.0,
@@ -87,7 +87,7 @@
       "zone": "ADU",
       "status": "New",
       "construction_type": "R-21 Wall",
-      "orientation": 30.0,
+      "orientation": 14.0,
       "area": 170.67,
       "window_area": 12.0,
       "door_area": 0.0,
@@ -99,9 +99,9 @@
       "zone": "ADU",
       "status": "New",
       "construction_type": "R-21 Wall",
-      "orientation": 120.0,
+      "orientation": 104.0,
       "area": 290.67,
-      "window_area": 22.0,
+      "window_area": 34.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -110,23 +110,10 @@
   "wall_constructions": [],
   "windows": [
     {
-      "name": "4040 H.S.",
+      "name": "3040",
       "wall": "N Wall",
       "status": "New",
-      "azimuth": 210.0,
-      "height": 4.0,
-      "width": 4.0,
-      "multiplier": 1,
-      "area": 16.0,
-      "u_factor": 0.3,
-      "shgc": 0.23,
-      "exterior_shade": "Insect Screen (default)"
-    },
-    {
-      "name": "3040 H.S. (a)",
-      "wall": "N Wall",
-      "status": "New",
-      "azimuth": 210.0,
+      "azimuth": 194.0,
       "height": 4.0,
       "width": 3.0,
       "multiplier": 3,
@@ -136,10 +123,10 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "4040 H.S. (front)",
+      "name": "4040",
       "wall": "E Wall",
       "status": "New",
-      "azimuth": 300.0,
+      "azimuth": 284.0,
       "height": 4.0,
       "width": 4.0,
       "multiplier": 1,
@@ -152,7 +139,7 @@
       "name": "3030",
       "wall": "E Wall",
       "status": "New",
-      "azimuth": 300.0,
+      "azimuth": 284.0,
       "height": 3.0,
       "width": 3.0,
       "multiplier": 1,
@@ -162,10 +149,10 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3040 H.S. (front)",
+      "name": "3040",
       "wall": "E Wall",
       "status": "New",
-      "azimuth": 300.0,
+      "azimuth": 284.0,
       "height": 4.0,
       "width": 3.0,
       "multiplier": 2,
@@ -175,10 +162,10 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "SGD (Door 4)",
+      "name": "Door 4 (6068)",
       "wall": "E Wall",
       "status": "New",
-      "azimuth": 300.0,
+      "azimuth": 284.0,
       "height": 6.67,
       "width": 6.0,
       "multiplier": 1,
@@ -188,10 +175,10 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3040 H.S. (right)",
+      "name": "3040",
       "wall": "S Wall",
       "status": "New",
-      "azimuth": 30.0,
+      "azimuth": 14.0,
       "height": 4.0,
       "width": 3.0,
       "multiplier": 1,
@@ -201,10 +188,23 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "3020 H.S.",
+      "name": "4040",
       "wall": "W Wall",
       "status": "New",
-      "azimuth": 120.0,
+      "azimuth": 104.0,
+      "height": 4.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 16.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "3020",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 104.0,
       "height": 2.0,
       "width": 3.0,
       "multiplier": 1,
@@ -214,14 +214,14 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "4040 H.S. (back)",
+      "name": "3040",
       "wall": "W Wall",
       "status": "New",
-      "azimuth": 120.0,
+      "azimuth": 104.0,
       "height": 4.0,
-      "width": 4.0,
+      "width": 3.0,
       "multiplier": 1,
-      "area": 16.0,
+      "area": 12.0,
       "u_factor": 0.3,
       "shgc": 0.23,
       "exterior_shade": "Insect Screen (default)"
@@ -287,7 +287,7 @@
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 5
+      "items_extracted": 6
     },
     "hvac": {
       "domain": "hvac",

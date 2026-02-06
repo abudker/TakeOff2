@@ -297,6 +297,8 @@ def get_relevant_pages_for_domain(domain: str, document_map: DocumentMap) -> Lis
         relevant.update(document_map.elevation_pages)
         relevant.update(document_map.floor_plan_pages)
         relevant.update(document_map.energy_summary_pages)
+        # Include ALL schedule pages (spec sheets often have glazing performance data)
+        relevant.update(document_map.schedule_pages)
         relevant.update(document_map.pages_with_any_tag([
             "glazing_performance", "window_callouts"
         ]))
@@ -1706,10 +1708,14 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             _run_orientation_and_project()
         )
 
-        # Save orientation and project caches
+        # Save orientation cache only if confidence is high (low confidence = re-run each time)
         if not cached_orientation and orientation_data:
-            with open(orient_cache_file, "w") as cf:
-                json.dump(orientation_data, cf, indent=2)
+            if orientation_data.get("confidence", "low") == "high":
+                with open(orient_cache_file, "w") as cf:
+                    json.dump(orientation_data, cf, indent=2)
+                logger.info(f"Cached orientation for {eval_name} (high confidence)")
+            else:
+                logger.info(f"NOT caching orientation for {eval_name} (confidence: {orientation_data.get('confidence', 'low')})")
         if not cached_project and project_extraction:
             with open(project_cache_file, "w") as cf:
                 json.dump(project_extraction, cf, indent=2)

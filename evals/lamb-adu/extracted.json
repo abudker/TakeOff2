@@ -46,15 +46,15 @@
       "zone_type": "Conditioned",
       "status": "New",
       "floor_area": 808.0,
-      "ceiling_height": 9.0,
+      "ceiling_height": 8.0,
       "stories": 1,
-      "volume": 7272.0,
-      "exterior_wall_area": 1080.0,
+      "volume": 6464.0,
+      "exterior_wall_area": 1176.0,
       "exterior_wall_door_area": null,
       "ceiling_below_attic_area": 0.0,
       "cathedral_ceiling_area": 808.0,
       "slab_floor_area": 0.0,
-      "exterior_floor_area": null
+      "exterior_floor_area": 808.0
     }
   ],
   "walls": [
@@ -64,8 +64,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 292.0,
-      "area": 180.0,
-      "window_area": 113.21,
+      "area": 480.0,
+      "window_area": 81.21,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -76,8 +76,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 22.0,
-      "area": 360.0,
-      "window_area": 32.0,
+      "area": 108.0,
+      "window_area": 48.0,
       "door_area": 24.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -88,8 +88,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 112.0,
-      "area": 180.0,
-      "window_area": 109.34,
+      "area": 480.0,
+      "window_area": 16.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -100,7 +100,7 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 202.0,
-      "area": 360.0,
+      "area": 108.0,
       "window_area": 14.0,
       "door_area": 0.0,
       "tilt": 90.0,
@@ -109,19 +109,6 @@
   ],
   "wall_constructions": [],
   "windows": [
-    {
-      "name": "AB",
-      "wall": "N Wall",
-      "status": "New",
-      "azimuth": 292.0,
-      "height": 5.33,
-      "width": 3.0,
-      "multiplier": 1,
-      "area": 16.0,
-      "u_factor": 0.3,
-      "shgc": 0.23,
-      "exterior_shade": "Insect Screen (default)"
-    },
     {
       "name": "AC",
       "wall": "N Wall",
@@ -201,19 +188,6 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "BD",
-      "wall": "N Wall",
-      "status": "New",
-      "azimuth": 292.0,
-      "height": 2.0,
-      "width": 8.0,
-      "multiplier": 1,
-      "area": 16.0,
-      "u_factor": 0.3,
-      "shgc": 0.23,
-      "exterior_shade": "Insect Screen (default)"
-    },
-    {
       "name": "AA",
       "wall": "E Wall",
       "status": "New",
@@ -227,28 +201,28 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "102",
-      "wall": "S Wall",
+      "name": "AB",
+      "wall": "E Wall",
       "status": "New",
-      "azimuth": 112.0,
-      "height": 8.0,
-      "width": 6.83,
+      "azimuth": 22.0,
+      "height": 5.33,
+      "width": 3.0,
       "multiplier": 1,
-      "area": 54.67,
-      "u_factor": 0.32,
+      "area": 16.0,
+      "u_factor": 0.3,
       "shgc": 0.23,
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "103",
+      "name": "BD",
       "wall": "S Wall",
       "status": "New",
       "azimuth": 112.0,
-      "height": 8.0,
-      "width": 6.83,
+      "height": 2.0,
+      "width": 8.0,
       "multiplier": 1,
-      "area": 54.67,
-      "u_factor": 0.32,
+      "area": 16.0,
+      "u_factor": 0.3,
       "shgc": 0.23,
       "exterior_shade": "Insect Screen (default)"
     },
@@ -268,7 +242,7 @@
   ],
   "ceilings": [
     {
-      "name": "Cathedral Ceiling",
+      "name": "Ceiling 1",
       "zone": "ADU",
       "status": "New",
       "construction_type": "R-38 Roof Rafter",
@@ -308,14 +282,14 @@
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 10
+      "items_extracted": 9
     },
     "windows": {
       "domain": "windows",
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 7
+      "items_extracted": 0
     },
     "hvac": {
       "domain": "hvac",

@@ -518,8 +518,22 @@
         "format_error": 0
       },
       "trend": -0.009392443108630188
+    },
+    {
+      "iteration": 46,
+      "f1": 0.7410071942446043,
+      "precision": 0.7253521126760564,
+      "recall": 0.7573529411764706,
+      "timestamp": "2026-02-06T05:54:27.830870Z",
+      "error_counts": {
+        "omission": 33,
+        "hallucination": 8,
+        "wrong_value": 31,
+        "format_error": 0
+      },
+      "trend": 0.027771900126957183
     }
   ],
-  "best_f1": 0.7226277372262773,
-  "best_iteration": 44
+  "best_f1": 0.7410071942446043,
+  "best_iteration": 46
 }

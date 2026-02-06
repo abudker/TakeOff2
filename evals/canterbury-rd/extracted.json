@@ -133,19 +133,6 @@
       "exterior_shade": "Insect Screen (default)"
     },
     {
-      "name": "D03",
-      "wall": "E Wall",
-      "status": "New",
-      "azimuth": 90.0,
-      "height": 8.0,
-      "width": 8.0,
-      "multiplier": 2,
-      "area": 128.0,
-      "u_factor": 0.32,
-      "shgc": 0.24,
-      "exterior_shade": "Insect Screen (default)"
-    },
-    {
       "name": "G02",
       "wall": "E Wall",
       "status": "New",
@@ -154,6 +141,19 @@
       "width": 4.0,
       "multiplier": 1,
       "area": 32.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "D03",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 90.0,
+      "height": 8.0,
+      "width": 8.0,
+      "multiplier": 2,
+      "area": 128.0,
       "u_factor": 0.32,
       "shgc": 0.24,
       "exterior_shade": "Insect Screen (default)"
@@ -177,7 +177,7 @@
   "slab_floors": [],
   "hvac_systems": [
     {
-      "name": "Ductless Mini Split",
+      "name": "Ductless Mini Split - MXZ-2C20NA3",
       "status": "New",
       "system_type": "Ductless",
       "heating": null,
@@ -206,7 +206,7 @@
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 7
+      "items_extracted": 5
     },
     "hvac": {
       "domain": "hvac",
