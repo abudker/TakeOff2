@@ -1,0 +1,169 @@
+{
+  "eval_id": "poonian-adu",
+  "metrics": {
+    "precision": 0.8982300884955752,
+    "recall": 0.9950980392156863,
+    "f1": 0.944186046511628,
+    "true_positives": 203,
+    "false_positives": 23,
+    "false_negatives": 1,
+    "total_fields_gt": 227,
+    "total_fields_extracted": 288,
+    "correct_fields": 203,
+    "errors_by_type": {
+      "omission": 1,
+      "hallucination": 0,
+      "wrong_value": 23,
+      "format_error": 0
+    },
+    "eval_id": "poonian-adu"
+  },
+  "discrepancies": [
+    {
+      "field_path": "project.address",
+      "expected": "3534 Meadowlands Lane",
+      "actual": "3534 Meadowlands Ln",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_area",
+      "expected": 156.0,
+      "actual": 100.36,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.exterior_wall_area",
+      "expected": 1302.0,
+      "actual": 1164.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].area",
+      "expected": 219.0,
+      "actual": 194.6,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].area",
+      "expected": 432.0,
+      "actual": 381.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].area",
+      "expected": 219.0,
+      "actual": 194.6,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].area",
+      "expected": 432.0,
+      "actual": 381.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].door_area",
+      "expected": 0.0,
+      "actual": 49.9,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].name",
+      "expected": "W-14",
+      "actual": "W-01",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].name",
+      "expected": "W-01",
+      "actual": "W-14",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].name",
+      "expected": "W-04",
+      "actual": "W-05",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[8].name",
+      "expected": "W-05",
+      "actual": "W-04",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[9].name",
+      "expected": "W-06",
+      "actual": "W-10",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[10].name",
+      "expected": "W-07",
+      "actual": "W-09",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[11].name",
+      "expected": "W-08",
+      "actual": "W-06",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[12].name",
+      "expected": "W-09",
+      "actual": "W-07",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[13].name",
+      "expected": "W-10",
+      "actual": "W-08",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].perimeter",
+      "expected": 0.1,
+      "actual": 144.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].carpeted_fraction",
+      "expected": 1.0,
+      "actual": 0.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].ceiling_height",
+      "expected": 9.0,
+      "actual": 8.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].volume",
+      "expected": 10440.0,
+      "actual": 9280.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 1302.0,
+      "actual": 1151.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 20.0,
+      "actual": 70.1,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0.0,
+      "actual": null,
+      "error_type": "omission"
+    }
+  ],
+  "timestamp": "2026-02-06T09:04:56.234602Z",
+  "iteration": 57
+}

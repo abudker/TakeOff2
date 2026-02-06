@@ -354,17 +354,23 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
               help='Output file for aggregate results JSON')
 @click.option('--save', is_flag=True, default=False,
               help='Save results to iteration directories with HTML reports')
-def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save: bool):
+@click.option('--eval', 'eval_ids', multiple=True,
+              help='Only verify specific eval(s). Can be repeated.')
+@click.option('--exclude', 'exclude_ids', multiple=True,
+              help='Exclude specific eval(s). Can be repeated.')
+def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save: bool,
+               eval_ids: tuple, exclude_ids: tuple):
     """
-    Run verification on all evals and show aggregate metrics.
+    Run verification on evals and show aggregate metrics.
 
     Looks for extracted.json in each eval's results directory.
+    Use --eval/--exclude to filter which evals to verify.
 
     Example:
         verifier verify-all
-        verifier verify-all --evals-dir ./evals --output aggregate.json
+        verifier verify-all --eval lamb-adu --eval poonian-adu
+        verifier verify-all --exclude canterbury-rd
         verifier verify-all --save
-        python -m verifier verify-all
     """
     evals_path = Path(evals_dir)
     mapping = load_field_mapping()
@@ -381,7 +387,14 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
     results_by_eval = {}
     skipped_evals = []
 
-    for eval_id in manifest.get('evals', {}).keys():
+    # Filter evals
+    eval_keys = list(manifest.get('evals', {}).keys())
+    if eval_ids:
+        eval_keys = [k for k in eval_keys if k in eval_ids]
+    if exclude_ids:
+        eval_keys = [k for k in eval_keys if k not in exclude_ids]
+
+    for eval_id in eval_keys:
         # Find latest extraction result
         # Priority: root extracted.json (freshest) > results dir > iteration dirs
         results_dir = evals_path / eval_id / results_subdir

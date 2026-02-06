@@ -123,9 +123,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 06-01-PLAN.md — Loop controller and iteration history modules
-- [ ] 06-02-PLAN.md — CLI commands (loop, history)
-- [ ] 06-03-PLAN.md — End-to-end verification (checkpoint)
+- [ ] 06-01-PLAN.md — Loop controller (ImprovementLoop) and iteration history (IterationHistory) modules
+- [ ] 06-02-PLAN.md — CLI commands: loop (run/resume automated loop) and history (view F1 progression)
+- [ ] 06-03-PLAN.md — End-to-end smoke test (2 iterations) + human verification checkpoint
 
 ### Phase 7: CV Sensors
 **Goal**: Reduce orientation extraction variance and eliminate systematic ±90° and ±180° failures by introducing a deterministic geometry sensing layer that assists (but does not replace) the existing LLM two-pass orientation system

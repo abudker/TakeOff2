@@ -2,11 +2,13 @@
 import json
 import logging
 import shutil
+import time
+import concurrent.futures
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import click
 import yaml
-from agents.orchestrator import run_extraction
+from agents.orchestrator import run_extraction, ALL_DOMAINS
 
 logger = logging.getLogger(__name__)
 
@@ -71,17 +73,23 @@ def show_diagnostics(eval_id: str, extraction_status: Dict[str, Any], conflicts:
             click.echo(f"    ... and {len(conflicts) - 5} more")
 
 
-def show_timing(timing: Dict[str, float], eval_id: str):
-    """Print pipeline timing breakdown."""
+def show_timing(timing: Dict[str, Any], eval_id: str):
+    """Print pipeline timing breakdown including per-domain detail."""
     if not timing:
         return
     click.echo(f"\n  --- Timing for {eval_id} ---")
     total = timing.get("total", 0)
     for stage, duration in timing.items():
-        if stage == "total":
+        if stage in ("total", "domains"):
             continue
-        pct = (duration / total * 100) if total > 0 else 0
-        click.echo(f"    {stage:<25} {duration:>7.1f}s  ({pct:>4.0f}%)")
+        if isinstance(duration, (int, float)):
+            pct = (duration / total * 100) if total > 0 else 0
+            click.echo(f"    {stage:<25} {duration:>7.1f}s  ({pct:>4.0f}%)")
+    # Per-domain breakdown
+    domain_timing = timing.get("domains")
+    if domain_timing:
+        for domain, dur in domain_timing.items():
+            click.echo(f"      {domain:<23} {dur:>7.1f}s")
     click.echo(f"    {'total':<25} {total:>7.1f}s")
 
 
@@ -110,7 +118,13 @@ def cli():
     is_flag=True,
     help="Show detailed extraction diagnostics"
 )
-def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
+@click.option(
+    "--domains",
+    type=str,
+    default=None,
+    help="Comma-separated domains to extract (zones,windows,hvac,dhw). Default: all"
+)
+def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool, domains: Optional[str]):
     """
     Extract building specification from a single evaluation case.
 
@@ -118,6 +132,15 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
     """
     # Check Claude CLI is available
     check_claude_cli()
+
+    # Parse domains
+    domain_list = None
+    if domains:
+        domain_list = [d.strip() for d in domains.split(",")]
+        invalid = [d for d in domain_list if d not in ALL_DOMAINS]
+        if invalid:
+            raise click.ClickException(f"Invalid domain(s): {', '.join(invalid)}. Valid: {', '.join(ALL_DOMAINS)}")
+        click.echo(f"Domains: {', '.join(domain_list)}")
 
     # Find eval directory
     eval_dir = evals_dir / eval_id
@@ -131,7 +154,7 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
     # Run extraction
     click.echo(f"Extracting from {eval_id}...")
     try:
-        final_state = run_extraction(eval_id, eval_dir)
+        final_state = run_extraction(eval_id, eval_dir, domains=domain_list)
     except Exception as e:
         logger.exception("Extraction error details:")
         raise click.ClickException(f"Extraction failed: {e}")
@@ -198,14 +221,46 @@ def extract_one(eval_id: str, evals_dir: Path, output: Path, verbose: bool):
     is_flag=True,
     help="Show detailed extraction diagnostics per eval"
 )
-def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool):
+@click.option(
+    "--eval", "eval_ids",
+    multiple=True,
+    help="Only run specific eval(s). Can be repeated: --eval foo --eval bar"
+)
+@click.option(
+    "--exclude", "exclude_ids",
+    multiple=True,
+    help="Exclude specific eval(s). Can be repeated: --exclude foo --exclude bar"
+)
+@click.option(
+    "--domains",
+    type=str,
+    default=None,
+    help="Comma-separated domains to extract (zones,windows,hvac,dhw). Default: all"
+)
+@click.option(
+    "--workers",
+    type=int,
+    default=1,
+    help="Number of evals to extract in parallel (default: 1 = sequential)"
+)
+def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool,
+                eval_ids: tuple, exclude_ids: tuple, domains: Optional[str], workers: int):
     """
-    Extract building specifications from all evaluation cases.
+    Extract building specifications from evaluation cases.
 
-    Processes all eval cases listed in manifest.yaml.
+    Processes eval cases from manifest.yaml. Use --eval/--exclude to filter,
+    --domains to extract specific domains, --workers for parallelism.
     """
     # Check Claude CLI is available
     check_claude_cli()
+
+    # Parse domains
+    domain_list = None
+    if domains:
+        domain_list = [d.strip() for d in domains.split(",")]
+        invalid = [d for d in domain_list if d not in ALL_DOMAINS]
+        if invalid:
+            raise click.ClickException(f"Invalid domain(s): {', '.join(invalid)}. Valid: {', '.join(ALL_DOMAINS)}")
 
     # Load manifest
     manifest_path = evals_dir / "manifest.yaml"
@@ -220,65 +275,52 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
     if not evals_dict:
         raise click.ClickException("No evaluation cases found in manifest.yaml")
 
-    click.echo(f"Running extraction on {len(evals_dict)} evaluation cases...")
+    # Filter evals
+    if eval_ids:
+        evals_dict = {k: v for k, v in evals_dict.items() if k in eval_ids}
+    if exclude_ids:
+        evals_dict = {k: v for k, v in evals_dict.items() if k not in exclude_ids}
+
+    if not evals_dict:
+        raise click.ClickException("No evaluation cases match the filter criteria.")
+
+    # Show config
+    config_parts = [f"{len(evals_dict)} evals"]
+    if domain_list:
+        config_parts.append(f"domains={','.join(domain_list)}")
+    if workers > 1:
+        config_parts.append(f"{workers} workers")
+    click.echo(f"Running extraction: {' | '.join(config_parts)}")
     click.echo("=" * 60)
 
-    # Track results
-    results = []
-    all_timings = {}
+    wall_clock_start = time.monotonic()
 
-    for eval_id, eval_info in evals_dict.items():
+    def _extract_eval(eval_id, eval_info):
+        """Extract a single eval, return result dict."""
         eval_dir = evals_dir / eval_id
         output_path = eval_dir / "extracted.json"
 
         # Check if already extracted
         if output_path.exists() and not force:
             if skip_existing:
-                click.echo(f"[{eval_id}] Skipped (already extracted)")
-                results.append({"id": eval_id, "status": "skipped"})
-                continue
+                return {"id": eval_id, "status": "skipped", "output_path": str(output_path)}
 
-        # Run extraction
-        click.echo(f"\n[{eval_id}] Starting extraction...")
         try:
-            final_state = run_extraction(eval_id, eval_dir)
-
-            # Collect timing
+            final_state = run_extraction(eval_id, eval_dir, domains=domain_list)
             timing = final_state.get("timing")
-            if timing:
-                all_timings[eval_id] = timing
 
             if final_state.get("error"):
-                click.echo(f"[{eval_id}] FAILED: {final_state['error']}")
-                results.append({"id": eval_id, "status": "failed", "error": final_state["error"]})
-                continue
+                return {"id": eval_id, "status": "failed", "error": final_state["error"],
+                        "timing": timing}
 
             building_spec = final_state.get("building_spec")
             if not building_spec:
-                click.echo(f"[{eval_id}] FAILED: No building spec in final state")
-                results.append({"id": eval_id, "status": "failed", "error": "No building spec"})
-                continue
-
-            counts = count_extracted_items(building_spec)
-            conflicts = building_spec.get("conflicts", [])
-
-            total_s = f" ({timing['total']:.0f}s)" if timing else ""
-            click.echo(
-                f"[{eval_id}] SUCCESS{total_s} - "
-                f"Zones: {counts['zones']}, Walls: {counts['walls']}, "
-                f"Windows: {counts['windows']}, HVAC: {counts['hvac']}, DHW: {counts['dhw']}"
-            )
-
-            if verbose:
-                extraction_status = building_spec.get("extraction_status", {})
-                show_diagnostics(eval_id, extraction_status, conflicts)
-                if timing:
-                    show_timing(timing, eval_id)
+                return {"id": eval_id, "status": "failed", "error": "No building spec",
+                        "timing": timing}
 
             # Save output
             with open(output_path, "w") as f:
                 json.dump(building_spec, f, indent=2)
-            click.echo(f"[{eval_id}] Saved to {output_path}")
 
             # Save timing
             if timing:
@@ -286,14 +328,73 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
                 with open(timing_path, "w") as f:
                     json.dump(timing, f, indent=2)
 
-            results.append({
-                "id": eval_id, "status": "success",
-                **counts, "conflicts": len(conflicts),
-            })
-
+            counts = count_extracted_items(building_spec)
+            return {
+                "id": eval_id,
+                "status": "success",
+                **counts,
+                "conflicts": len(building_spec.get("conflicts", [])),
+                "output_path": str(output_path),
+                "timing": timing,
+                "extraction_status": building_spec.get("extraction_status", {}),
+            }
         except Exception as e:
-            click.echo(f"[{eval_id}] ERROR: {e}")
-            results.append({"id": eval_id, "status": "error", "error": str(e)})
+            return {"id": eval_id, "status": "error", "error": str(e)}
+
+    # Execute extractions (parallel or sequential)
+    results = []
+    all_timings = {}
+
+    if workers > 1:
+        # Parallel extraction across evals
+        click.echo(f"Running {len(evals_dict)} evals with {workers} parallel workers...")
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {
+                executor.submit(_extract_eval, eid, einfo): eid
+                for eid, einfo in evals_dict.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                r = future.result()
+                eid = r["id"]
+                timing = r.get("timing")
+                if timing:
+                    all_timings[eid] = timing
+
+                if r["status"] == "success":
+                    total_s = f" ({timing['total']:.0f}s)" if timing else ""
+                    click.echo(f"[{eid}] SUCCESS{total_s} - Z:{r['zones']} W:{r['walls']} Win:{r['windows']} HVAC:{r['hvac']} DHW:{r['dhw']}")
+                elif r["status"] == "skipped":
+                    click.echo(f"[{eid}] Skipped (already extracted)")
+                else:
+                    click.echo(f"[{eid}] {r['status'].upper()}: {r.get('error', '?')}")
+                results.append(r)
+    else:
+        # Sequential extraction
+        for eval_id, eval_info in evals_dict.items():
+            click.echo(f"\n[{eval_id}] Starting extraction...")
+            r = _extract_eval(eval_id, eval_info)
+            timing = r.get("timing")
+            if timing:
+                all_timings[eval_id] = timing
+
+            if r["status"] == "success":
+                total_s = f" ({timing['total']:.0f}s)" if timing else ""
+                click.echo(f"[{eval_id}] SUCCESS{total_s} - Z:{r['zones']} W:{r['walls']} Win:{r['windows']} HVAC:{r['hvac']} DHW:{r['dhw']}")
+
+                if verbose:
+                    show_diagnostics(eval_id, r.get("extraction_status", {}), [])
+                    if timing:
+                        show_timing(timing, eval_id)
+
+                click.echo(f"[{eval_id}] Saved to {r['output_path']}")
+            elif r["status"] == "skipped":
+                click.echo(f"[{eval_id}] Skipped (already extracted)")
+            else:
+                click.echo(f"[{eval_id}] {r['status'].upper()}: {r.get('error', '?')}")
+
+            results.append(r)
+
+    wall_clock_total = time.monotonic() - wall_clock_start
 
     # Print summary
     click.echo("\n" + "=" * 60)
@@ -305,14 +406,15 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
     failed_count = len(results) - success_count - skipped_count
 
     click.echo(f"Total: {len(results)} | Success: {success_count} | Skipped: {skipped_count} | Failed: {failed_count}")
+    click.echo(f"Wall-clock time: {wall_clock_total:.0f}s ({wall_clock_total/60:.1f} min)")
 
     # Print timing summary across all evals
     if all_timings:
-        click.echo("\n" + "─" * 60)
+        click.echo("\n" + "─" * 72)
         click.echo("TIMING SUMMARY")
-        click.echo("─" * 60)
+        click.echo("─" * 72)
         click.echo(f"{'Eval':<22} {'Discovery':>10} {'Orient':>10} {'Project':>10} {'Domains':>10} {'Total':>10}")
-        click.echo("─" * 60)
+        click.echo("─" * 72)
         for eid, t in all_timings.items():
             click.echo(
                 f"{eid:<22} "
@@ -322,9 +424,15 @@ def extract_all(evals_dir: Path, skip_existing: bool, force: bool, verbose: bool
                 f"{t.get('parallel_extraction', 0):>9.0f}s "
                 f"{t.get('total', 0):>9.0f}s"
             )
-        grand_total = sum(t.get("total", 0) for t in all_timings.values())
-        click.echo("─" * 60)
-        click.echo(f"{'Grand total':<22} {'':>10} {'':>10} {'':>10} {'':>10} {grand_total:>9.0f}s")
+            # Per-domain detail
+            domain_timing = t.get("domains")
+            if domain_timing:
+                parts = [f"{d}={dur:.0f}s" for d, dur in domain_timing.items()]
+                click.echo(f"{'':>22}   {' | '.join(parts)}")
+        click.echo("─" * 72)
+        sum_total = sum(t.get("total", 0) for t in all_timings.values())
+        click.echo(f"{'Sum (sequential)':<22} {'':>10} {'':>10} {'':>10} {'':>10} {sum_total:>9.0f}s")
+        click.echo(f"{'Wall-clock':<22} {'':>10} {'':>10} {'':>10} {'':>10} {wall_clock_total:>9.0f}s")
 
     if verbose:
         click.echo("\nPer-eval results:")

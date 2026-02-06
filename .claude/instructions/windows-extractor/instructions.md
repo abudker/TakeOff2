@@ -1,12 +1,12 @@
 # Windows Extractor Instructions
 
-**Version:** v2.3.0
-**Last updated:** 2026-02-05
+**Version:** v2.4.0
+**Last updated:** 2026-02-06
 
 ## CRITICAL OUTPUT RULES (read first)
 
 1. **Window area = rough opening area from schedule/designation codes, NOT glass area.** Window designation codes encode nominal dimensions: "3040" = 3'0" × 4'0" = 12 sf, "6068" = 6'0" × 6'8" = 40 sf. Use these nominal dimensions for area calculation. Do NOT measure actual glass/glazing area from the drawing — that gives ~30-40% smaller values.
-2. **SHGC and U-factor: Read ACTUAL values from the window schedule or energy notes.** Do NOT default to 0.23 SHGC if the schedule shows a different value (e.g., 0.29, 0.25). Only use defaults when no value is specified anywhere in the plans.
+2. **SHGC and U-factor: Read ACTUAL values directly from the window schedule PAGE or spec sheet PDF.** Do NOT trust document map descriptions or summaries — they may contain incorrect values. Read the actual schedule/spec page content. Common SHGC values: 0.22, 0.23, 0.25, 0.29, 0.30. Do NOT assume 0.23 is correct — verify by reading the source page.
 3. **Window names: Use EXACT marks from the window/door schedule** (e.g., "W-11", "101", "BA", "G03 (3020)"). Do NOT invent names, append orientation codes, or renumber windows. If the schedule mark is "101", use "101" — not "AA" or "Window 1".
 4. **exterior_shade: Default to `"Insect Screen (default)"`** when no exterior shading device is specified. This is the standard CBECC-Res default.
 5. **Multi-panel windows/doors: Total area = full assembly area.** A 3-panel sliding door or bi-fold door area is the total opening area, not one panel. If schedule says "6068" for a sliding glass door, area = 6'0" × 6'8" = 40 sf.

@@ -1,0 +1,358 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": "3534 Meadowlands Ln ADU",
+    "run_number": 0,
+    "run_scope": null,
+    "address": "3534 Meadowlands Ln",
+    "city": "San Jose",
+    "climate_zone": 4,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 2,
+    "attached_garage": false,
+    "front_orientation": 112.0,
+    "orientation_confidence": "high",
+    "orientation_verification": "manual_gt"
+  },
+  "envelope": {
+    "conditioned_floor_area": 1160.0,
+    "addition_conditioned_floor_area": 0.0,
+    "window_area": 100.36,
+    "window_to_floor_ratio": 0.087,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 1164.0,
+    "underground_wall_area": 0.0,
+    "slab_floor_area": 1160.0,
+    "exposed_slab_floor_area": 0.0,
+    "below_grade_floor_area": 0.0,
+    "exposed_below_grade_floor_area": 0.0,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 1160.0,
+      "ceiling_height": 8.0,
+      "stories": 1,
+      "volume": 9280.0,
+      "exterior_wall_area": 1152.0,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 1160.0,
+      "cathedral_ceiling_area": 0.0,
+      "slab_floor_area": 1160.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 22.0,
+      "area": 195.0,
+      "window_area": 18.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 112.0,
+      "area": 381.0,
+      "window_area": 42.0,
+      "door_area": 20.2,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 202.0,
+      "area": 195.0,
+      "window_area": 24.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 292.0,
+      "area": 381.0,
+      "window_area": 72.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "W-11",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 3.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 9.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-12",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 3.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 9.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-13",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 112.0,
+      "height": 3.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 9.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-01",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 112.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-02",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 112.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-03",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 112.0,
+      "height": 3.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 9.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-04",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 202.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-05",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 202.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-06",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-07",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-08",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-09",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-10",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "W-14",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    }
+  ],
+  "ceilings": [],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "ADU",
+      "status": "New",
+      "area": 1160.0,
+      "perimeter": 144.0,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "HVAC System 1",
+      "status": "New",
+      "system_type": "Heat Pump",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 11
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 7
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

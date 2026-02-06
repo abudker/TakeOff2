@@ -1,0 +1,336 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": "1500 Wooden Valley Road ADU",
+    "run_number": 0,
+    "run_scope": null,
+    "address": "1500 Wooden Valley Road",
+    "city": "Napa",
+    "climate_zone": 2,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 2,
+    "attached_garage": false,
+    "front_orientation": 22.0,
+    "orientation_confidence": "high",
+    "orientation_verification": "agreement"
+  },
+  "envelope": {
+    "conditioned_floor_area": 1200.0,
+    "addition_conditioned_floor_area": 0.0,
+    "window_area": 162.3,
+    "window_to_floor_ratio": 0.14,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 1476.0,
+    "underground_wall_area": 0.0,
+    "slab_floor_area": null,
+    "exposed_slab_floor_area": 0.0,
+    "below_grade_floor_area": 0.0,
+    "exposed_below_grade_floor_area": 0.0,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 1200.0,
+      "ceiling_height": 9.0,
+      "stories": 1,
+      "volume": 10800.0,
+      "exterior_wall_area": 1440.0,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 1200.0,
+      "slab_floor_area": 0.0,
+      "exterior_floor_area": 1200.0
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 22.0,
+      "area": 540.0,
+      "window_area": 113.21,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 112.0,
+      "area": 180.0,
+      "window_area": 14.67,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 202.0,
+      "area": 540.0,
+      "window_area": 109.34,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 292.0,
+      "area": 180.0,
+      "window_area": 32.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "AB",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 5.33,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 16.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "AC",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 4.33,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 17.33,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "AD",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 4.33,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 13.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "AE",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 4.33,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 13.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "BA",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 2.33,
+      "width": 6.83,
+      "multiplier": 1,
+      "area": 15.94,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "BB",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 2.33,
+      "width": 6.83,
+      "multiplier": 1,
+      "area": 15.94,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "BC",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "BD",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 22.0,
+      "height": 2.0,
+      "width": 8.0,
+      "multiplier": 1,
+      "area": 16.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "AF",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 112.0,
+      "height": 7.33,
+      "width": 2.0,
+      "multiplier": 1,
+      "area": 14.67,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "102",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 202.0,
+      "height": 8.0,
+      "width": 6.83,
+      "multiplier": 1,
+      "area": 54.67,
+      "u_factor": 0.32,
+      "shgc": 0.23,
+      "exterior_shade": "Covered Deck"
+    },
+    {
+      "name": "103",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 202.0,
+      "height": 8.0,
+      "width": 6.83,
+      "multiplier": 1,
+      "area": 54.67,
+      "u_factor": 0.32,
+      "shgc": 0.23,
+      "exterior_shade": "Covered Deck"
+    },
+    {
+      "name": "AA",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 292.0,
+      "height": 5.33,
+      "width": 6.0,
+      "multiplier": 1,
+      "area": 32.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-38 Roof Rafter",
+      "orientation": null,
+      "area": 1200.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
+  "ceiling_constructions": [],
+  "slab_floors": [],
+  "hvac_systems": [
+    {
+      "name": "HVAC System 1",
+      "status": "New",
+      "system_type": "Heat Pump",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 10
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 6
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

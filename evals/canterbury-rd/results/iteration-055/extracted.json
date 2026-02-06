@@ -1,0 +1,256 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": "1961 Canterbury Rd",
+    "run_number": 0,
+    "run_scope": null,
+    "address": "1961 Canterbury Rd",
+    "city": "Sacramento",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 3,
+    "attached_garage": false,
+    "front_orientation": 90.0,
+    "orientation_confidence": "high",
+    "orientation_verification": "agreement"
+  },
+  "envelope": {
+    "conditioned_floor_area": 996.0,
+    "addition_conditioned_floor_area": 0.0,
+    "window_area": 190.8,
+    "window_to_floor_ratio": 0.19,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 1056.0,
+    "underground_wall_area": 0.0,
+    "slab_floor_area": 996.0,
+    "exposed_slab_floor_area": 0.0,
+    "below_grade_floor_area": 0.0,
+    "exposed_below_grade_floor_area": 0.0,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 996.0,
+      "ceiling_height": 8.0,
+      "stories": 1,
+      "volume": 7968.0,
+      "exterior_wall_area": 1043.6,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 996.0,
+      "slab_floor_area": 996.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 0.0,
+      "area": 194.4,
+      "window_area": 89.0,
+      "door_area": 24.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 90.0,
+      "area": 327.4,
+      "window_area": 384.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 180.0,
+      "area": 194.4,
+      "window_area": 160.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 270.0,
+      "area": 327.4,
+      "window_area": 0.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "G04",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 2.5,
+      "width": 10.0,
+      "multiplier": 1,
+      "area": 25.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "D03",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 8.0,
+      "width": 8.0,
+      "multiplier": 1,
+      "area": 64.0,
+      "u_factor": 0.23,
+      "shgc": 0.34,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G02",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 90.0,
+      "height": 8.0,
+      "width": 4.0,
+      "multiplier": 2,
+      "area": 64.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "D03",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 90.0,
+      "height": 8.0,
+      "width": 8.0,
+      "multiplier": 2,
+      "area": 128.0,
+      "u_factor": 0.23,
+      "shgc": 0.34,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G01",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 5.0,
+      "width": 8.0,
+      "multiplier": 2,
+      "area": 80.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": "Insect Screen (default)"
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-32 Roof Rafter",
+      "orientation": null,
+      "area": 996.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "ADU",
+      "status": "New",
+      "area": 996.0,
+      "perimeter": 130.6,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "Ductless Mini Split",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 1,
+      "items_extracted": 10
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 7
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

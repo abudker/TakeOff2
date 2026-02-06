@@ -18,8 +18,10 @@ Multi-Domain Extraction:
 """
 import asyncio
 import logging
+import random
 import subprocess
 import json
+import threading
 import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
@@ -43,8 +45,13 @@ from schemas.transform import transform_takeoff_to_building_spec
 
 logger = logging.getLogger(__name__)
 
-# Limit concurrent extractor invocations to avoid overwhelming the system
-EXTRACTION_SEMAPHORE = asyncio.Semaphore(4)
+# Global concurrency limit for Claude agent subprocesses (works across threads/event loops)
+AGENT_SEMAPHORE = threading.Semaphore(6)
+
+ALL_DOMAINS = ["zones", "windows", "hvac", "dhw"]
+
+# Rate-limit error patterns in subprocess stderr/stdout
+_RATE_LIMIT_PATTERNS = ["rate limit", "429", "overloaded", "too many requests", "resource_exhausted"]
 
 # Claude Read tool limit for PDF pages
 MAX_PDF_PAGES_PER_READ = 20
@@ -355,9 +362,18 @@ def get_relevant_pages_for_domain(domain: str, document_map: DocumentMap) -> Lis
     return sorted(relevant)
 
 
+def _is_rate_limit_error(error_msg: str) -> bool:
+    """Check if an error message indicates API rate limiting."""
+    lower = error_msg.lower()
+    return any(pattern in lower for pattern in _RATE_LIMIT_PATTERNS)
+
+
 def invoke_claude_agent(agent_name: str, prompt: str, timeout: int = 300) -> str:
     """
     Invoke a Claude Code agent via subprocess.
+
+    Uses a global threading semaphore to limit concurrent agent invocations
+    across all threads and event loops.
 
     Args:
         agent_name: Name of agent (e.g., "discovery", "project-extractor")
@@ -378,6 +394,7 @@ def invoke_claude_agent(agent_name: str, prompt: str, timeout: int = 300) -> str
         prompt
     ]
 
+    AGENT_SEMAPHORE.acquire()
     try:
         result = subprocess.run(
             cmd,
@@ -399,6 +416,8 @@ def invoke_claude_agent(agent_name: str, prompt: str, timeout: int = 300) -> str
         )
     except subprocess.TimeoutExpired:
         raise RuntimeError(f"Agent {agent_name} timed out after {timeout}s")
+    finally:
+        AGENT_SEMAPHORE.release()
 
 
 async def invoke_claude_agent_async(agent_name: str, prompt: str, timeout: int = 600) -> str:
@@ -406,7 +425,8 @@ async def invoke_claude_agent_async(agent_name: str, prompt: str, timeout: int =
     Async wrapper for Claude Code agent invocation.
 
     Uses asyncio.to_thread to run blocking subprocess call in thread pool.
-    Semaphore limits concurrent invocations.
+    Global threading semaphore limits concurrent invocations across all
+    threads and event loops.
 
     Args:
         agent_name: Name of agent to invoke
@@ -416,13 +436,12 @@ async def invoke_claude_agent_async(agent_name: str, prompt: str, timeout: int =
     Returns:
         Agent's response text
     """
-    async with EXTRACTION_SEMAPHORE:
-        return await asyncio.to_thread(
-            invoke_claude_agent,
-            agent_name,
-            prompt,
-            timeout
-        )
+    return await asyncio.to_thread(
+        invoke_claude_agent,
+        agent_name,
+        prompt,
+        timeout
+    )
 
 
 def extract_json_from_response(response: str) -> Dict[str, Any]:
@@ -1097,7 +1116,10 @@ async def extract_with_retry(
     timeout: int = 600
 ) -> Tuple[Optional[Dict[str, Any]], ExtractionStatus]:
     """
-    Extract with one retry on failure.
+    Extract with retry and exponential backoff for rate limits.
+
+    - Rate-limit errors: up to 4 attempts with exponential backoff (5s, 15s, 45s) + jitter
+    - Other errors: 1 retry after 2s delay
 
     Args:
         agent_name: Name of extractor agent (e.g., "zones-extractor")
@@ -1108,10 +1130,13 @@ async def extract_with_retry(
         Tuple of (extracted data dict or None, ExtractionStatus)
     """
     domain = agent_name.replace("-extractor", "")
+    max_attempts = 4
 
-    for attempt in range(2):
+    for attempt in range(max_attempts):
+        t0 = time.monotonic()
         try:
             response = await invoke_claude_agent_async(agent_name, prompt, timeout)
+            duration = round(time.monotonic() - t0, 1)
             data = extract_json_from_response(response)
 
             # Count items extracted
@@ -1120,29 +1145,41 @@ async def extract_with_retry(
                 if isinstance(val, list):
                     items += len(val)
 
-            logger.info(f"{agent_name} extracted {items} items")
+            logger.info(f"{agent_name} extracted {items} items in {duration}s")
 
             return data, ExtractionStatus(
                 domain=domain,
                 status="success",
                 retry_count=attempt,
-                items_extracted=items
+                items_extracted=items,
+                duration=duration
             )
         except Exception as e:
-            if attempt == 0:
-                logger.warning(f"{agent_name} attempt 1 failed: {e}, retrying...")
+            duration = round(time.monotonic() - t0, 1)
+            error_str = str(e)
+
+            if _is_rate_limit_error(error_str) and attempt < max_attempts - 1:
+                # Exponential backoff: 5s, 15s, 45s + jitter
+                base_delay = 5 * (3 ** attempt)
+                jitter = random.uniform(0, base_delay * 0.3)
+                delay = base_delay + jitter
+                logger.warning(f"{agent_name} rate-limited (attempt {attempt + 1}), backing off {delay:.0f}s...")
+                await asyncio.sleep(delay)
+            elif attempt == 0 and not _is_rate_limit_error(error_str):
+                # Non-rate-limit error: 1 retry after short delay
+                logger.warning(f"{agent_name} attempt 1 failed ({duration}s): {e}, retrying...")
                 await asyncio.sleep(2)
             else:
-                logger.error(f"{agent_name} failed after retry: {e}")
+                logger.error(f"{agent_name} failed after {attempt + 1} attempts ({duration}s): {e}")
                 return None, ExtractionStatus(
                     domain=domain,
                     status="failed",
-                    error=str(e),
-                    retry_count=1
+                    error=error_str,
+                    retry_count=attempt,
+                    duration=duration
                 )
 
-    # Should not reach here, but handle gracefully
-    return None, ExtractionStatus(domain=domain, status="failed", error="Unknown error")
+    return None, ExtractionStatus(domain=domain, status="failed", error="Max retries exhausted")
 
 
 def build_domain_prompt(
@@ -1234,46 +1271,83 @@ Focus on accuracy and completeness.
 async def run_parallel_extraction(
     eval_dir: Path,
     document_map: DocumentMap,
-    orientation_data: Optional[Dict[str, Any]] = None
+    orientation_data: Optional[Dict[str, Any]] = None,
+    domains: Optional[List[str]] = None,
+    previous_extractions: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Tuple[Optional[Dict[str, Any]], ExtractionStatus]]:
     """
-    Run all domain extractors in parallel using asyncio.
+    Run domain extractors in parallel using asyncio.
+
+    When domains is specified, only those domains are freshly extracted.
+    Skipped domains use previous_extractions data if available.
 
     Args:
         eval_dir: Path to evaluation directory containing PDFs
         document_map: Document structure from discovery
         orientation_data: Optional orientation data from orientation-extractor
+        domains: Optional list of domains to extract (default: all)
+        previous_extractions: Optional dict of previous extracted.json data for skipped domains
 
     Returns:
         Dict mapping domain name to (data, status) tuple
     """
-    logger.info("Starting parallel extraction for zones, windows, hvac, dhw")
+    active_domains = domains or ALL_DOMAINS
+    logger.info(f"Starting parallel extraction for {', '.join(active_domains)}")
 
-    # Build prompts for each domain (zones and windows get orientation context)
-    zones_prompt = build_domain_prompt("zones", eval_dir, document_map, orientation_data)
-    windows_prompt = build_domain_prompt("windows", eval_dir, document_map, orientation_data)
-    hvac_prompt = build_domain_prompt("hvac", eval_dir, document_map)
-    dhw_prompt = build_domain_prompt("dhw", eval_dir, document_map)
+    results: Dict[str, Tuple[Optional[Dict[str, Any]], ExtractionStatus]] = {}
 
-    # Create extraction tasks
-    tasks = [
-        extract_with_retry("zones-extractor", zones_prompt),
-        extract_with_retry("windows-extractor", windows_prompt),
-        extract_with_retry("hvac-extractor", hvac_prompt),
-        extract_with_retry("dhw-extractor", dhw_prompt),
-    ]
+    # For skipped domains, load from previous extractions
+    for domain in ALL_DOMAINS:
+        if domain not in active_domains:
+            prev_data = _load_previous_domain_data(domain, previous_extractions)
+            if prev_data is not None:
+                logger.info(f"Using previous extraction for {domain}")
+                items = sum(len(v) for v in prev_data.values() if isinstance(v, list))
+                results[domain] = (prev_data, ExtractionStatus(
+                    domain=domain, status="reused", items_extracted=items
+                ))
+            else:
+                logger.info(f"No previous data for {domain}, skipping")
+                results[domain] = (None, ExtractionStatus(
+                    domain=domain, status="skipped"
+                ))
 
-    # Run in parallel
-    results = await asyncio.gather(*tasks)
+    # Domain-specific timeouts (zones is more complex, needs more time)
+    domain_timeouts = {"zones": 900}
+
+    # Build prompts and tasks for active domains
+    tasks = []
+    task_domains = []
+    for domain in active_domains:
+        orient = orientation_data if domain in ("zones", "windows") else None
+        prompt = build_domain_prompt(domain, eval_dir, document_map, orient)
+        timeout = domain_timeouts.get(domain, 600)
+        tasks.append(extract_with_retry(f"{domain}-extractor", prompt, timeout=timeout))
+        task_domains.append(domain)
+
+    # Run active domains in parallel
+    if tasks:
+        task_results = await asyncio.gather(*tasks)
+        for domain, result in zip(task_domains, task_results):
+            results[domain] = result
 
     logger.info("Parallel extraction complete")
+    return results
 
-    return {
-        "zones": results[0],
-        "windows": results[1],
-        "hvac": results[2],
-        "dhw": results[3],
-    }
+
+def _load_previous_domain_data(
+    domain: str,
+    previous_extractions: Optional[Dict[str, Any]]
+) -> Optional[Dict[str, Any]]:
+    """Load previous raw extraction data for a domain.
+
+    The previous_extractions dict is keyed by domain name (zones, windows, hvac, dhw)
+    and contains the raw extractor output for each domain.
+    """
+    if not previous_extractions:
+        return None
+
+    return previous_extractions.get(domain)
 
 
 def deduplicate_by_name(
@@ -1585,7 +1659,13 @@ def merge_to_takeoff_spec(
     return takeoff_spec, flags
 
 
-def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output_takeoff: bool = False) -> dict:
+def run_extraction(
+    eval_name: str,
+    eval_dir: Path,
+    parallel: bool = True,
+    output_takeoff: bool = False,
+    domains: Optional[List[str]] = None
+) -> dict:
     """
     Run extraction workflow on an evaluation case.
 
@@ -1603,6 +1683,8 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         eval_dir: Path to evaluation directory
         parallel: If True, run multi-domain extraction in parallel (default: True)
         output_takeoff: If True, include TakeoffSpec in output (default: False)
+        domains: Optional list of domains to extract (default: all).
+                 Skipped domains use previous extracted.json data.
 
     Returns:
         Final state dict with building_spec (and optionally takeoff_spec) or error
@@ -1611,7 +1693,8 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         FileNotFoundError: If no PDFs found in eval directory
         RuntimeError: If workflow execution fails
     """
-    logger.info(f"Starting extraction for {eval_name} (parallel={parallel})")
+    domains_str = ', '.join(domains) if domains else 'all'
+    logger.info(f"Starting extraction for {eval_name} (parallel={parallel}, domains={domains_str})")
     pipeline_start = time.monotonic()
     timing = {}
 
@@ -1729,13 +1812,50 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
         takeoff_spec = None
 
         if parallel:
+            # Load previous raw domain extractions for domain filtering
+            previous_raw = None
+            if domains:
+                raw_cache_path = cache_dir / f"{eval_name}_domains_raw.json"
+                if raw_cache_path.exists():
+                    try:
+                        with open(raw_cache_path) as pf:
+                            previous_raw = json.load(pf)
+                        logger.info(f"Loaded previous raw domain extractions for reuse")
+                    except Exception:
+                        logger.warning(f"Could not load previous raw domain cache")
+
             # Step 4: Parallel multi-domain extraction (with orientation context)
             logger.info("Starting parallel multi-domain extraction")
             t0 = time.monotonic()
             domain_extractions = asyncio.run(
-                run_parallel_extraction(eval_dir, document_map, orientation_data)
+                run_parallel_extraction(
+                    eval_dir, document_map, orientation_data,
+                    domains=domains,
+                    previous_extractions=previous_raw
+                )
             )
             timing["parallel_extraction"] = round(time.monotonic() - t0, 1)
+
+            # Save raw domain extraction data for future reuse
+            raw_to_save = {}
+            for domain_name, (data, status) in domain_extractions.items():
+                if data is not None:
+                    raw_to_save[domain_name] = data
+            if raw_to_save:
+                raw_cache_path = cache_dir / f"{eval_name}_domains_raw.json"
+                cache_dir.mkdir(parents=True, exist_ok=True)
+                with open(raw_cache_path, "w") as cf:
+                    json.dump(raw_to_save, cf, indent=2)
+
+            # Collect per-domain timing from ExtractionStatus
+            domain_timing = {}
+            for domain_name, (_, status) in domain_extractions.items():
+                if status.duration is not None:
+                    domain_timing[domain_name] = status.duration
+                elif status.status == "reused":
+                    domain_timing[domain_name] = 0.0
+            if domain_timing:
+                timing["domains"] = domain_timing
 
             # Step 5: Merge into TakeoffSpec (orientation-based)
             t0 = time.monotonic()
