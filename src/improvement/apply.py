@@ -125,7 +125,7 @@ def save_instruction_snapshot(
 def apply_proposal(
     proposal: InstructionProposal,
     project_root: Path,
-    iteration_dirs: list[Path] = None
+    iteration_dirs: Optional[list[Path]] = None
 ) -> Tuple[str, str]:
     """
     Apply proposal to instruction file with version bump.
@@ -159,17 +159,10 @@ def apply_proposal(
         for iter_dir in iteration_dirs:
             save_instruction_snapshot(target_path, iter_dir, current_version)
 
-    # Apply change based on type
-    if proposal.change_type == "add_section":
-        # Append new section
-        new_content = current_content.rstrip() + "\n\n" + proposal.proposed_change + "\n"
-    elif proposal.change_type == "modify_section":
-        # For modify, we append with a note - more sophisticated replacement
-        # would require section markers or user guidance
-        new_content = current_content.rstrip() + "\n\n" + proposal.proposed_change + "\n"
-    else:
-        # Default: append
-        new_content = current_content.rstrip() + "\n\n" + proposal.proposed_change + "\n"
+    # Apply change by appending proposed content.
+    # All change_types currently append; more sophisticated section replacement
+    # would require section markers or user guidance.
+    new_content = current_content.rstrip() + "\n\n" + proposal.proposed_change + "\n"
 
     # Bump version
     bump_type = get_bump_type(proposal.change_type)

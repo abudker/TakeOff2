@@ -1,4 +1,10 @@
 """Takeoff v2 Schemas - Pydantic models for extraction output."""
+from .enums import (
+    FuelType, HouseType, RunScope, ComponentStatus, ZoneType,
+    HVACSystemType, WaterHeaterType, WaterHeaterFuel,
+    Orientation, FlagSeverity,
+    ERROR_TYPES, METRIC_NAMES,
+)
 from .building_spec import BuildingSpec
 from .discovery import DocumentMap, PageInfo, PageType
 from .takeoff_spec import (
@@ -21,6 +27,11 @@ from .takeoff_spec import (
 from .transform import transform_takeoff_to_building_spec
 
 __all__ = [
+    # Shared enums
+    "FuelType", "HouseType", "RunScope", "ComponentStatus", "ZoneType",
+    "HVACSystemType", "WaterHeaterType", "WaterHeaterFuel",
+    "Orientation", "FlagSeverity",
+    "ERROR_TYPES", "METRIC_NAMES",
     # BuildingSpec (component-list format)
     "BuildingSpec",
     # Discovery

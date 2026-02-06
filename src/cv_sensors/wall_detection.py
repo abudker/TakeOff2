@@ -10,6 +10,23 @@ from typing import List, Dict, Any, Optional, Tuple
 from .rendering import render_page_to_numpy
 from .preprocessing import preprocess_for_lines
 
+# --- Detection constants ---
+# Hough line detection parameters for wall edges
+WALL_HOUGH_THRESHOLD = 100
+WALL_HOUGH_MIN_LENGTH = 100
+WALL_HOUGH_MAX_GAP = 20
+
+# Wall length bounds (pixels at default zoom)
+MIN_WALL_LENGTH = 50   # Below this = noise
+MAX_WALL_LENGTH = 800  # Above this = page border
+
+# Maximum wall edges to return
+MAX_WALL_EDGES = 8
+
+# Angle clustering confidence thresholds (std dev in degrees)
+CLUSTER_HIGH_CONFIDENCE_STD = 5
+CLUSTER_MEDIUM_CONFIDENCE_STD = 10
+
 
 def measure_wall_edge_angles(
     pdf_path: str,
@@ -53,18 +70,13 @@ def measure_wall_edge_angles(
         edges,
         rho=1,
         theta=np.pi / 180,
-        threshold=100,
-        minLineLength=100,
-        maxLineGap=20
+        threshold=WALL_HOUGH_THRESHOLD,
+        minLineLength=WALL_HOUGH_MIN_LENGTH,
+        maxLineGap=WALL_HOUGH_MAX_GAP,
     )
 
     if lines is None or len(lines) == 0:
         return []
-
-    # Length bounds to filter page borders (too long) and noise (too short)
-    # At zoom=2.0, building walls on site plans are ~100-600px, page borders are 2000+
-    MIN_WALL_LENGTH = 50
-    MAX_WALL_LENGTH = 800
 
     wall_edges = []
 
@@ -108,9 +120,9 @@ def measure_wall_edge_angles(
             "perpendicular_angle": float(perpendicular_angle)
         })
 
-    # Sort by length descending, return top 8
+    # Sort by length descending, return top edges
     wall_edges.sort(key=lambda x: x["length"], reverse=True)
-    return wall_edges[:8]
+    return wall_edges[:MAX_WALL_EDGES]
 
 
 def estimate_building_rotation(
@@ -150,27 +162,36 @@ def estimate_building_rotation(
     # Use simple k-means-like clustering with k=2
     clusters = _cluster_angles(angles, k=2)
 
-    # Find dominant cluster (most lines or highest total length)
+    # Build angle-to-length lookup for weight calculation
+    angle_to_length = {
+        edge["angle_from_horizontal"]: edge["length"]
+        for edge in wall_edges
+    }
+
+    # Find dominant cluster (highest total length)
     cluster_weights = []
     for cluster in clusters:
-        total_length = sum(
-            wall_edges[i]["length"]
-            for i in range(len(wall_edges))
-            if wall_edges[i]["angle_from_horizontal"] in cluster
-        )
+        total_length = sum(angle_to_length.get(a, 0) for a in cluster)
         cluster_weights.append(total_length)
 
-    dominant_idx = np.argmax(cluster_weights)
+    dominant_idx = int(np.argmax(cluster_weights))
     dominant_cluster = clusters[dominant_idx]
 
+    if not dominant_cluster:
+        return {
+            "rotation_from_horizontal": 0.0,
+            "confidence": "none",
+            "dominant_angles": [],
+        }
+
     # Calculate mean angle of dominant cluster
-    rotation = np.mean(dominant_cluster)
+    rotation = float(np.mean(dominant_cluster))
 
     # Calculate confidence based on cluster tightness
-    std_dev = np.std(dominant_cluster)
-    if std_dev < 5:
+    std_dev = float(np.std(dominant_cluster))
+    if std_dev < CLUSTER_HIGH_CONFIDENCE_STD:
         confidence = "high"
-    elif std_dev < 10:
+    elif std_dev < CLUSTER_MEDIUM_CONFIDENCE_STD:
         confidence = "medium"
     else:
         confidence = "low"

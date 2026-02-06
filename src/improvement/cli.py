@@ -1,13 +1,13 @@
 """CLI for improvement loop."""
 import json
 import subprocess
-import sys
 from pathlib import Path
 from typing import List, Optional
 import click
 import yaml
 
 from .critic import (
+    find_latest_iteration,
     load_eval_results,
     aggregate_failure_analysis,
     invoke_critic,
@@ -28,26 +28,12 @@ def get_eval_ids(evals_dir: Path) -> List[str]:
     return list(manifest.get("evals", {}).keys())
 
 
-def get_latest_iteration(evals_dir: Path, eval_id: str) -> int:
-    """Get latest iteration number for an eval."""
-    results_dir = evals_dir / eval_id / "results"
-    if not results_dir.exists():
-        return 0
-
-    iterations = [d for d in results_dir.iterdir()
-                  if d.is_dir() and d.name.startswith("iteration-")]
-    if not iterations:
-        return 0
-
-    return max(int(d.name.split("-")[1]) for d in iterations)
-
-
 def get_next_iteration(evals_dir: Path) -> int:
     """Get next iteration number (max across all evals + 1)."""
     eval_ids = get_eval_ids(evals_dir)
     if not eval_ids:
         return 1
-    return max(get_latest_iteration(evals_dir, eid) for eid in eval_ids) + 1
+    return max(find_latest_iteration(evals_dir / eid) for eid in eval_ids) + 1
 
 
 def load_aggregate_metrics(evals_dir: Path) -> dict:
@@ -56,7 +42,7 @@ def load_aggregate_metrics(evals_dir: Path) -> dict:
     all_metrics = []
 
     for eval_id in eval_ids:
-        latest = get_latest_iteration(evals_dir, eval_id)
+        latest = find_latest_iteration(evals_dir / eval_id)
         if latest == 0:
             continue
         results_path = evals_dir / eval_id / "results" / f"iteration-{latest:03d}" / "eval-results.json"
@@ -212,13 +198,11 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
 
     # Check prerequisites
     if not instructions_dir.exists():
-        click.echo("Error: No .claude/instructions/ directory found", err=True)
-        sys.exit(1)
+        raise click.ClickException("No .claude/instructions/ directory found")
 
     eval_ids = get_eval_ids(evals_dir)
     if not eval_ids:
-        click.echo("Error: No evals found in manifest.yaml", err=True)
-        sys.exit(1)
+        raise click.ClickException("No evals found in manifest.yaml")
 
     click.echo(f"Improvement Loop - {len(eval_ids)} evals")
     if focus:
@@ -230,10 +214,11 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
     results = load_eval_results(evals_dir, eval_ids)
 
     if not results:
-        click.echo("No evaluation results found. Run extraction and verification first:")
-        click.echo("  python3 -m agents extract-all")
-        click.echo("  python3 -m verifier verify-all --save")
-        sys.exit(1)
+        raise click.ClickException(
+            "No evaluation results found. Run extraction and verification first:\n"
+            "  python3 -m agents extract-all\n"
+            "  python3 -m verifier verify-all --save"
+        )
 
     before_metrics = load_aggregate_metrics(evals_dir)
     click.echo(f"Current aggregate F1: {before_metrics['f1']:.3f}")
@@ -258,13 +243,12 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
         )
         proposal = parse_proposal(critic_output)
     except Exception as e:
-        click.echo(f"Error invoking critic: {e}", err=True)
-        sys.exit(1)
+        raise click.ClickException(f"Error invoking critic: {e}")
 
     if not proposal:
         click.echo("Critic did not generate a valid proposal.")
         click.echo("This may happen if metrics are already good or no clear pattern found.")
-        sys.exit(0)
+        return
 
     # Step 4: Present proposal for review (or auto-accept)
     if auto:
@@ -285,7 +269,7 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
 
         if decision in ("reject", "skip"):
             click.echo(f"\nProposal {decision}ed. No changes made.")
-            sys.exit(0)
+            return
 
     # Step 5: Apply proposal
     click.echo(f"\n[Apply] Applying proposal to {proposal.target_file}...")
@@ -307,12 +291,10 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
     # Step 6: Re-run extraction and verification
     if not skip_extraction:
         if not run_extraction(evals_dir):
-            click.echo("Extraction failed!", err=True)
-            sys.exit(1)
+            raise click.ClickException("Extraction failed!")
 
     if not run_verification(evals_dir):
-        click.echo("Verification failed!", err=True)
-        sys.exit(1)
+        raise click.ClickException("Verification failed!")
 
     # Step 7: Show metrics comparison
     after_metrics = load_aggregate_metrics(evals_dir)
@@ -329,12 +311,12 @@ def improve(evals_dir: Path, skip_extraction: bool, no_commit: bool, focus: str,
     # Summary
     f1_delta = after_metrics["f1"] - before_metrics["f1"]
     if f1_delta > 0:
-        click.echo(f"\n[green]Iteration {next_iter} complete: F1 improved by {f1_delta:+.3f}[/green]")
+        click.echo(click.style(f"\nIteration {next_iter} complete: F1 improved by {f1_delta:+.3f}", fg="green"))
     elif f1_delta < 0:
-        click.echo(f"\n[yellow]Iteration {next_iter} complete: F1 decreased by {f1_delta:.3f}[/yellow]")
+        click.echo(click.style(f"\nIteration {next_iter} complete: F1 decreased by {f1_delta:.3f}", fg="yellow"))
         click.echo("Consider running: improve rollback")
     else:
-        click.echo(f"\n[dim]Iteration {next_iter} complete: F1 unchanged[/dim]")
+        click.echo(f"\nIteration {next_iter} complete: F1 unchanged")
 
 
 @cli.command()
@@ -356,21 +338,20 @@ def context(evals_dir: Path):
 
     # Check prerequisites
     if not instructions_dir.exists():
-        click.echo("Error: No .claude/instructions/ directory found", err=True)
-        sys.exit(1)
+        raise click.ClickException("No .claude/instructions/ directory found")
 
     eval_ids = get_eval_ids(evals_dir)
     if not eval_ids:
-        click.echo("Error: No evals found in manifest.yaml", err=True)
-        sys.exit(1)
+        raise click.ClickException("No evals found in manifest.yaml")
 
     # Load evaluation results
     results = load_eval_results(evals_dir, eval_ids)
     if not results:
-        click.echo("No evaluation results found. Run extraction and verification first:")
-        click.echo("  python3 -m agents extract-all")
-        click.echo("  python3 -m verifier verify-all --save")
-        sys.exit(1)
+        raise click.ClickException(
+            "No evaluation results found. Run extraction and verification first:\n"
+            "  python3 -m agents extract-all\n"
+            "  python3 -m verifier verify-all --save"
+        )
 
     # Aggregate failure analysis
     from .critic import format_analysis_for_critic
@@ -415,8 +396,7 @@ def apply(json_file: Path, evals_dir: Path, no_commit: bool):
     proposal = parse_proposal(json_str)
 
     if not proposal:
-        click.echo("Could not parse proposal JSON", err=True)
-        sys.exit(1)
+        raise click.ClickException("Could not parse proposal JSON")
 
     # Apply the proposal
     try:
@@ -424,12 +404,10 @@ def apply(json_file: Path, evals_dir: Path, no_commit: bool):
         click.echo(f"Applied: v{old_ver} -> v{new_ver}")
         click.echo(f"  File: {proposal.target_file}")
     except FileNotFoundError as e:
-        click.echo(f"Error: {e}", err=True)
-        sys.exit(1)
+        raise click.ClickException(str(e))
 
     # Optionally commit
     if not no_commit:
-        import subprocess
         try:
             # Stage the modified file
             subprocess.run(

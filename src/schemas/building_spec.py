@@ -5,72 +5,19 @@ from California Title 24 compliance documents.
 """
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
-from enum import Enum
 
-
-# ============================================================================
-# Enums
-# ============================================================================
-
-class FuelType(str, Enum):
-    ALL_ELECTRIC = "All Electric"
-    NATURAL_GAS = "Natural Gas"
-    MIXED = "Mixed"
-
-
-class HouseType(str, Enum):
-    SINGLE_FAMILY = "Single Family"
-    MULTI_FAMILY = "Multi Family"
-    ADU = "ADU"
-
-
-class RunScope(str, Enum):
-    NEWLY_CONSTRUCTED = "Newly Constructed"
-    ADDITION = "Addition"
-    ALTERATION = "Alteration"
-    ADDITION_ALTERATION = "Addition and Alteration"
-
-
-class ComponentStatus(str, Enum):
-    NEW = "New"
-    EXISTING = "Existing"
-    ALTERED = "Altered"
-
-
-class ZoneType(str, Enum):
-    CONDITIONED = "Conditioned"
-    UNCONDITIONED = "Unconditioned"
-    PLENUM = "Plenum"
-
-
-class HVACSystemType(str, Enum):
-    HEAT_PUMP = "Heat Pump"
-    FURNACE = "Furnace"
-    SPLIT_SYSTEM = "Split System"
-    PACKAGE_UNIT = "Package Unit"
-    DUCTLESS = "Ductless"
-    OTHER = "Other"
-
-
-class WaterHeaterType(str, Enum):
-    STORAGE = "Storage"
-    TANKLESS = "Tankless"
-    HEAT_PUMP = "Heat Pump"
-    INSTANTANEOUS = "Instantaneous"
-
-
-class WaterHeaterFuel(str, Enum):
-    ELECTRIC = "Electric Resistance"
-    GAS = "Natural Gas"
-    HEAT_PUMP = "Heat Pump"
+from .enums import (
+    FuelType, HouseType, RunScope, ComponentStatus, ZoneType,
+    HVACSystemType, WaterHeaterType, WaterHeaterFuel,
+)
 
 
 # ============================================================================
 # Project Info
 # ============================================================================
 
-class ProjectInfo(BaseModel):
-    """Project metadata and basic building info."""
+class ProjectInfoBase(BaseModel):
+    """Shared project fields between BuildingSpec and TakeoffSpec."""
     # Identification
     run_id: Optional[str] = Field(default=None, description="Run ID")
     run_title: Optional[str] = Field(default=None, description="Project/run title")
@@ -84,16 +31,22 @@ class ProjectInfo(BaseModel):
 
     # Building characteristics
     standards_version: Optional[str] = Field(default=None, description="Title 24 standards version")
-    all_orientations: Optional[bool] = Field(default=None, description="All orientations analysis")
     fuel_type: Optional[str] = Field(default=None, description="All Electric, Natural Gas, Mixed")
     house_type: Optional[str] = Field(default=None, description="Single Family, Multi Family, ADU")
     dwelling_units: Optional[int] = Field(default=None, ge=1, description="Number of dwelling units")
     stories: Optional[int] = Field(default=None, ge=1, description="Number of stories")
     bedrooms: Optional[int] = Field(default=None, ge=0, description="Number of bedrooms")
-    attached_garage: Optional[bool] = Field(default=None, description="Has attached garage")
+
+    # Orientation
     front_orientation: Optional[float] = Field(default=None, description="Front orientation in degrees")
     orientation_confidence: Optional[str] = Field(default=None, description="Orientation extraction confidence: high/medium/low")
     orientation_verification: Optional[str] = Field(default=None, description="Two-pass verification result: agreement/side_front_confusion/front_back_confusion/disagreement")
+
+
+class ProjectInfo(ProjectInfoBase):
+    """Project metadata and basic building info."""
+    all_orientations: Optional[bool] = Field(default=None, description="All orientations analysis")
+    attached_garage: Optional[bool] = Field(default=None, description="Has attached garage")
 
 
 # ============================================================================
