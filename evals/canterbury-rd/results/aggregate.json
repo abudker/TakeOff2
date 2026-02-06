@@ -84,8 +84,92 @@
         "format_error": 0
       },
       "trend": 0.0
+    },
+    {
+      "iteration": 48,
+      "f1": 0.5498281786941581,
+      "precision": 0.6779661016949152,
+      "recall": 0.4624277456647399,
+      "timestamp": "2026-02-06T06:22:51.867260Z",
+      "error_counts": {
+        "omission": 93,
+        "hallucination": 8,
+        "wrong_value": 30,
+        "format_error": 0
+      },
+      "trend": 0.0
+    },
+    {
+      "iteration": 49,
+      "f1": 0.5653710247349824,
+      "precision": 0.7272727272727273,
+      "recall": 0.4624277456647399,
+      "timestamp": "2026-02-06T06:24:40.386710Z",
+      "error_counts": {
+        "omission": 93,
+        "hallucination": 0,
+        "wrong_value": 30,
+        "format_error": 0
+      },
+      "trend": 0.015542846040824232
+    },
+    {
+      "iteration": 50,
+      "f1": 0.623728813559322,
+      "precision": 0.7540983606557377,
+      "recall": 0.5317919075144508,
+      "timestamp": "2026-02-06T06:25:38.867969Z",
+      "error_counts": {
+        "omission": 81,
+        "hallucination": 0,
+        "wrong_value": 30,
+        "format_error": 0
+      },
+      "trend": 0.05835778882433962
+    },
+    {
+      "iteration": 51,
+      "f1": 0.623728813559322,
+      "precision": 0.7540983606557377,
+      "recall": 0.5317919075144508,
+      "timestamp": "2026-02-06T06:55:54.505615Z",
+      "error_counts": {
+        "omission": 81,
+        "hallucination": 0,
+        "wrong_value": 30,
+        "format_error": 0
+      },
+      "trend": 0.0
+    },
+    {
+      "iteration": 52,
+      "f1": 0.6556291390728477,
+      "precision": 0.6428571428571429,
+      "recall": 0.668918918918919,
+      "timestamp": "2026-02-06T07:38:17.785481Z",
+      "error_counts": {
+        "omission": 49,
+        "hallucination": 0,
+        "wrong_value": 55,
+        "format_error": 0
+      },
+      "trend": 0.03190032551352573
+    },
+    {
+      "iteration": 53,
+      "f1": 0.6556291390728477,
+      "precision": 0.6428571428571429,
+      "recall": 0.668918918918919,
+      "timestamp": "2026-02-06T07:48:55.089749Z",
+      "error_counts": {
+        "omission": 49,
+        "hallucination": 0,
+        "wrong_value": 55,
+        "format_error": 0
+      },
+      "trend": 0.0
     }
   ],
-  "best_f1": 0.5597269624573378,
-  "best_iteration": 44
+  "best_f1": 0.6556291390728477,
+  "best_iteration": 53
 }

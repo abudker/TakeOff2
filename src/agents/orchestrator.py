@@ -1183,16 +1183,22 @@ def build_domain_prompt(
         confidence = orientation_data.get("confidence", "low")
         reasoning = orientation_data.get("reasoning", "")
 
-        # Calculate wall azimuths from front orientation
-        # Convention based on CBECC output format:
-        # - "east" key (E Wall) = front of building
-        # - "west" key (W Wall) = back of building
-        # - "north" key (N Wall) = left side (90 CCW from front)
-        # - "south" key (S Wall) = right side (90 CW from front)
-        east_azimuth = front_orientation  # Front faces this direction
-        west_azimuth = (front_orientation + 180) % 360
-        north_azimuth = (front_orientation - 90 + 360) % 360
-        south_azimuth = (front_orientation + 90) % 360
+        # Calculate the 4 wall azimuths and assign to cardinal keys
+        # The 4 walls face front, front+90, front+180, front+270
+        azimuths = [
+            front_orientation,
+            (front_orientation + 90) % 360,
+            (front_orientation + 180) % 360,
+            (front_orientation + 270) % 360,
+        ]
+        # Map each azimuth to the nearest cardinal direction key
+        cardinal_targets = {"north": 0, "east": 90, "south": 180, "west": 270}
+        assignment = {}
+        for az in azimuths:
+            best_cardinal = min(cardinal_targets,
+                key=lambda c: min(abs(az - cardinal_targets[c]), 360 - abs(az - cardinal_targets[c])))
+            assignment[best_cardinal] = az
+            del cardinal_targets[best_cardinal]  # Each cardinal used once
 
         orientation_context = f"""
 BUILDING ORIENTATION (from orientation-extractor, confidence: {confidence}):
@@ -1200,10 +1206,10 @@ BUILDING ORIENTATION (from orientation-extractor, confidence: {confidence}):
 - Reasoning: {reasoning}
 
 CRITICAL - USE THESE EXACT AZIMUTHS FOR EACH WALL:
-- "north" key (N Wall): azimuth = {north_azimuth} degrees
-- "east" key (E Wall): azimuth = {east_azimuth} degrees (this is the FRONT)
-- "south" key (S Wall): azimuth = {south_azimuth} degrees
-- "west" key (W Wall): azimuth = {west_azimuth} degrees (this is the BACK)
+- "north" key (N Wall): azimuth = {assignment['north']} degrees
+- "east" key (E Wall): azimuth = {assignment['east']} degrees
+- "south" key (S Wall): azimuth = {assignment['south']} degrees
+- "west" key (W Wall): azimuth = {assignment['west']} degrees
 
 DO NOT use cardinal azimuths (0, 90, 180, 270). The building is rotated.
 Copy the exact azimuth values above into your JSON output.
@@ -1733,6 +1739,12 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
 
             # Step 5: Merge into TakeoffSpec (orientation-based)
             t0 = time.monotonic()
+            # Inject orientation data into project_extraction before merge
+            if orientation_data and "project" in project_extraction:
+                project_extraction["project"]["front_orientation"] = orientation_data.get("front_orientation")
+                project_extraction["project"]["orientation_confidence"] = orientation_data.get("confidence")
+                project_extraction["project"]["orientation_verification"] = orientation_data.get("verification")
+
             takeoff_spec, uncertainty_flags = merge_to_takeoff_spec(
                 project_extraction,
                 domain_extractions
@@ -1751,6 +1763,12 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             # Add metadata to spec
             building_spec.extraction_status = extraction_status
             building_spec.conflicts = conflicts
+
+            # Inject orientation data into building_spec project
+            if orientation_data:
+                building_spec.project.front_orientation = orientation_data.get("front_orientation")
+                building_spec.project.orientation_confidence = orientation_data.get("confidence")
+                building_spec.project.orientation_verification = orientation_data.get("verification")
 
             logger.info(f"Extraction complete for {eval_name}")
             logger.info(f"  Zones: {len(building_spec.zones)}")

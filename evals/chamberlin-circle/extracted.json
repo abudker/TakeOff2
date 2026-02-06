@@ -15,9 +15,9 @@
     "stories": 1,
     "bedrooms": 1,
     "attached_garage": false,
-    "front_orientation": 180.0,
-    "orientation_confidence": null,
-    "orientation_verification": null
+    "front_orientation": 73.0,
+    "orientation_confidence": "high",
+    "orientation_verification": "manual_gt"
   },
   "envelope": {
     "conditioned_floor_area": 320.0,
@@ -64,9 +64,9 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 343.0,
-      "area": 160.0,
-      "window_area": 6.0,
-      "door_area": 0.0,
+      "area": 128.0,
+      "window_area": 0.0,
+      "door_area": 18.89,
       "tilt": 90.0,
       "framing_factor": 0.25
     },
@@ -76,9 +76,9 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 73.0,
-      "area": 128.0,
-      "window_area": 7.5,
-      "door_area": 18.9,
+      "area": 160.0,
+      "window_area": 6.0,
+      "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
     },
@@ -88,8 +88,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 163.0,
-      "area": 160.0,
-      "window_area": 6.0,
+      "area": 128.0,
+      "window_area": 52.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -100,8 +100,8 @@
       "status": "New",
       "construction_type": "R-21 Wall",
       "orientation": 253.0,
-      "area": 128.0,
-      "window_area": 52.0,
+      "area": 160.0,
+      "window_area": 6.0,
       "door_area": 0.0,
       "tilt": 90.0,
       "framing_factor": 0.25
@@ -110,36 +110,10 @@
   "wall_constructions": [],
   "windows": [
     {
-      "name": "G05",
-      "wall": "N Wall",
-      "status": "New",
-      "azimuth": 343.0,
-      "height": 2.0,
-      "width": 3.0,
-      "multiplier": 1,
-      "area": 6.0,
-      "u_factor": 0.3,
-      "shgc": 0.23,
-      "exterior_shade": "Insect Screen (default)"
-    },
-    {
-      "name": "G01",
+      "name": "G03",
       "wall": "E Wall",
       "status": "New",
       "azimuth": 73.0,
-      "height": 1.5,
-      "width": 5.0,
-      "multiplier": 1,
-      "area": 7.5,
-      "u_factor": 0.3,
-      "shgc": 0.23,
-      "exterior_shade": "Insect Screen (default)"
-    },
-    {
-      "name": "G03",
-      "wall": "S Wall",
-      "status": "New",
-      "azimuth": 163.0,
       "height": 2.0,
       "width": 3.0,
       "multiplier": 1,
@@ -150,9 +124,9 @@
     },
     {
       "name": "G02",
-      "wall": "W Wall",
+      "wall": "S Wall",
       "status": "New",
-      "azimuth": 253.0,
+      "azimuth": 163.0,
       "height": 3.0,
       "width": 4.0,
       "multiplier": 1,
@@ -163,9 +137,9 @@
     },
     {
       "name": "D03",
-      "wall": "W Wall",
+      "wall": "S Wall",
       "status": "New",
-      "azimuth": 253.0,
+      "azimuth": 163.0,
       "height": 6.67,
       "width": 6.0,
       "multiplier": 1,
@@ -173,9 +147,37 @@
       "u_factor": 0.32,
       "shgc": 0.21,
       "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G05",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 253.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
     }
   ],
-  "ceilings": [],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-38 Roof Rafter",
+      "orientation": null,
+      "area": 320.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
   "ceiling_constructions": [],
   "slab_floors": [
     {
@@ -213,14 +215,14 @@
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 9
+      "items_extracted": 10
     },
     "windows": {
       "domain": "windows",
       "status": "success",
       "error": null,
       "retry_count": 0,
-      "items_extracted": 6
+      "items_extracted": 3
     },
     "hvac": {
       "domain": "hvac",

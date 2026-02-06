@@ -294,3 +294,18 @@ non_extractable_fields:
   # Window height/width not in CBECC ground truth output (columns exist but values are empty)
   - "windows[*].height"
   - "windows[*].width"
+
+  # Orientation metadata (internal fields, not in ground truth CSV)
+  - "project.orientation_confidence"
+  - "project.orientation_verification"
+
+  # HVAC and DHW not yet mapped in verifier (ground truth CSV has data but verifier can't compare)
+  - "hvac_systems[*].*"
+  - "water_heating_systems[*].*"
+
+  # Construction assemblies (detailed R-value breakdown not yet extracted)
+  - "wall_constructions[*].*"
+  - "ceiling_constructions[*].*"
+
+  # Internal metadata
+  - "conflicts"

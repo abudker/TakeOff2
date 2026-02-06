@@ -84,8 +84,92 @@
         "format_error": 0
       },
       "trend": 0.02400160986407629
+    },
+    {
+      "iteration": 48,
+      "f1": 0.8591224018475752,
+      "precision": 0.7848101265822784,
+      "recall": 0.9489795918367347,
+      "timestamp": "2026-02-06T06:22:51.906056Z",
+      "error_counts": {
+        "omission": 10,
+        "hallucination": 20,
+        "wrong_value": 31,
+        "format_error": 0
+      },
+      "trend": 0.037067264002963674
+    },
+    {
+      "iteration": 49,
+      "f1": 0.8752941176470589,
+      "precision": 0.8122270742358079,
+      "recall": 0.9489795918367347,
+      "timestamp": "2026-02-06T06:24:40.425420Z",
+      "error_counts": {
+        "omission": 10,
+        "hallucination": 12,
+        "wrong_value": 31,
+        "format_error": 0
+      },
+      "trend": 0.016171715799483732
+    },
+    {
+      "iteration": 50,
+      "f1": 0.8909512761020881,
+      "precision": 0.8170212765957446,
+      "recall": 0.9795918367346939,
+      "timestamp": "2026-02-06T06:25:38.907268Z",
+      "error_counts": {
+        "omission": 4,
+        "hallucination": 12,
+        "wrong_value": 31,
+        "format_error": 0
+      },
+      "trend": 0.01565715845502924
+    },
+    {
+      "iteration": 51,
+      "f1": 0.936768149882904,
+      "precision": 0.8928571428571429,
+      "recall": 0.9852216748768473,
+      "timestamp": "2026-02-06T06:55:54.553295Z",
+      "error_counts": {
+        "omission": 3,
+        "hallucination": 0,
+        "wrong_value": 24,
+        "format_error": 0
+      },
+      "trend": 0.04581687378081589
+    },
+    {
+      "iteration": 52,
+      "f1": 0.9164677804295942,
+      "precision": 0.8571428571428571,
+      "recall": 0.9846153846153847,
+      "timestamp": "2026-02-06T07:38:17.824038Z",
+      "error_counts": {
+        "omission": 3,
+        "hallucination": 0,
+        "wrong_value": 32,
+        "format_error": 0
+      },
+      "trend": -0.02030036945330982
+    },
+    {
+      "iteration": 53,
+      "f1": 0.9164677804295942,
+      "precision": 0.8571428571428571,
+      "recall": 0.9846153846153847,
+      "timestamp": "2026-02-06T07:48:55.129545Z",
+      "error_counts": {
+        "omission": 3,
+        "hallucination": 0,
+        "wrong_value": 32,
+        "format_error": 0
+      },
+      "trend": 0.0
     }
   ],
-  "best_f1": 0.8376470588235294,
-  "best_iteration": 44
+  "best_f1": 0.936768149882904,
+  "best_iteration": 51
 }

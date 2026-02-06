@@ -69,7 +69,14 @@ def is_non_extractable(field_path: str, exclusion_set: Set[str]) -> bool:
     for pattern in exclusion_set:
         if pattern.endswith('.*'):
             prefix = pattern[:-2]  # Remove .*
-            if field_path.startswith(prefix + '.'):
+            if field_path.startswith(prefix + '.') or normalized.startswith(prefix + '.'):
+                return True
+            # Also match the prefix itself
+            if field_path == prefix or normalized == prefix:
+                return True
+        # Handle bare field name match (e.g., "conflicts")
+        elif '.' not in pattern and '[' not in pattern:
+            if field_path == pattern or field_path.startswith(pattern + '.') or field_path.startswith(pattern + '['):
                 return True
 
     return False
