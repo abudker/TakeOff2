@@ -1,0 +1,4871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluation Report: chamberlin-circle</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #eaeaea;
+            --text-secondary: #a0a0a0;
+            --accent-blue: #4e9fff;
+            --accent-green: #00d26a;
+            --accent-red: #ff4757;
+            --accent-orange: #ffa502;
+            --accent-yellow: #ffc312;
+            --accent-purple: #9c88ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-card);
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .meta span {
+            margin-right: 1.5rem;
+        }
+
+        /* Metrics Section */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .metric-value.f1 { color: var(--accent-blue); }
+        .metric-value.precision { color: var(--accent-green); }
+        .metric-value.recall { color: var(--accent-purple); }
+        .metric-value.correct { color: var(--accent-green); }
+
+        .metric-subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* F1 Score Color Coding */
+        .f1-excellent { color: var(--accent-green) !important; }
+        .f1-good { color: var(--accent-blue) !important; }
+        .f1-fair { color: var(--accent-orange) !important; }
+        .f1-poor { color: var(--accent-red) !important; }
+
+        /* Error Breakdown */
+        .section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        .error-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .error-card.omission { border-left: 4px solid var(--accent-red); }
+        .error-card.hallucination { border-left: 4px solid var(--accent-orange); }
+        .error-card.format_error { border-left: 4px solid var(--accent-yellow); }
+        .error-card.wrong_value { border-left: 4px solid var(--accent-purple); }
+
+        .error-count {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .error-card.omission .error-count { color: var(--accent-red); }
+        .error-card.hallucination .error-count { color: var(--accent-orange); }
+        .error-card.format_error .error-count { color: var(--accent-yellow); }
+        .error-card.wrong_value .error-count { color: var(--accent-purple); }
+
+        .error-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Discrepancies Table */
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: var(--accent-blue);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-blue);
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            width: 250px;
+            font-size: 0.85rem;
+        }
+
+        .search-box::placeholder {
+            color: var(--text-secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .error-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .error-badge.omission { background: rgba(255, 71, 87, 0.2); color: var(--accent-red); }
+        .error-badge.hallucination { background: rgba(255, 165, 2, 0.2); color: var(--accent-orange); }
+        .error-badge.format_error { background: rgba(255, 195, 18, 0.2); color: var(--accent-yellow); }
+        .error-badge.wrong_value { background: rgba(156, 136, 255, 0.2); color: var(--accent-purple); }
+
+        .field-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--accent-blue);
+        }
+
+        .value-cell {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .value-expected {
+            color: var(--accent-green);
+        }
+
+        .value-actual {
+            color: var(--accent-red);
+        }
+
+        .value-null {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--bg-card);
+        }
+
+        .pagination button {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Iteration History */
+        .history-chart {
+            height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .history-table {
+            font-size: 0.85rem;
+        }
+
+        .history-table td:first-child {
+            font-weight: 600;
+        }
+
+        .trend-up { color: var(--accent-green); }
+        .trend-down { color: var(--accent-red); }
+        .trend-same { color: var(--text-secondary); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .error-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        /* No discrepancies message */
+        .no-discrepancies {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .no-discrepancies .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* All Fields Diff View */
+        .diff-view {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .diff-row {
+            display: grid;
+            grid-template-columns: 24px minmax(280px, 1fr) minmax(200px, 1.5fr) minmax(200px, 1.5fr);
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 6px;
+            align-items: center;
+        }
+
+        .diff-row.match {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .diff-row.mismatch {
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .diff-status {
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .diff-status.match { color: var(--accent-green); }
+        .diff-status.mismatch { color: var(--accent-red); }
+
+        .diff-field {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .diff-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            word-break: break-word;
+            min-width: 0;
+        }
+
+        .diff-expected {
+            background: rgba(0, 210, 106, 0.1);
+            color: var(--accent-green);
+        }
+
+        .diff-actual {
+            background: rgba(78, 159, 255, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .diff-actual.wrong {
+            background: rgba(255, 71, 87, 0.1);
+            color: var(--accent-red);
+        }
+
+        .diff-null {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .diff-header {
+            display: grid;
+            grid-template-columns: 24px minmax(280px, 1fr) minmax(200px, 1.5fr) minmax(200px, 1.5fr);
+            gap: 1rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-btn {
+            background: var(--bg-card);
+            border: none;
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .toggle-btn:hover, .toggle-btn.active {
+            background: var(--accent-blue);
+        }
+
+        @media (max-width: 1024px) {
+            .diff-row, .diff-header {
+                grid-template-columns: 24px 1fr;
+                row-gap: 0.25rem;
+            }
+            .diff-row .diff-field {
+                grid-column: 2;
+                font-weight: 600;
+            }
+            .diff-row .diff-expected,
+            .diff-row .diff-actual {
+                grid-column: 2;
+                font-size: 0.75rem;
+            }
+            .diff-row .diff-expected::before {
+                content: "Expected: ";
+                color: var(--text-secondary);
+            }
+            .diff-row .diff-actual::before {
+                content: "Actual: ";
+                color: var(--text-secondary);
+            }
+            .diff-header {
+                display: none;
+            }
+        }
+
+        /* Domain Group Sections */
+        .domain-group {
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .domain-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .domain-header:hover {
+            background: rgba(78, 159, 255, 0.15);
+        }
+
+        .domain-toggle {
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            width: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .domain-toggle.open {
+            transform: rotate(90deg);
+        }
+
+        .domain-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .domain-stats {
+            margin-left: auto;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .domain-stat {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .domain-stat.matches {
+            color: var(--accent-green);
+        }
+
+        .domain-stat.mismatches {
+            color: var(--accent-red);
+        }
+
+        .domain-stat-icon {
+            font-size: 0.75rem;
+        }
+
+        .domain-content {
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            display: none;
+        }
+
+        .domain-content.open {
+            display: block;
+        }
+
+        .domain-summary {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .domain-error-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .domain-error-badge.omission {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--accent-red);
+        }
+
+        .domain-error-badge.hallucination {
+            background: rgba(255, 165, 2, 0.2);
+            color: var(--accent-orange);
+        }
+
+        .domain-error-badge.format_error {
+            background: rgba(255, 195, 18, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .domain-error-badge.wrong_value {
+            background: rgba(156, 136, 255, 0.2);
+            color: var(--accent-purple);
+        }
+
+        .domain-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-card);
+            border-radius: 2px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+
+        .domain-progress-bar {
+            height: 100%;
+            background: var(--accent-green);
+            transition: width 0.3s;
+        }
+
+        /* JSON Raw Data Sections */
+        .json-section {
+            margin-bottom: 1rem;
+        }
+
+        .json-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .json-header:hover {
+            background: rgba(78, 159, 255, 0.15);
+        }
+
+        .json-toggle {
+            color: var(--accent-blue);
+            font-size: 0.8rem;
+            width: 1rem;
+        }
+
+        .json-size {
+            margin-left: auto;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .json-content {
+            background: var(--bg-card);
+            border-radius: 0 0 8px 8px;
+            padding: 1rem;
+            margin-top: -4px;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            max-height: 600px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .json-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .json-content::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        .json-content::-webkit-scrollbar-thumb {
+            background: var(--bg-card);
+            border-radius: 4px;
+        }
+
+        .json-content::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Evaluation Report: chamberlin-circle</h1>
+            <div class="meta">
+                <span>Generated: 2026-02-06 06:25:38 UTC</span>
+                
+                <span>Iteration: 50</span>
+                
+            </div>
+        </header>
+
+        <!-- Metrics Overview -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>F1 Score</h3>
+                <div class="metric-value f1 f1-good">
+                    78.6%
+                </div>
+                <div class="metric-subtext">Target: 90%</div>
+            </div>
+            <div class="metric-card">
+                <h3>Precision</h3>
+                <div class="metric-value precision">76.5%</div>
+                <div class="metric-subtext">Correct / Extracted</div>
+            </div>
+            <div class="metric-card">
+                <h3>Recall</h3>
+                <div class="metric-value recall">80.9%</div>
+                <div class="metric-subtext">Correct / Expected</div>
+            </div>
+            <div class="metric-card">
+                <h3>Correct Fields</h3>
+                <div class="metric-value correct">114</div>
+                <div class="metric-subtext">of 167 expected</div>
+            </div>
+        </div>
+
+        <!-- Error Breakdown -->
+        <div class="section">
+            <h2>Error Breakdown</h2>
+            <div class="error-grid">
+                <div class="error-card omission">
+                    <div class="error-count">27</div>
+                    <div class="error-label">Omissions</div>
+                </div>
+                <div class="error-card hallucination">
+                    <div class="error-count">9</div>
+                    <div class="error-label">Hallucinations</div>
+                </div>
+                <div class="error-card format_error">
+                    <div class="error-count">0</div>
+                    <div class="error-label">Format Errors</div>
+                </div>
+                <div class="error-card wrong_value">
+                    <div class="error-count">26</div>
+                    <div class="error-label">Wrong Values</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Fields Diff View - Grouped by Domain -->
+        
+        <div class="section">
+            <h2>Fields by Domain</h2>
+            <div style="margin-bottom: 1rem;">
+                <button class="toggle-btn" onclick="expandAllDomains()">Expand All</button>
+                <button class="toggle-btn" onclick="collapseAllDomains()">Collapse All</button>
+                <button class="toggle-btn" onclick="expandMismatchDomains()">Show Mismatches Only</button>
+            </div>
+
+            
+            
+            
+            
+            <div class="domain-group" data-domain="project" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('project')">
+                    <span class="domain-toggle" id="toggle-project">▶</span>
+                    <span class="domain-title">Project Info</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            9
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            1
+                        </span>
+                        <span style="color: var(--text-secondary);">90%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-project">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 90.0%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 1</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.address</span>
+                            <span class="diff-value diff-expected ">
+                                4720 Chamberlin Cir.
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                4720 Chamberlin Cir
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.attached_garage</span>
+                            <span class="diff-value diff-expected ">
+                                False
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                False
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.bedrooms</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.city</span>
+                            <span class="diff-value diff-expected ">
+                                Elk Grove
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Elk Grove
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.climate_zone</span>
+                            <span class="diff-value diff-expected ">
+                                12
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                12
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.dwelling_units</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">project.front_orientation</span>
+                            <span class="diff-value diff-expected ">
+                                73
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                180.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.fuel_type</span>
+                            <span class="diff-value diff-expected ">
+                                All Electric
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                All Electric
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.house_type</span>
+                            <span class="diff-value diff-expected ">
+                                Single Family
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Single Family
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">project.stories</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="envelope" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('envelope')">
+                    <span class="domain-toggle" id="toggle-envelope">▶</span>
+                    <span class="domain-title">Envelope Summary</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            8
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            1
+                        </span>
+                        <span style="color: var(--text-secondary);">89%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-envelope">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 88.88888888888889%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 1</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.addition_conditioned_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.below_grade_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.conditioned_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.exposed_below_grade_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">envelope.exposed_slab_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                64
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.exterior_wall_area</span>
+                            <span class="diff-value diff-expected ">
+                                612
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                612.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.slab_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.underground_wall_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">envelope.window_area</span>
+                            <span class="diff-value diff-expected ">
+                                64
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                64.0
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="zones" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('zones')">
+                    <span class="domain-toggle" id="toggle-zones">▶</span>
+                    <span class="domain-title">Thermal Zones</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            8
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            5
+                        </span>
+                        <span style="color: var(--text-secondary);">62%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-zones">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 61.53846153846154%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 3</span>
+                        
+                        <span class="domain-error-badge omission">omission: 2</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].cathedral_ceiling_area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].ceiling_below_attic_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">zones[0].ceiling_height</span>
+                            <span class="diff-value diff-expected ">
+                                8.5
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                8.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">zones[0].exterior_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">zones[0].exterior_wall_area</span>
+                            <span class="diff-value diff-expected ">
+                                612
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                576.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">zones[0].exterior_wall_door_area</span>
+                            <span class="diff-value diff-expected ">
+                                18.9
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].name</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].slab_floor_area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].stories</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">zones[0].volume</span>
+                            <span class="diff-value diff-expected ">
+                                2720
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                2560.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">zones[0].zone_type</span>
+                            <span class="diff-value diff-expected ">
+                                Conditioned
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Conditioned
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="walls" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('walls')">
+                    <span class="domain-toggle" id="toggle-walls">▶</span>
+                    <span class="domain-title">Walls</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            31
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            9
+                        </span>
+                        <span style="color: var(--text-secondary);">78%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-walls">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 77.5%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 9</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[0].area</span>
+                            <span class="diff-value diff-expected ">
+                                136
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                160.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-21 Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                R-21 Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[0].door_area</span>
+                            <span class="diff-value diff-expected ">
+                                18.9
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.25
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.25
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].name</span>
+                            <span class="diff-value diff-expected ">
+                                N Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                N Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                343
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                343.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].tilt</span>
+                            <span class="diff-value diff-expected ">
+                                90
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                90.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].window_area</span>
+                            <span class="diff-value diff-expected ">
+                                6
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                6.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[0].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[1].area</span>
+                            <span class="diff-value diff-expected ">
+                                170
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                128.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-21 Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                R-21 Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[1].door_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                18.9
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.25
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.25
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].name</span>
+                            <span class="diff-value diff-expected ">
+                                E Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                E Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                73
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                73.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].tilt</span>
+                            <span class="diff-value diff-expected ">
+                                90
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                90.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[1].window_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                7.5
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[1].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[2].area</span>
+                            <span class="diff-value diff-expected ">
+                                136
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                160.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-21 Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                R-21 Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].door_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.25
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.25
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].name</span>
+                            <span class="diff-value diff-expected ">
+                                S Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                S Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                163
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                163.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].tilt</span>
+                            <span class="diff-value diff-expected ">
+                                90
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                90.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[2].window_area</span>
+                            <span class="diff-value diff-expected ">
+                                52
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                6.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[2].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[3].area</span>
+                            <span class="diff-value diff-expected ">
+                                170
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                128.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-21 Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                R-21 Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].door_area</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.25
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.25
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].name</span>
+                            <span class="diff-value diff-expected ">
+                                W Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                W Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                253
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                253.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].tilt</span>
+                            <span class="diff-value diff-expected ">
+                                90
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                90.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">walls[3].window_area</span>
+                            <span class="diff-value diff-expected ">
+                                6
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                52.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">walls[3].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="windows" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('windows')">
+                    <span class="domain-toggle" id="toggle-windows">▶</span>
+                    <span class="domain-title">Windows / Fenestration</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            25
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            20
+                        </span>
+                        <span style="color: var(--text-secondary);">56%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-windows">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 55.55555555555556%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 11</span>
+                        
+                        <span class="domain-error-badge hallucination">hallucination: 9</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].area</span>
+                            <span class="diff-value diff-expected ">
+                                6
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                6.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].azimuth</span>
+                            <span class="diff-value diff-expected ">
+                                343
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                343.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].exterior_shade</span>
+                            <span class="diff-value diff-expected ">
+                                Insect Screen (default)
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Insect Screen (default)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].multiplier</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[0].name</span>
+                            <span class="diff-value diff-expected ">
+                                G03 (3020)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                G05
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].shgc</span>
+                            <span class="diff-value diff-expected ">
+                                0.23
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.23
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].u_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.3
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.3
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[0].wall</span>
+                            <span class="diff-value diff-expected ">
+                                N Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                N Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].area</span>
+                            <span class="diff-value diff-expected ">
+                                40
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                7.5
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].azimuth</span>
+                            <span class="diff-value diff-expected ">
+                                163
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                73.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[1].exterior_shade</span>
+                            <span class="diff-value diff-expected ">
+                                Insect Screen (default)
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Insect Screen (default)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[1].multiplier</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].name</span>
+                            <span class="diff-value diff-expected ">
+                                D03 (6068)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                G01
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].shgc</span>
+                            <span class="diff-value diff-expected ">
+                                0.21
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.23
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[1].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].u_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.32
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.3
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[1].wall</span>
+                            <span class="diff-value diff-expected ">
+                                S Wall
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                E Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[2].area</span>
+                            <span class="diff-value diff-expected ">
+                                12
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                6.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].azimuth</span>
+                            <span class="diff-value diff-expected ">
+                                163
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                163.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].exterior_shade</span>
+                            <span class="diff-value diff-expected ">
+                                Insect Screen (default)
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Insect Screen (default)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].multiplier</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[2].name</span>
+                            <span class="diff-value diff-expected ">
+                                G02 (4030)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                G03
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].shgc</span>
+                            <span class="diff-value diff-expected ">
+                                0.23
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.23
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].u_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.3
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.3
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[2].wall</span>
+                            <span class="diff-value diff-expected ">
+                                S Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                S Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[3].area</span>
+                            <span class="diff-value diff-expected ">
+                                6
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                12.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].azimuth</span>
+                            <span class="diff-value diff-expected ">
+                                253
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                253.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].exterior_shade</span>
+                            <span class="diff-value diff-expected ">
+                                Insect Screen (default)
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                Insect Screen (default)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].multiplier</span>
+                            <span class="diff-value diff-expected ">
+                                1
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[3].name</span>
+                            <span class="diff-value diff-expected ">
+                                G01 (3020)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                G02
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].shgc</span>
+                            <span class="diff-value diff-expected ">
+                                0.23
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.23
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].u_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.3
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.3
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">windows[3].wall</span>
+                            <span class="diff-value diff-expected ">
+                                W Wall
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                W Wall
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].area</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                40.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].azimuth</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                253.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].exterior_shade</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                Insect Screen (default)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].multiplier</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].name</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                D03
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].shgc</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.21
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].status</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].u_factor</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                0.32
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">windows[4].wall</span>
+                            <span class="diff-value diff-expected diff-null">
+                                (none)
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                W Wall
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="ceilings" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('ceilings')">
+                    <span class="domain-toggle" id="toggle-ceilings">▶</span>
+                    <span class="domain-title">Ceilings</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            0
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            24
+                        </span>
+                        <span style="color: var(--text-secondary);">0%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-ceilings">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 0.0%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge omission">omission: 24</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].area</span>
+                            <span class="diff-value diff-expected ">
+                                160
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-38 Roof No Attic
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.1
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].name</span>
+                            <span class="diff-value diff-expected ">
+                                Roof Rafter
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                73
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].roof_emittance</span>
+                            <span class="diff-value diff-expected ">
+                                0.85
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].roof_pitch</span>
+                            <span class="diff-value diff-expected ">
+                                0.333
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].roof_reflectance</span>
+                            <span class="diff-value diff-expected ">
+                                0.1
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].roof_rise</span>
+                            <span class="diff-value diff-expected ">
+                                4
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].roof_tilt</span>
+                            <span class="diff-value diff-expected ">
+                                18.435
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[0].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].area</span>
+                            <span class="diff-value diff-expected ">
+                                160
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].construction_type</span>
+                            <span class="diff-value diff-expected ">
+                                R-38 Roof No Attic
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].framing_factor</span>
+                            <span class="diff-value diff-expected ">
+                                0.1
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].name</span>
+                            <span class="diff-value diff-expected ">
+                                Roof Rafter 2
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].orientation</span>
+                            <span class="diff-value diff-expected ">
+                                253
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].roof_emittance</span>
+                            <span class="diff-value diff-expected ">
+                                0.85
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].roof_pitch</span>
+                            <span class="diff-value diff-expected ">
+                                0.333
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].roof_reflectance</span>
+                            <span class="diff-value diff-expected ">
+                                0.1
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].roof_rise</span>
+                            <span class="diff-value diff-expected ">
+                                4
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].roof_tilt</span>
+                            <span class="diff-value diff-expected ">
+                                18.435
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">ceilings[1].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+            
+            
+            
+            <div class="domain-group" data-domain="slab_floors" data-has-mismatches="true">
+                <div class="domain-header" onclick="toggleDomain('slab_floors')">
+                    <span class="domain-toggle" id="toggle-slab_floors">▶</span>
+                    <span class="domain-title">Slab Floors</span>
+                    <div class="domain-stats">
+                        <span class="domain-stat matches">
+                            <span class="domain-stat-icon">✓</span>
+                            6
+                        </span>
+                        <span class="domain-stat mismatches">
+                            <span class="domain-stat-icon">✗</span>
+                            2
+                        </span>
+                        <span style="color: var(--text-secondary);">75%</span>
+                    </div>
+                </div>
+                <div class="domain-content" id="content-slab_floors">
+                    <div class="domain-progress">
+                        <div class="domain-progress-bar" style="width: 75.0%;"></div>
+                    </div>
+                    
+                    <div class="domain-summary">
+                        
+                        <span class="domain-error-badge omission">omission: 1</span>
+                        
+                        <span class="domain-error-badge wrong_value">wrong_value: 1</span>
+                        
+                    </div>
+                    
+                    <div class="diff-header">
+                        <span></span>
+                        <span>Field</span>
+                        <span>Expected</span>
+                        <span>Actual</span>
+                    </div>
+                    <div class="diff-view">
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].area</span>
+                            <span class="diff-value diff-expected ">
+                                320
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                320.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].carpeted_fraction</span>
+                            <span class="diff-value diff-expected ">
+                                0.8
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                0.8
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">slab_floors[0].edge_insulation_r_value</span>
+                            <span class="diff-value diff-expected ">
+                                0
+                            </span>
+                            <span class="diff-value diff-actual wrong diff-null">
+                                (none)
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].heated</span>
+                            <span class="diff-value diff-expected ">
+                                False
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                False
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row mismatch">
+                            <span class="diff-status mismatch">
+                                ✗
+                            </span>
+                            <span class="diff-field">slab_floors[0].name</span>
+                            <span class="diff-value diff-expected ">
+                                Slab-on-Grade
+                            </span>
+                            <span class="diff-value diff-actual wrong ">
+                                Slab 1
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].perimeter</span>
+                            <span class="diff-value diff-expected ">
+                                72
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                72.0
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].status</span>
+                            <span class="diff-value diff-expected ">
+                                New
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                New
+                            </span>
+                        </div>
+                        
+                        <div class="diff-row match">
+                            <span class="diff-status match">
+                                ✓
+                            </span>
+                            <span class="diff-field">slab_floors[0].zone</span>
+                            <span class="diff-value diff-expected ">
+                                ADU
+                            </span>
+                            <span class="diff-value diff-actual  ">
+                                ADU
+                            </span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            
+            
+
+            <!-- Handle any domains not in the predefined order -->
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+        </div>
+        
+
+        <!-- Discrepancies Table -->
+        <div class="section">
+            <h2>Field Discrepancies</h2>
+            
+            <div class="table-controls">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterDiscrepancies('all')">All (62)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('omission')">Omissions (27)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('hallucination')">Hallucinations (9)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('format_error')">Format (0)</button>
+                    <button class="filter-btn" onclick="filterDiscrepancies('wrong_value')">Wrong Value (26)</button>
+                </div>
+                <input type="text" class="search-box" placeholder="Search field paths..." onkeyup="searchDiscrepancies(this.value)">
+            </div>
+            <table id="discrepancies-table">
+                <thead>
+                    <tr>
+                        <th>Error Type</th>
+                        <th>Field Path</th>
+                        <th>Expected</th>
+                        <th>Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">project.front_orientation</td>
+                        <td class="value-cell value-expected">
+                            73
+                        </td>
+                        <td class="value-cell value-actual">
+                            180.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">envelope.exposed_slab_floor_area</td>
+                        <td class="value-cell value-expected">
+                            64
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[0].area</td>
+                        <td class="value-cell value-expected">
+                            136
+                        </td>
+                        <td class="value-cell value-actual">
+                            160.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[0].door_area</td>
+                        <td class="value-cell value-expected">
+                            18.9
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[1].area</td>
+                        <td class="value-cell value-expected">
+                            170
+                        </td>
+                        <td class="value-cell value-actual">
+                            128.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[1].window_area</td>
+                        <td class="value-cell value-expected">
+                            0
+                        </td>
+                        <td class="value-cell value-actual">
+                            7.5
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[1].door_area</td>
+                        <td class="value-cell value-expected">
+                            0
+                        </td>
+                        <td class="value-cell value-actual">
+                            18.9
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[2].area</td>
+                        <td class="value-cell value-expected">
+                            136
+                        </td>
+                        <td class="value-cell value-actual">
+                            160.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[2].window_area</td>
+                        <td class="value-cell value-expected">
+                            52
+                        </td>
+                        <td class="value-cell value-actual">
+                            6.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[3].area</td>
+                        <td class="value-cell value-expected">
+                            170
+                        </td>
+                        <td class="value-cell value-actual">
+                            128.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">walls[3].window_area</td>
+                        <td class="value-cell value-expected">
+                            6
+                        </td>
+                        <td class="value-cell value-actual">
+                            52.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[0].name</td>
+                        <td class="value-cell value-expected">
+                            G03 (3020)
+                        </td>
+                        <td class="value-cell value-actual">
+                            G05
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].name</td>
+                        <td class="value-cell value-expected">
+                            D03 (6068)
+                        </td>
+                        <td class="value-cell value-actual">
+                            G01
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].wall</td>
+                        <td class="value-cell value-expected">
+                            S Wall
+                        </td>
+                        <td class="value-cell value-actual">
+                            E Wall
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].azimuth</td>
+                        <td class="value-cell value-expected">
+                            163
+                        </td>
+                        <td class="value-cell value-actual">
+                            73.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].area</td>
+                        <td class="value-cell value-expected">
+                            40
+                        </td>
+                        <td class="value-cell value-actual">
+                            7.5
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].u_factor</td>
+                        <td class="value-cell value-expected">
+                            0.32
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.3
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[1].shgc</td>
+                        <td class="value-cell value-expected">
+                            0.21
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.23
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[2].name</td>
+                        <td class="value-cell value-expected">
+                            G02 (4030)
+                        </td>
+                        <td class="value-cell value-actual">
+                            G03
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[2].area</td>
+                        <td class="value-cell value-expected">
+                            12
+                        </td>
+                        <td class="value-cell value-actual">
+                            6.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[3].name</td>
+                        <td class="value-cell value-expected">
+                            G01 (3020)
+                        </td>
+                        <td class="value-cell value-actual">
+                            G02
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">windows[3].area</td>
+                        <td class="value-cell value-expected">
+                            6
+                        </td>
+                        <td class="value-cell value-actual">
+                            12.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].name</td>
+                        <td class="value-cell value-expected">
+                            Roof Rafter
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].zone</td>
+                        <td class="value-cell value-expected">
+                            ADU
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].status</td>
+                        <td class="value-cell value-expected">
+                            New
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].construction_type</td>
+                        <td class="value-cell value-expected">
+                            R-38 Roof No Attic
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].orientation</td>
+                        <td class="value-cell value-expected">
+                            73
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].area</td>
+                        <td class="value-cell value-expected">
+                            160
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].roof_rise</td>
+                        <td class="value-cell value-expected">
+                            4
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].roof_pitch</td>
+                        <td class="value-cell value-expected">
+                            0.333
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].roof_tilt</td>
+                        <td class="value-cell value-expected">
+                            18.435
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].roof_reflectance</td>
+                        <td class="value-cell value-expected">
+                            0.1
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].roof_emittance</td>
+                        <td class="value-cell value-expected">
+                            0.85
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[0].framing_factor</td>
+                        <td class="value-cell value-expected">
+                            0.1
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].name</td>
+                        <td class="value-cell value-expected">
+                            Roof Rafter 2
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].zone</td>
+                        <td class="value-cell value-expected">
+                            ADU
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].status</td>
+                        <td class="value-cell value-expected">
+                            New
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].construction_type</td>
+                        <td class="value-cell value-expected">
+                            R-38 Roof No Attic
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].orientation</td>
+                        <td class="value-cell value-expected">
+                            253
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].area</td>
+                        <td class="value-cell value-expected">
+                            160
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].roof_rise</td>
+                        <td class="value-cell value-expected">
+                            4
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].roof_pitch</td>
+                        <td class="value-cell value-expected">
+                            0.333
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].roof_tilt</td>
+                        <td class="value-cell value-expected">
+                            18.435
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].roof_reflectance</td>
+                        <td class="value-cell value-expected">
+                            0.1
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].roof_emittance</td>
+                        <td class="value-cell value-expected">
+                            0.85
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">ceilings[1].framing_factor</td>
+                        <td class="value-cell value-expected">
+                            0.1
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">slab_floors[0].name</td>
+                        <td class="value-cell value-expected">
+                            Slab-on-Grade
+                        </td>
+                        <td class="value-cell value-actual">
+                            Slab 1
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">slab_floors[0].edge_insulation_r_value</td>
+                        <td class="value-cell value-expected">
+                            0
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">zones[0].ceiling_height</td>
+                        <td class="value-cell value-expected">
+                            8.5
+                        </td>
+                        <td class="value-cell value-actual">
+                            8.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">zones[0].volume</td>
+                        <td class="value-cell value-expected">
+                            2720
+                        </td>
+                        <td class="value-cell value-actual">
+                            2560.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="wrong_value">
+                        <td><span class="error-badge wrong_value">wrong_value</span></td>
+                        <td class="field-path">zones[0].exterior_wall_area</td>
+                        <td class="value-cell value-expected">
+                            612
+                        </td>
+                        <td class="value-cell value-actual">
+                            576.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">zones[0].exterior_wall_door_area</td>
+                        <td class="value-cell value-expected">
+                            18.9
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="omission">
+                        <td><span class="error-badge omission">omission</span></td>
+                        <td class="field-path">zones[0].exterior_floor_area</td>
+                        <td class="value-cell value-expected">
+                            0
+                        </td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].name</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            D03
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].wall</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            W Wall
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].status</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            New
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].azimuth</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            253.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].multiplier</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            1
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].area</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            40.0
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].u_factor</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.32
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].shgc</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            0.21
+                        </td>
+                    </tr>
+                    
+                    <tr data-error-type="hallucination">
+                        <td><span class="error-badge hallucination">hallucination</span></td>
+                        <td class="field-path">windows[4].exterior_shade</td>
+                        <td class="value-cell value-null">
+                            (none)
+                        </td>
+                        <td class="value-cell value-actual">
+                            Insect Screen (default)
+                        </td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+            <div class="pagination" id="pagination">
+                <button onclick="prevPage()" id="prev-btn" disabled>Previous</button>
+                <span class="page-info" id="page-info">Page 1 of 1</span>
+                <button onclick="nextPage()" id="next-btn">Next</button>
+            </div>
+            
+        </div>
+
+        
+        <!-- Iteration History -->
+        <div class="section">
+            <h2>F1 Score History</h2>
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Iteration</th>
+                        <th>F1</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>Trend</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td>1</td>
+                        <td>60.0%</td>
+                        <td>46.2%</td>
+                        <td>85.7%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T02:20:31.733734Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>2</td>
+                        <td>60.0%</td>
+                        <td>46.2%</td>
+                        <td>85.7%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T03:13:56.155496Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>3</td>
+                        <td>22.6%</td>
+                        <td>46.2%</td>
+                        <td>15.0%</td>
+                        <td class="trend-down">
+                            -37.4%
+                            
+                        </td>
+                        <td>2026-02-04T03:17:38.855609Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>4</td>
+                        <td>6.9%</td>
+                        <td>46.2%</td>
+                        <td>3.8%</td>
+                        <td class="trend-down">
+                            -15.7%
+                            
+                        </td>
+                        <td>2026-02-04T03:25:28.623060Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>5</td>
+                        <td>6.9%</td>
+                        <td>46.2%</td>
+                        <td>3.8%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T03:27:44.956231Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>6</td>
+                        <td>6.9%</td>
+                        <td>46.2%</td>
+                        <td>3.8%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T05:26:24.177000Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>8</td>
+                        <td>37.5%</td>
+                        <td>30.9%</td>
+                        <td>47.8%</td>
+                        <td class="trend-up">
+                            +30.6%
+                            
+                        </td>
+                        <td>2026-02-04T07:19:47.552270Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>9</td>
+                        <td>37.5%</td>
+                        <td>30.9%</td>
+                        <td>47.8%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T07:47:39.882777Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>10</td>
+                        <td>43.8%</td>
+                        <td>38.9%</td>
+                        <td>50.0%</td>
+                        <td class="trend-up">
+                            +6.3%
+                            
+                        </td>
+                        <td>2026-02-04T07:51:28.947608Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>11</td>
+                        <td>43.8%</td>
+                        <td>38.9%</td>
+                        <td>50.0%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-04T07:54:11.004109Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>12</td>
+                        <td>44.9%</td>
+                        <td>40.3%</td>
+                        <td>50.8%</td>
+                        <td class="trend-up">
+                            +1.2%
+                            
+                        </td>
+                        <td>2026-02-04T08:11:11.036194Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>13</td>
+                        <td>41.4%</td>
+                        <td>36.7%</td>
+                        <td>47.4%</td>
+                        <td class="trend-down">
+                            -3.6%
+                            
+                        </td>
+                        <td>2026-02-04T08:24:11.714294Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>14</td>
+                        <td>47.4%</td>
+                        <td>41.0%</td>
+                        <td>56.1%</td>
+                        <td class="trend-up">
+                            +6.0%
+                            
+                        </td>
+                        <td>2026-02-04T08:48:09.149706Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>15</td>
+                        <td>53.6%</td>
+                        <td>51.2%</td>
+                        <td>56.1%</td>
+                        <td class="trend-up">
+                            +6.1%
+                            
+                        </td>
+                        <td>2026-02-04T08:51:40.934605Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>16</td>
+                        <td>55.4%</td>
+                        <td>54.7%</td>
+                        <td>56.1%</td>
+                        <td class="trend-up">
+                            +1.9%
+                            
+                        </td>
+                        <td>2026-02-04T08:52:02.153485Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>17</td>
+                        <td>60.2%</td>
+                        <td>58.6%</td>
+                        <td>61.9%</td>
+                        <td class="trend-up">
+                            +4.8%
+                            
+                        </td>
+                        <td>2026-02-04T08:58:33.606481Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>18</td>
+                        <td>58.8%</td>
+                        <td>55.9%</td>
+                        <td>62.0%</td>
+                        <td class="trend-down">
+                            -1.4%
+                            
+                        </td>
+                        <td>2026-02-04T09:06:14.713143Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>19</td>
+                        <td>54.5%</td>
+                        <td>50.7%</td>
+                        <td>59.0%</td>
+                        <td class="trend-down">
+                            -4.3%
+                            
+                        </td>
+                        <td>2026-02-04T09:13:11.546720Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>20</td>
+                        <td>58.3%</td>
+                        <td>55.6%</td>
+                        <td>61.2%</td>
+                        <td class="trend-up">
+                            +3.8%
+                            
+                        </td>
+                        <td>2026-02-04T09:17:42.442477Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>21</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td class="trend-up">
+                            +4.6%
+                            
+                        </td>
+                        <td>2026-02-04T09:21:34.755972Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>22</td>
+                        <td>63.4%</td>
+                        <td>63.6%</td>
+                        <td>63.2%</td>
+                        <td class="trend-up">
+                            +0.5%
+                            
+                        </td>
+                        <td>2026-02-04T09:25:11.405103Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>23</td>
+                        <td>66.9%</td>
+                        <td>68.9%</td>
+                        <td>65.0%</td>
+                        <td class="trend-up">
+                            +3.5%
+                            
+                        </td>
+                        <td>2026-02-04T09:29:13.558185Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>24</td>
+                        <td>61.8%</td>
+                        <td>61.4%</td>
+                        <td>62.3%</td>
+                        <td class="trend-down">
+                            -5.1%
+                            
+                        </td>
+                        <td>2026-02-04T09:32:52.326771Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>25</td>
+                        <td>59.7%</td>
+                        <td>57.9%</td>
+                        <td>61.6%</td>
+                        <td class="trend-down">
+                            -2.1%
+                            
+                        </td>
+                        <td>2026-02-04T09:37:20.634749Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>26</td>
+                        <td>65.9%</td>
+                        <td>67.4%</td>
+                        <td>64.5%</td>
+                        <td class="trend-up">
+                            +6.2%
+                            
+                        </td>
+                        <td>2026-02-04T09:40:40.560911Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>27</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td class="trend-down">
+                            -3.0%
+                            
+                        </td>
+                        <td>2026-02-04T09:43:49.799875Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>28</td>
+                        <td>66.9%</td>
+                        <td>68.9%</td>
+                        <td>65.0%</td>
+                        <td class="trend-up">
+                            +4.0%
+                            
+                        </td>
+                        <td>2026-02-04T09:47:00.317179Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>29</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td>62.9%</td>
+                        <td class="trend-down">
+                            -4.0%
+                            
+                        </td>
+                        <td>2026-02-04T09:50:03.069442Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>30</td>
+                        <td>62.4%</td>
+                        <td>62.1%</td>
+                        <td>62.6%</td>
+                        <td class="trend-down">
+                            -0.5%
+                            
+                        </td>
+                        <td>2026-02-04T09:53:22.154875Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>31</td>
+                        <td>57.2%</td>
+                        <td>54.2%</td>
+                        <td>60.6%</td>
+                        <td class="trend-down">
+                            -5.1%
+                            
+                        </td>
+                        <td>2026-02-04T09:56:43.365453Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>32</td>
+                        <td>63.4%</td>
+                        <td>63.6%</td>
+                        <td>63.2%</td>
+                        <td class="trend-up">
+                            +6.1%
+                            
+                        </td>
+                        <td>2026-02-04T09:59:52.005234Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>33</td>
+                        <td>62.9%</td>
+                        <td>62.4%</td>
+                        <td>63.4%</td>
+                        <td class="trend-down">
+                            -0.5%
+                            
+                        </td>
+                        <td>2026-02-04T17:18:48.782758Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>34</td>
+                        <td>60.8%</td>
+                        <td>59.4%</td>
+                        <td>62.2%</td>
+                        <td class="trend-down">
+                            -2.1%
+                            
+                        </td>
+                        <td>2026-02-04T17:26:11.979713Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>35</td>
+                        <td>67.4%</td>
+                        <td>68.7%</td>
+                        <td>66.2%</td>
+                        <td class="trend-up">
+                            +6.6%
+                            
+                        </td>
+                        <td>2026-02-04T17:37:45.234117Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>43</td>
+                        <td>61.1%</td>
+                        <td>58.0%</td>
+                        <td>64.5%</td>
+                        <td class="trend-down">
+                            -6.3%
+                            
+                        </td>
+                        <td>2026-02-06T02:22:18.289118Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>44</td>
+                        <td>72.3%</td>
+                        <td>70.2%</td>
+                        <td>74.4%</td>
+                        <td class="trend-up">
+                            +11.2%
+                            
+                        </td>
+                        <td>2026-02-06T03:27:11.016745Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>45</td>
+                        <td>71.3%</td>
+                        <td>68.8%</td>
+                        <td>74.0%</td>
+                        <td class="trend-down">
+                            -0.9%
+                            
+                        </td>
+                        <td>2026-02-06T04:35:24.404512Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>46</td>
+                        <td>74.1%</td>
+                        <td>72.5%</td>
+                        <td>75.7%</td>
+                        <td class="trend-up">
+                            +2.8%
+                            
+                        </td>
+                        <td>2026-02-06T05:54:27.830870Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>47</td>
+                        <td>71.3%</td>
+                        <td>70.3%</td>
+                        <td>72.3%</td>
+                        <td class="trend-down">
+                            -2.8%
+                            
+                        </td>
+                        <td>2026-02-06T06:08:03.586810Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>48</td>
+                        <td>71.3%</td>
+                        <td>70.3%</td>
+                        <td>72.3%</td>
+                        <td class="trend-same">
+                            --
+                        </td>
+                        <td>2026-02-06T06:22:51.847471Z</td>
+                    </tr>
+                    
+                    <tr>
+                        <td>49</td>
+                        <td>73.4%</td>
+                        <td>74.5%</td>
+                        <td>72.3%</td>
+                        <td class="trend-up">
+                            +2.1%
+                            
+                        </td>
+                        <td>2026-02-06T06:24:40.367075Z</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+        
+
+        <!-- Raw Data Section -->
+        
+        <div class="section">
+            <h2>Raw Data</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.9rem;">
+                Complete JSON data for debugging and review. Click headers to expand/collapse.
+            </p>
+
+            
+            <div class="json-section">
+                <div class="json-header" onclick="toggleJson('extracted-json')">
+                    <span class="json-toggle" id="extracted-json-toggle">▶</span>
+                    <span>Extracted JSON</span>
+                    <span class="json-size">5504 chars</span>
+                </div>
+                <pre class="json-content" id="extracted-json" style="display: none;">{
+  "project": {
+    "run_id": null,
+    "run_title": "4720 Chamberlin Cir ADU",
+    "run_number": 0,
+    "run_scope": null,
+    "address": "4720 Chamberlin Cir",
+    "city": "Elk Grove",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 1,
+    "attached_garage": false,
+    "front_orientation": 180.0,
+    "orientation_confidence": null,
+    "orientation_verification": null
+  },
+  "envelope": {
+    "conditioned_floor_area": 320.0,
+    "addition_conditioned_floor_area": 0.0,
+    "window_area": 64.0,
+    "window_to_floor_ratio": 0.2,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 612.0,
+    "underground_wall_area": 0.0,
+    "slab_floor_area": 320.0,
+    "exposed_slab_floor_area": 0.0,
+    "below_grade_floor_area": 0.0,
+    "exposed_below_grade_floor_area": 0.0,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 320.0,
+      "ceiling_height": 8.0,
+      "stories": 1,
+      "volume": 2560.0,
+      "exterior_wall_area": 576.0,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 320.0,
+      "slab_floor_area": 320.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 343.0,
+      "area": 160.0,
+      "window_area": 6.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 73.0,
+      "area": 128.0,
+      "window_area": 7.5,
+      "door_area": 18.9,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 163.0,
+      "area": 160.0,
+      "window_area": 6.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 253.0,
+      "area": 128.0,
+      "window_area": 52.0,
+      "door_area": 0.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "G05",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 343.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G01",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 73.0,
+      "height": 1.5,
+      "width": 5.0,
+      "multiplier": 1,
+      "area": 7.5,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G03",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 163.0,
+      "height": 2.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 6.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G02",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 253.0,
+      "height": 3.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "D03",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 253.0,
+      "height": 6.67,
+      "width": 6.0,
+      "multiplier": 1,
+      "area": 40.0,
+      "u_factor": 0.32,
+      "shgc": 0.21,
+      "exterior_shade": "Insect Screen (default)"
+    }
+  ],
+  "ceilings": [],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "ADU",
+      "status": "New",
+      "area": 320.0,
+      "perimeter": 72.0,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "Ductless Mini Split",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 9
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 6
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}</pre>
+            </div>
+            
+
+            
+            <div class="json-section">
+                <div class="json-header" onclick="toggleJson('ground-truth-json')">
+                    <span class="json-toggle" id="ground-truth-json-toggle">▶</span>
+                    <span>Ground Truth JSON</span>
+                    <span class="json-size">5066 chars</span>
+                </div>
+                <pre class="json-content" id="ground-truth-json" style="display: none;">{
+  "project": {
+    "run_id": "User",
+    "run_title": "Title 24 Analysis",
+    "run_number": 0,
+    "run_scope": "Newly Constructed",
+    "address": "4720 Chamberlin Cir.",
+    "city": "Elk Grove",
+    "climate_zone": 12,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 1,
+    "attached_garage": false,
+    "front_orientation": 73
+  },
+  "envelope": {
+    "conditioned_floor_area": 320,
+    "window_area": 64,
+    "window_to_floor_ratio": 0.2,
+    "fenestration_u_factor": 0.313,
+    "exterior_wall_area": 612,
+    "underground_wall_area": 0,
+    "slab_floor_area": 320,
+    "exposed_slab_floor_area": 64,
+    "below_grade_floor_area": 0,
+    "exposed_below_grade_floor_area": 0,
+    "addition_conditioned_floor_area": 0,
+    "pv_credit_available": true,
+    "pv_generation_max_credit": 0,
+    "credit_available_for_pv": 0,
+    "final_pv_credit": 0,
+    "zonal_control": false,
+    "infiltration_ach50": 5,
+    "infiltration_cfm50": 226.667,
+    "quality_insulation_installation": false
+  },
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 343,
+      "area": 136,
+      "window_area": 6,
+      "door_area": 18.9,
+      "tilt": 90,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 73,
+      "area": 170,
+      "window_area": 0,
+      "door_area": 0,
+      "tilt": 90,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 163,
+      "area": 136,
+      "window_area": 52,
+      "door_area": 0,
+      "tilt": 90,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 253,
+      "area": 170,
+      "window_area": 6,
+      "door_area": 0,
+      "tilt": 90,
+      "framing_factor": 0.25
+    }
+  ],
+  "windows": [
+    {
+      "name": "G03 (3020)",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 343,
+      "multiplier": 1,
+      "area": 6,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "D03 (6068)",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 163,
+      "multiplier": 1,
+      "area": 40,
+      "u_factor": 0.32,
+      "shgc": 0.21,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G02 (4030)",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 163,
+      "multiplier": 1,
+      "area": 12,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    },
+    {
+      "name": "G01 (3020)",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 253,
+      "multiplier": 1,
+      "area": 6,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": "Insect Screen (default)"
+    }
+  ],
+  "wall_constructions": [
+    {
+      "name": "R-21 Wall",
+      "construction_type": "Wood Framed Wall",
+      "cavity_r_value": 21,
+      "total_thickness": 6.25,
+      "winter_design_u_value": 0.068,
+      "layers:": "Inside Finish: Gypsum Board"
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Roof Rafter",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-38 Roof No Attic",
+      "orientation": 73,
+      "area": 160,
+      "roof_rise": 4,
+      "roof_pitch": 0.333,
+      "roof_tilt": 18.435,
+      "roof_reflectance": 0.1,
+      "roof_emittance": 0.85,
+      "framing_factor": 0.1
+    },
+    {
+      "name": "Roof Rafter 2",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-38 Roof No Attic",
+      "orientation": 253,
+      "area": 160,
+      "roof_rise": 4,
+      "roof_pitch": 0.333,
+      "roof_tilt": 18.435,
+      "roof_reflectance": 0.1,
+      "roof_emittance": 0.85,
+      "framing_factor": 0.1
+    }
+  ],
+  "ceiling_constructions": [
+    {
+      "name": "R-38 Roof No Attic",
+      "construction_type": "Wood Framed Ceiling",
+      "cavity_r_value": 38,
+      "total_thickness": 12.45,
+      "winter_design_u_value": 0.03,
+      "layers:": "Roofing: Light Roof (Asphalt Shingle)"
+    }
+  ],
+  "slab_floors": [
+    {
+      "name": "Slab-on-Grade",
+      "zone": "ADU",
+      "status": "New",
+      "area": 320,
+      "perimeter": 72,
+      "edge_insulation_r_value": 0,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 320,
+      "ceiling_height": 8.5,
+      "stories": 1,
+      "volume": 2720,
+      "exterior_wall_area": 612,
+      "exterior_wall_door_area": 18.9,
+      "ceiling_below_attic_area": 0,
+      "cathedral_ceiling_area": 320,
+      "slab_floor_area": 320,
+      "exterior_floor_area": 0
+    }
+  ]
+}</pre>
+            </div>
+            
+        </div>
+        
+    </div>
+
+    <script>
+        // Domain toggle functions
+        function toggleDomain(domain) {
+            const content = document.getElementById('content-' + domain);
+            const toggle = document.getElementById('toggle-' + domain);
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                toggle.classList.remove('open');
+            } else {
+                content.classList.add('open');
+                toggle.classList.add('open');
+            }
+        }
+
+        function expandAllDomains() {
+            document.querySelectorAll('.domain-content').forEach(el => el.classList.add('open'));
+            document.querySelectorAll('.domain-toggle').forEach(el => el.classList.add('open'));
+        }
+
+        function collapseAllDomains() {
+            document.querySelectorAll('.domain-content').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.domain-toggle').forEach(el => el.classList.remove('open'));
+        }
+
+        function expandMismatchDomains() {
+            // First collapse all
+            collapseAllDomains();
+            // Then expand only those with mismatches
+            document.querySelectorAll('.domain-group[data-has-mismatches="true"]').forEach(group => {
+                const domain = group.dataset.domain;
+                const content = document.getElementById('content-' + domain);
+                const toggle = document.getElementById('toggle-' + domain);
+                if (content) content.classList.add('open');
+                if (toggle) toggle.classList.add('open');
+            });
+        }
+
+        // JSON toggle function
+        function toggleJson(id) {
+            const content = document.getElementById(id);
+            const toggle = document.getElementById(id + '-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+            }
+        }
+
+        // Pagination state
+        const ROWS_PER_PAGE = 50;
+        let currentPage = 1;
+        let filteredRows = [];
+        let allRows = [];
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const tbody = document.querySelector('#discrepancies-table tbody');
+            if (tbody) {
+                allRows = Array.from(tbody.querySelectorAll('tr'));
+                filteredRows = [...allRows];
+                updatePagination();
+            }
+        });
+
+        function filterDiscrepancies(errorType) {
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter rows
+            if (errorType === 'all') {
+                filteredRows = [...allRows];
+            } else {
+                filteredRows = allRows.filter(row => row.dataset.errorType === errorType);
+            }
+
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function searchDiscrepancies(query) {
+            query = query.toLowerCase();
+            filteredRows = allRows.filter(row => {
+                const fieldPath = row.querySelector('.field-path').textContent.toLowerCase();
+                return fieldPath.includes(query);
+            });
+            currentPage = 1;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+            const endIdx = startIdx + ROWS_PER_PAGE;
+
+            // Show/hide rows
+            allRows.forEach(row => row.style.display = 'none');
+            filteredRows.slice(startIdx, endIdx).forEach(row => row.style.display = '');
+
+            // Update pagination controls
+            document.getElementById('page-info').textContent =
+                `Page ${currentPage} of ${Math.max(1, totalPages)} (${filteredRows.length} items)`;
+            document.getElementById('prev-btn').disabled = currentPage <= 1;
+            document.getElementById('next-btn').disabled = currentPage >= totalPages;
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredRows.length / ROWS_PER_PAGE);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        }
+
+        // All Fields filter
+        function filterAllFields(filter) {
+            const container = document.getElementById('all-fields-view');
+            if (!container) return;
+
+            // Update button states
+            container.parentElement.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const rows = container.querySelectorAll('.diff-row');
+            rows.forEach(row => {
+                const isMatch = row.dataset.match === 'true';
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'match') {
+                    row.style.display = isMatch ? '' : 'none';
+                } else if (filter === 'mismatch') {
+                    row.style.display = isMatch ? 'none' : '';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

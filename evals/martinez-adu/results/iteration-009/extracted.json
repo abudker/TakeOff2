@@ -1,0 +1,293 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": null,
+    "run_number": 0,
+    "run_scope": null,
+    "address": "745 Woming Street",
+    "city": "Martinez",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 2,
+    "attached_garage": false,
+    "front_orientation": null
+  },
+  "envelope": {
+    "conditioned_floor_area": 746.0,
+    "addition_conditioned_floor_area": null,
+    "window_area": 201.0,
+    "window_to_floor_ratio": null,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 931.5999999999999,
+    "underground_wall_area": null,
+    "slab_floor_area": 746.0,
+    "exposed_slab_floor_area": null,
+    "below_grade_floor_area": null,
+    "exposed_below_grade_floor_area": null,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "ADU",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 746.0,
+      "ceiling_height": 8.08,
+      "stories": 1,
+      "volume": 6028.0,
+      "exterior_wall_area": 931.6,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 746.0,
+      "cathedral_ceiling_area": 0.0,
+      "slab_floor_area": 746.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 0.0,
+      "area": 293.5,
+      "window_area": 28.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 90.0,
+      "area": 172.3,
+      "window_area": 12.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 180.0,
+      "area": 293.5,
+      "window_area": 73.0,
+      "door_area": 20.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 270.0,
+      "area": 172.3,
+      "window_area": 88.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "W-3040-N1",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-4040-N",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 4.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 16.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-3040-E",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 90.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 12.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-4040-S",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 4.0,
+      "width": 4.0,
+      "multiplier": 1,
+      "area": 16.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-3030-S",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 3.0,
+      "width": 3.0,
+      "multiplier": 1,
+      "area": 9.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-3040-S1",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 2,
+      "area": 24.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "W-3040-W",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 4.0,
+      "width": 3.0,
+      "multiplier": 2,
+      "area": 24.0,
+      "u_factor": 0.3,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "SGD-1",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 6.67,
+      "width": 6.0,
+      "multiplier": 1,
+      "area": 40.0,
+      "u_factor": 0.32,
+      "shgc": 0.21,
+      "exterior_shade": null
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "ADU",
+      "status": "New",
+      "construction_type": "R-30 Roof Rafter",
+      "orientation": null,
+      "area": 746.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "ADU",
+      "status": "New",
+      "area": 746.0,
+      "perimeter": 115.3,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "Ductless Multi-Split Heat Pump",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 7
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 3
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}

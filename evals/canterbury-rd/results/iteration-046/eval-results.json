@@ -1,0 +1,811 @@
+{
+  "eval_id": "canterbury-rd",
+  "metrics": {
+    "precision": 0.6779661016949152,
+    "recall": 0.4624277456647399,
+    "f1": 0.5498281786941581,
+    "true_positives": 80,
+    "false_positives": 38,
+    "false_negatives": 93,
+    "total_fields_gt": 203,
+    "total_fields_extracted": 174,
+    "correct_fields": 80,
+    "errors_by_type": {
+      "omission": 93,
+      "hallucination": 8,
+      "wrong_value": 30,
+      "format_error": 0
+    },
+    "eval_id": "canterbury-rd"
+  },
+  "discrepancies": [
+    {
+      "field_path": "project.address",
+      "expected": "1961 Canterbury",
+      "actual": "1961 Canterbury Rd",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.fuel_type",
+      "expected": "Natural Gas",
+      "actual": "All Electric",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "project.front_orientation",
+      "expected": 90,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.conditioned_floor_area",
+      "expected": 1102,
+      "actual": 996.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_area",
+      "expected": 382,
+      "actual": 190.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.exterior_wall_area",
+      "expected": 1494,
+      "actual": 1056.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.slab_floor_area",
+      "expected": 1102,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "envelope.exposed_slab_floor_area",
+      "expected": 220.4,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": "Zone 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[0].construction_type",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[0].area",
+      "expected": 382,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[0].door_area",
+      "expected": 24,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].framing_factor",
+      "expected": 0.25,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[1].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": "Zone 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[1].construction_type",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[1].area",
+      "expected": 365,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[1].window_area",
+      "expected": 160,
+      "actual": 288.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].framing_factor",
+      "expected": 0.25,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[2].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": "Zone 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[2].construction_type",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[2].area",
+      "expected": 382,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[2].window_area",
+      "expected": 80,
+      "actual": 160.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].framing_factor",
+      "expected": 0.25,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[3].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": "Zone 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[3].construction_type",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[3].area",
+      "expected": 365,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "walls[3].framing_factor",
+      "expected": 0.25,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[1].u_factor",
+      "expected": 0.34,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].shgc",
+      "expected": 0.23,
+      "actual": 0.24,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].u_factor",
+      "expected": 0.34,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].shgc",
+      "expected": 0.23,
+      "actual": 0.24,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].name",
+      "expected": "G02 (4080) 2",
+      "actual": "G02",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].name",
+      "expected": "D03 (8080) 2",
+      "actual": "D03",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].multiplier",
+      "expected": 1,
+      "actual": 2,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].area",
+      "expected": 64,
+      "actual": 128.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].u_factor",
+      "expected": 0.34,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].shgc",
+      "expected": 0.23,
+      "actual": 0.24,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].name",
+      "expected": "D03 (8080) 3",
+      "actual": "G01",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].wall",
+      "expected": "E Wall",
+      "actual": "S Wall",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].azimuth",
+      "expected": 90,
+      "actual": 180.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].multiplier",
+      "expected": 1,
+      "actual": 2,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].area",
+      "expected": 64,
+      "actual": 80.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].u_factor",
+      "expected": 0.34,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].shgc",
+      "expected": 0.23,
+      "actual": 0.24,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].name",
+      "expected": "G01 (8050)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].wall",
+      "expected": "S Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].azimuth",
+      "expected": 180,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].multiplier",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].area",
+      "expected": 40,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].u_factor",
+      "expected": 0.32,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].shgc",
+      "expected": 0.24,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[6].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].name",
+      "expected": "G01 (8050) 2",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].wall",
+      "expected": "S Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].azimuth",
+      "expected": 180,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].multiplier",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].area",
+      "expected": 40,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].u_factor",
+      "expected": 0.32,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].shgc",
+      "expected": 0.24,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[7].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].name",
+      "expected": "R-21 Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].construction_type",
+      "expected": "Wood Framed Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].cavity_r_value",
+      "expected": 21,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].total_thickness",
+      "expected": 6.875,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].winter_design_u_value",
+      "expected": 0.069,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "wall_constructions[0].layers:",
+      "expected": "Inside Finish: Gypsum Board",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].name",
+      "expected": "Roof",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].construction_type",
+      "expected": "R-32 Roof No Attic",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].orientation",
+      "expected": 180,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].area",
+      "expected": 608,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_rise",
+      "expected": 2,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_pitch",
+      "expected": 0.167,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_tilt",
+      "expected": 9.462,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_reflectance",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_emittance",
+      "expected": 0.85,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].framing_factor",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].name",
+      "expected": "Roof 2",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].construction_type",
+      "expected": "R-32 Roof No Attic",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].orientation",
+      "expected": 180,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].area",
+      "expected": 494,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_rise",
+      "expected": 2,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_pitch",
+      "expected": 0.167,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_tilt",
+      "expected": 9.462,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_reflectance",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_emittance",
+      "expected": 0.85,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].framing_factor",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].name",
+      "expected": "R-32 Roof No Attic",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].construction_type",
+      "expected": "Wood Framed Ceiling",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].cavity_r_value",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].total_thickness",
+      "expected": 13.45,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].winter_design_u_value",
+      "expected": 0.029,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceiling_constructions[0].layers:",
+      "expected": "Roofing: Light Roof (Asphalt Shingle)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].name",
+      "expected": "Slab-on-Grade",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].zone",
+      "expected": "Single-Family Dwelling",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].area",
+      "expected": 1102,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].perimeter",
+      "expected": 150,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].edge_insulation_r_value",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].carpeted_fraction",
+      "expected": 0.8,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].heated",
+      "expected": false,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].name",
+      "expected": "Single-Family Dwelling",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].zone_type",
+      "expected": "Conditioned",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].floor_area",
+      "expected": 1102,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].ceiling_height",
+      "expected": 9,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].stories",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].volume",
+      "expected": 9918,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 1494,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 24,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].ceiling_below_attic_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].cathedral_ceiling_area",
+      "expected": 1102,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].slab_floor_area",
+      "expected": 1102,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "project.orientation_confidence",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "project.orientation_verification",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].name",
+      "expected": null,
+      "actual": "Ductless Mini Split - MXZ-2C20NA3",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].status",
+      "expected": null,
+      "actual": "New",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].system_type",
+      "expected": null,
+      "actual": "Ductless",
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].heating",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].cooling",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    },
+    {
+      "field_path": "hvac_systems[0].distribution",
+      "expected": null,
+      "actual": null,
+      "error_type": "hallucination"
+    }
+  ],
+  "timestamp": "2026-02-06T05:54:27.850730Z",
+  "iteration": 46
+}

@@ -1,0 +1,415 @@
+{
+  "eval_id": "martinez-adu",
+  "metrics": {
+    "precision": 0.6882352941176471,
+    "recall": 0.9069767441860465,
+    "f1": 0.7826086956521737,
+    "true_positives": 117,
+    "false_positives": 53,
+    "false_negatives": 12,
+    "total_fields_gt": 182,
+    "total_fields_extracted": 217,
+    "correct_fields": 117,
+    "errors_by_type": {
+      "omission": 12,
+      "hallucination": 0,
+      "wrong_value": 52,
+      "format_error": 1
+    },
+    "eval_id": "martinez-adu"
+  },
+  "discrepancies": [
+    {
+      "field_path": "project.address",
+      "expected": "745 Woming St.",
+      "actual": "745 Woming Street",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.window_area",
+      "expected": 141,
+      "actual": 137.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.exterior_wall_area",
+      "expected": 1028,
+      "actual": 932.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "envelope.exposed_slab_floor_area",
+      "expected": 746,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].orientation",
+      "expected": 14,
+      "actual": 194.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].area",
+      "expected": 205,
+      "actual": 170.7,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].window_area",
+      "expected": 24,
+      "actual": 108.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].orientation",
+      "expected": 104,
+      "actual": 284.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].area",
+      "expected": 309,
+      "actual": 290.7,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].window_area",
+      "expected": 28,
+      "actual": 73.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].door_area",
+      "expected": 0,
+      "actual": 20.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].orientation",
+      "expected": 194,
+      "actual": 14.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].area",
+      "expected": 205,
+      "actual": 170.7,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].window_area",
+      "expected": 40,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].orientation",
+      "expected": 284,
+      "actual": 104.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].area",
+      "expected": 309,
+      "actual": 290.7,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].window_area",
+      "expected": 49,
+      "actual": 68.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].door_area",
+      "expected": 20,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].name",
+      "expected": "3040 HS",
+      "actual": "3040",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].azimuth",
+      "expected": 14,
+      "actual": 194.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].multiplier",
+      "expected": 1,
+      "actual": 3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].area",
+      "expected": 12,
+      "actual": 36.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].name",
+      "expected": "3040 HS 2",
+      "actual": "4040",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].wall",
+      "expected": "N Wall",
+      "actual": "E Wall",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].azimuth",
+      "expected": 14,
+      "actual": 284.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].area",
+      "expected": 12,
+      "actual": 16.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].name",
+      "expected": "4040 HS",
+      "actual": "3030",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].azimuth",
+      "expected": 104,
+      "actual": 284.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].area",
+      "expected": 16,
+      "actual": 9.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].name",
+      "expected": "3040 HS 3",
+      "actual": "3040",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].azimuth",
+      "expected": 104,
+      "actual": 284.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].multiplier",
+      "expected": 1,
+      "actual": 2,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].area",
+      "expected": 12,
+      "actual": 24.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].name",
+      "expected": 6068,
+      "actual": "3040",
+      "error_type": "format_error"
+    },
+    {
+      "field_path": "windows[4].azimuth",
+      "expected": 194,
+      "actual": 14.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].area",
+      "expected": 40,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].u_factor",
+      "expected": 0.32,
+      "actual": 0.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[4].shgc",
+      "expected": 0.22,
+      "actual": 0.23,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].name",
+      "expected": "3030 HS",
+      "actual": "3040",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].azimuth",
+      "expected": 284,
+      "actual": 104.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[5].area",
+      "expected": 9,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].name",
+      "expected": "3040 HS 4",
+      "actual": "4040",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].azimuth",
+      "expected": 284,
+      "actual": 104.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[6].area",
+      "expected": 12,
+      "actual": 16.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].name",
+      "expected": "3040 HS 5",
+      "actual": "SGD (6068)",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].azimuth",
+      "expected": 284,
+      "actual": 104.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].area",
+      "expected": 12,
+      "actual": 40.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].u_factor",
+      "expected": 0.3,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[7].shgc",
+      "expected": 0.23,
+      "actual": 0.21,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[8].name",
+      "expected": "4040 HS 2",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].wall",
+      "expected": "W Wall",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].azimuth",
+      "expected": 284,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].multiplier",
+      "expected": 1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].area",
+      "expected": 16,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].u_factor",
+      "expected": 0.3,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].shgc",
+      "expected": 0.23,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "windows[8].exterior_shade",
+      "expected": "Insect Screen (default)",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].name",
+      "expected": "Slab-on-Grade",
+      "actual": "Slab 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].perimeter",
+      "expected": 112,
+      "actual": 115.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].edge_insulation_r_value",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].carpeted_fraction",
+      "expected": 0,
+      "actual": 0.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 1028,
+      "actual": 922.8,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 20,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    }
+  ],
+  "timestamp": "2026-02-06T06:55:54.527169Z",
+  "iteration": 51
+}

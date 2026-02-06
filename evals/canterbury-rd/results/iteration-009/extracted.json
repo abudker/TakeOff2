@@ -1,0 +1,254 @@
+{
+  "project": {
+    "run_id": null,
+    "run_title": null,
+    "run_number": 0,
+    "run_scope": "Newly Constructed",
+    "address": "1961 Canterbury Rd",
+    "city": "Sacramento",
+    "climate_zone": 12,
+    "standards_version": null,
+    "all_orientations": false,
+    "fuel_type": "All Electric",
+    "house_type": "Single Family",
+    "dwelling_units": 1,
+    "stories": 1,
+    "bedrooms": 3,
+    "attached_garage": false,
+    "front_orientation": null
+  },
+  "envelope": {
+    "conditioned_floor_area": 998.0,
+    "addition_conditioned_floor_area": null,
+    "window_area": 169.0,
+    "window_to_floor_ratio": 0.169,
+    "fenestration_u_factor": null,
+    "exterior_wall_area": 937.0,
+    "underground_wall_area": null,
+    "slab_floor_area": 999.0,
+    "exposed_slab_floor_area": null,
+    "below_grade_floor_area": null,
+    "exposed_below_grade_floor_area": null,
+    "pv_credit_available": null,
+    "pv_generation_max_credit": null,
+    "credit_available_for_pv": null,
+    "final_pv_credit": null,
+    "zonal_control": null,
+    "infiltration_ach50": null,
+    "infiltration_cfm50": null,
+    "quality_insulation_installation": null
+  },
+  "zones": [
+    {
+      "name": "SB-9 House",
+      "zone_type": "Conditioned",
+      "status": "New",
+      "floor_area": 999.0,
+      "ceiling_height": 9.0,
+      "stories": 1,
+      "volume": 8991.0,
+      "exterior_wall_area": 1382.0,
+      "exterior_wall_door_area": null,
+      "ceiling_below_attic_area": 0.0,
+      "cathedral_ceiling_area": 0.0,
+      "slab_floor_area": 999.0,
+      "exterior_floor_area": null
+    }
+  ],
+  "walls": [
+    {
+      "name": "N Wall",
+      "zone": "SB-9 House",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 0.0,
+      "area": 252.0,
+      "window_area": 25.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "E Wall",
+      "zone": "SB-9 House",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 90.0,
+      "area": 162.0,
+      "window_area": 64.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "S Wall",
+      "zone": "SB-9 House",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 180.0,
+      "area": 480.0,
+      "window_area": 256.0,
+      "door_area": 24.0,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    },
+    {
+      "name": "W Wall",
+      "zone": "SB-9 House",
+      "status": "New",
+      "construction_type": "R-21 Wall",
+      "orientation": 270.0,
+      "area": 488.0,
+      "window_area": 256.0,
+      "door_area": null,
+      "tilt": 90.0,
+      "framing_factor": 0.25
+    }
+  ],
+  "wall_constructions": [],
+  "windows": [
+    {
+      "name": "G04",
+      "wall": "N Wall",
+      "status": "New",
+      "azimuth": 0.0,
+      "height": 2.5,
+      "width": 10.0,
+      "multiplier": 1,
+      "area": 25.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": null
+    },
+    {
+      "name": "D03-East",
+      "wall": "E Wall",
+      "status": "New",
+      "azimuth": 90.0,
+      "height": 8.0,
+      "width": 8.0,
+      "multiplier": 1,
+      "area": 64.0,
+      "u_factor": 0.34,
+      "shgc": 0.23,
+      "exterior_shade": null
+    },
+    {
+      "name": "G01",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 5.0,
+      "width": 8.0,
+      "multiplier": 2,
+      "area": 80.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": null
+    },
+    {
+      "name": "G02",
+      "wall": "S Wall",
+      "status": "New",
+      "azimuth": 180.0,
+      "height": 6.0,
+      "width": 4.0,
+      "multiplier": 2,
+      "area": 48.0,
+      "u_factor": 0.32,
+      "shgc": 0.24,
+      "exterior_shade": null
+    },
+    {
+      "name": "D03-West",
+      "wall": "W Wall",
+      "status": "New",
+      "azimuth": 270.0,
+      "height": 8.0,
+      "width": 8.0,
+      "multiplier": 2,
+      "area": 128.0,
+      "u_factor": 0.34,
+      "shgc": 0.23,
+      "exterior_shade": null
+    }
+  ],
+  "ceilings": [
+    {
+      "name": "Ceiling 1",
+      "zone": "SB-9 House",
+      "status": "New",
+      "construction_type": "R-32 Above Roof Deck",
+      "orientation": null,
+      "area": 999.0,
+      "roof_rise": null,
+      "roof_pitch": null,
+      "roof_tilt": null,
+      "roof_reflectance": null,
+      "roof_emittance": null,
+      "framing_factor": null
+    }
+  ],
+  "ceiling_constructions": [],
+  "slab_floors": [
+    {
+      "name": "Slab 1",
+      "zone": "SB-9 House",
+      "status": "New",
+      "area": 999.0,
+      "perimeter": 154.0,
+      "edge_insulation_r_value": null,
+      "carpeted_fraction": 0.8,
+      "heated": false
+    }
+  ],
+  "hvac_systems": [
+    {
+      "name": "Ductless Mini Split System",
+      "status": "New",
+      "system_type": "Ductless",
+      "heating": null,
+      "cooling": null,
+      "distribution": null
+    }
+  ],
+  "water_heating_systems": [],
+  "extraction_status": {
+    "project": {
+      "domain": "project",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 2
+    },
+    "zones": {
+      "domain": "zones",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 11
+    },
+    "windows": {
+      "domain": "windows",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 5
+    },
+    "hvac": {
+      "domain": "hvac",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    },
+    "dhw": {
+      "domain": "dhw",
+      "status": "success",
+      "error": null,
+      "retry_count": 0,
+      "items_extracted": 1
+    }
+  },
+  "conflicts": []
+}
