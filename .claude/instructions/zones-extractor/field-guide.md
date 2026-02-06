@@ -131,28 +131,7 @@ This guide maps each ZoneInfo and WallComponent schema field to its source locat
 **Type:** float > 0 (optional)
 **Description:** Ceiling height in feet
 
-**Document sources:**
-1. **Section drawings:** Vertical dimensions (PRIMARY SOURCE)
-2. **Room schedules:** Height column
-3. **Wall schedules:** Wall height (implies ceiling height)
-4. **Elevations:** Floor-to-floor heights
-
-**Common labels in documents:**
-- "Ceiling Height", "Clg Ht", "Height", "Room Height"
-- "FT", "ft", "feet"
-
-**Extraction tips:**
-- Standard residential: 8 ft (most common)
-- Modern/high-end: 9 ft or 10 ft ceilings
-- Check for vaulted/cathedral sections (variable height)
-- If variable height, CBECC may show average
-- Typical range: 7.5-12 ft for residential
-
-**Example values:**
-- 8.0 (standard ceiling)
-- 9.0 (9-foot ceiling)
-- 10.0 (high ceiling)
-- 12.0 (great room with vaulted)
+**CRITICAL: Do NOT default to 8.0 ft.** Always read the ACTUAL dimension from section drawings. See detailed extraction rules at the end of this guide.
 
 ---
 
@@ -702,7 +681,7 @@ Before finalizing extraction:
 | zone_type | enum | No | Room types, inference | "Conditioned" |
 | status | enum | No | Project scope | "New" |
 | floor_area | float | No | Floor plans, area schedule | - |
-| ceiling_height | float | No | Section drawings | 8.0 |
+| ceiling_height | float | No | Section drawings | MUST read from plans |
 | stories | int | No | Section/elevations | 1 |
 | volume | float | No | Calculated | area x height |
 | exterior_wall_area | float | No | Calculated, wall sum | - |

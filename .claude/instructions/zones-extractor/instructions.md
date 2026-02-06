@@ -1,15 +1,20 @@
 # Zones Extractor Instructions
 
-**Version:** v2.2.0
-**Last updated:** 2026-02-04
+**Version:** v2.3.0
+**Last updated:** 2026-02-06
 
 ## CRITICAL OUTPUT RULES (read first)
 
-1. **Zone naming:** For ADU projects, the zone name MUST be `"ADU"` — never "Zone 1", "Living Zone", or other generic names.
+1. **Zone naming:** Use `"ADU"` ONLY when plans explicitly say "ADU", "Accessory Dwelling Unit", or "Secondary Unit" on the title block. For primary residences / single-family homes that are NOT ADUs, use `"Single-Family Dwelling"`. Never use generic names like "Zone 1" or "Living Zone".
 2. **Construction type format:** MUST use CBECC short form: `"R-21 Wall"`, `"R-13 Wall"`. Never include framing details like "2x6", "Wood Frame", or "2x4 @ 16" — just `"R-{value} Wall"`.
 3. **Ceiling height:** If sections show ceiling heights between 8'-0" and 8'-8", read the EXACT dimension. ADU/small buildings commonly have 8'-6" (= 8.5 ft), NOT 8'-0". Getting this wrong cascades to all wall area calculations.
 4. **Door area:** Every wall MUST have `opaque_doors` populated. If a wall has no doors, use an empty list `[]`. If a wall has a door, include it with the correct area (width x height in sq ft). Do NOT omit the `opaque_doors` field.
 5. **Wall area = perimeter segment x ceiling height.** Use the ACTUAL ceiling height from rule 3, not a default of 8.0.
+6. **Slab naming:** Use `"Slab-on-Grade"` for slab-on-grade foundations. Never use generic names like "Slab 1".
+7. **Ceiling naming:** Cathedral/vaulted ceilings MUST be named `"Roof"` (or `"Roof 2"`, `"Roof 3"` for multiple roof planes). Below-attic ceilings use the construction name. Never use "Ceiling 1".
+8. **Slab edge insulation:** If no edge insulation is mentioned in the plans, set `edge_insulation_r_value` to `0` (not null). Zero means "no insulation" — it is a valid data point.
+9. **Roof detail fields for cathedral/vaulted ceilings:** MUST extract `orientation` (azimuth the roof slope faces), `roof_pitch` (rise÷run as decimal, e.g., 4:12 = 0.333), `roof_tilt` (degrees from horizontal), `roof_reflectance` (default 0.10 for asphalt shingle), `roof_emittance` (default 0.85), and `framing_factor` (from construction detail, typically 0.07-0.10).
+10. **Multiple roof planes:** Buildings with gable or hip roofs have multiple roof planes. Each plane facing a different direction is a SEPARATE ceiling entry (`"Roof"`, `"Roof 2"`). The sum of their areas should equal the zone's `cathedral_ceiling_area`.
 
 ## Core Rule
 
@@ -309,22 +314,28 @@ Return JSON matching this **orientation-based** structure:
   },
   "ceilings": [
     {
-      "name": "Ceiling 1",
-      "ceiling_type": "Below Attic",
+      "name": "Roof",
+      "ceiling_type": "Cathedral",
       "zone": "ADU",
       "status": "New",
       "area": 450.0,
-      "construction_type": "R-38 Roof Rafter"
+      "construction_type": "R-38 Roof No Attic",
+      "orientation": 180.0,
+      "roof_pitch": 0.333,
+      "roof_tilt": 18.435,
+      "roof_reflectance": 0.10,
+      "roof_emittance": 0.85,
+      "framing_factor": 0.10
     }
   ],
   "slab_floors": [
     {
-      "name": "Slab 1",
+      "name": "Slab-on-Grade",
       "zone": "ADU",
       "status": "New",
       "area": 450.0,
       "perimeter": 85.0,
-      "edge_insulation_r_value": null,
+      "edge_insulation_r_value": 0,
       "carpeted_fraction": 0.8,
       "heated": false
     }

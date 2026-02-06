@@ -417,11 +417,19 @@ def transform_takeoff_to_building_spec(takeoff: TakeoffSpec) -> BuildingSpec:
     Returns:
         BuildingSpec with component-list structure for verification
     """
+    zones = _transform_zones(takeoff)
+    walls = _transform_walls(takeoff)
+
+    # Aggregate door area from walls into zone
+    if zones:
+        total_door_area = sum(w.door_area or 0 for w in walls)
+        zones[0].exterior_wall_door_area = total_door_area
+
     return BuildingSpec(
         project=_transform_project(takeoff),
         envelope=_transform_envelope(takeoff),
-        zones=_transform_zones(takeoff),
-        walls=_transform_walls(takeoff),
+        zones=zones,
+        walls=walls,
         windows=_transform_windows(takeoff),
         ceilings=_transform_ceilings(takeoff),
         slab_floors=_transform_slabs(takeoff),

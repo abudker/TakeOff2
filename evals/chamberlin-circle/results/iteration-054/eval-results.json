@@ -1,0 +1,307 @@
+{
+  "eval_id": "chamberlin-circle",
+  "metrics": {
+    "precision": 0.8275862068965517,
+    "recall": 0.8450704225352113,
+    "f1": 0.8362369337979093,
+    "true_positives": 120,
+    "false_positives": 25,
+    "false_negatives": 22,
+    "total_fields_gt": 167,
+    "total_fields_extracted": 185,
+    "correct_fields": 120,
+    "errors_by_type": {
+      "omission": 22,
+      "hallucination": 0,
+      "wrong_value": 25,
+      "format_error": 0
+    },
+    "eval_id": "chamberlin-circle"
+  },
+  "discrepancies": [
+    {
+      "field_path": "envelope.exposed_slab_floor_area",
+      "expected": 64,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].area",
+      "expected": 136,
+      "actual": 128.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[0].window_area",
+      "expected": 6,
+      "actual": 0.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].area",
+      "expected": 170,
+      "actual": 160.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[1].window_area",
+      "expected": 0,
+      "actual": 6.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[2].area",
+      "expected": 136,
+      "actual": 128.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "walls[3].area",
+      "expected": 170,
+      "actual": 160.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].wall",
+      "expected": "N Wall",
+      "actual": "E Wall",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[0].azimuth",
+      "expected": 343,
+      "actual": 73.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].name",
+      "expected": "D03 (6068)",
+      "actual": "G02",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].area",
+      "expected": 40,
+      "actual": 12.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].u_factor",
+      "expected": 0.32,
+      "actual": 0.3,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[1].shgc",
+      "expected": 0.21,
+      "actual": 0.23,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].name",
+      "expected": "G02 (4030)",
+      "actual": "D03",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].area",
+      "expected": 12,
+      "actual": 40.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].u_factor",
+      "expected": 0.3,
+      "actual": 0.32,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[2].shgc",
+      "expected": 0.23,
+      "actual": 0.21,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "windows[3].name",
+      "expected": "G01 (3020)",
+      "actual": "G05",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "ceilings[0].name",
+      "expected": "Roof Rafter",
+      "actual": "Ceiling 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "ceilings[0].construction_type",
+      "expected": "R-38 Roof No Attic",
+      "actual": "R-38 Roof Rafter",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "ceilings[0].orientation",
+      "expected": 73,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].area",
+      "expected": 160,
+      "actual": 320.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "ceilings[0].roof_rise",
+      "expected": 4,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_pitch",
+      "expected": 0.333,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_tilt",
+      "expected": 18.435,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_reflectance",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].roof_emittance",
+      "expected": 0.85,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[0].framing_factor",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].name",
+      "expected": "Roof Rafter 2",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].zone",
+      "expected": "ADU",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].status",
+      "expected": "New",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].construction_type",
+      "expected": "R-38 Roof No Attic",
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].orientation",
+      "expected": 253,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].area",
+      "expected": 160,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_rise",
+      "expected": 4,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_pitch",
+      "expected": 0.333,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_tilt",
+      "expected": 18.435,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_reflectance",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].roof_emittance",
+      "expected": 0.85,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "ceilings[1].framing_factor",
+      "expected": 0.1,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "slab_floors[0].name",
+      "expected": "Slab-on-Grade",
+      "actual": "Slab 1",
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "slab_floors[0].edge_insulation_r_value",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].ceiling_height",
+      "expected": 8.5,
+      "actual": 8.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].volume",
+      "expected": 2720,
+      "actual": 2560.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_area",
+      "expected": 612,
+      "actual": 576.0,
+      "error_type": "wrong_value"
+    },
+    {
+      "field_path": "zones[0].exterior_wall_door_area",
+      "expected": 18.9,
+      "actual": null,
+      "error_type": "omission"
+    },
+    {
+      "field_path": "zones[0].exterior_floor_area",
+      "expected": 0,
+      "actual": null,
+      "error_type": "omission"
+    }
+  ],
+  "timestamp": "2026-02-06T08:05:16.708296Z",
+  "iteration": 54
+}

@@ -347,6 +347,7 @@ class ExtractionStatus(BaseModel):
     error: Optional[str] = Field(default=None, description="Error message if failed")
     retry_count: int = Field(default=0, description="Number of retries attempted")
     items_extracted: int = Field(default=0, description="Number of items extracted")
+    duration: Optional[float] = Field(default=None, description="Extraction duration in seconds")
 
 
 # ============================================================================
