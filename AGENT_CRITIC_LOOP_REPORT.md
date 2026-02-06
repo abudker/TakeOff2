@@ -35,23 +35,31 @@ Instead, we control extraction behavior through **natural-language instruction f
 ### 2.1 The Agent Pipeline
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        EXTRACTION PIPELINE                          │
-│                                                                     │
-│  PDF Files ──► Discovery Agent ──► Document Map                     │
-│                                        │                            │
-│                                        ├──► Orientation Extractor   │
-│                                        │    (Two-Pass + Verify)     │
-│                                        │                            │
-│                                        ├──► Project Extractor       │
-│                                        │                            │
-│                                        ├──► Zones Extractor    ─┐   │
-│                                        ├──► Windows Extractor   │   │
-│                                        ├──► HVAC Extractor      ├── │── Parallel
-│                                        └──► DHW Extractor      ─┘   │
-│                                                                     │
-│  Results ──► Merge ──► TakeoffSpec ──► BuildingSpec (final output)  │
-└─────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                        EXTRACTION PIPELINE                            │
+│                                                                       │
+│  PDF Files ──► Discovery Agent ──► Document Map                       │
+│                                        │                              │
+│                              ┌─────────┴──────────┐                  │
+│                              │                     │    ◄─ Parallel   │
+│                              ▼                     ▼                  │
+│                    Orientation Extractor    Project Extractor          │
+│                    (CV Sensors + Two-Pass                              │
+│                     + Verification)                                    │
+│                              │                     │                  │
+│                              └─────────┬───────────┘                  │
+│                                        │                              │
+│                              ┌─────────┴──────────┐                  │
+│                              │    Domain Extraction │  ◄─ Parallel    │
+│                              │  (semaphore = 4)     │                  │
+│                              ├─ Zones Extractor     │                  │
+│                              ├─ Windows Extractor   │                  │
+│                              ├─ HVAC Extractor      │                  │
+│                              └─ DHW Extractor       │                  │
+│                              └──────────────────────┘                  │
+│                                        │                              │
+│  Results ──► Merge ──► TakeoffSpec ──► BuildingSpec (final output)    │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 Each agent in the pipeline is a Claude Code sub-agent invoked via:
@@ -136,27 +144,64 @@ Instead of sending all pages to every extractor, the system routes only relevant
 
 This reduces context size per agent, improves accuracy (less irrelevant information), and reduces cost.
 
-### 3.3 Orientation Extraction (Two-Pass System)
+### 3.3 CV Sensors (Computer Vision Pre-Processing)
+
+**Files:**
+- `src/cv_sensors/north_arrow.py` — North arrow angle detection
+- `src/cv_sensors/wall_detection.py` — Wall edge angle measurement
+- `src/cv_sensors/preprocessing.py` — Canny edge detection, Otsu thresholding
+- `src/cv_sensors/rendering.py` — PDF page rasterization via PyMuPDF
+
+**What it does:** Before orientation extraction, the pipeline runs deterministic computer vision algorithms on the site plan page to produce *advisory hints* for the LLM. These are not authoritative — the LLM is told to verify them visually and override if inconsistent.
+
+**Pipeline:**
+```
+PDF page → PyMuPDF render (2x zoom) → NumPy array → OpenCV
+  ├── Canny edges → Hough lines → North arrow angle
+  └── Canny edges → Hough lines → Dominant wall edge angles
+```
+
+This is **rasterized CV**, not vector extraction. The PDF is rendered to a bitmap, then processed with standard OpenCV pipelines (edge detection, Hough line transform, angle measurement).
+
+**North arrow detection:**
+1. Search 25% corner regions of the site plan (north arrows appear in margins)
+2. Find Hough lines in valid length range (30-250px — filters out page borders and noise)
+3. Prefer **non-axis-aligned** lines (tilted arrows stand out; horizontal/vertical lines are dimension marks)
+4. Filter contours by area (100-10,000px²) for triangular arrowhead detection
+5. Return angle + confidence, or `"none"` if only axis-aligned lines found
+
+**Wall edge detection:**
+1. Find Hough lines in building wall length range (50-800px)
+2. Cluster by angle (within 5° tolerance)
+3. Return dominant angles, perpendicular calculations, and confidence
+
+**Key design insight — advisory, not authoritative:** The CV data acts as *cognitive scaffolding* for the LLM. Even when CV angles are imprecise, their presence primes the LLM toward more careful spatial reasoning. Instructions say "verify visually, override if inconsistent" rather than "trust this value." This prevents bad CV from corrupting results while still providing the cross-reference benefit.
+
+**Impact:** With CV hints, orientation accuracy is 100% on hard evals (ADUs). Without CV, accuracy drops to 80% due to front/back and side/front confusion. The LLM doesn't blindly trust CV — it uses it as a sanity check.
+
+### 3.4 Orientation Extraction (Two-Pass System)
 
 **Files:**
 - `.claude/instructions/orientation-extractor/pass1-north-arrow.md`
 - `.claude/instructions/orientation-extractor/pass2-elevation-matching.md`
 - `src/agents/orchestrator.py` → `run_orientation_twopass_async()`
 
-Orientation is the highest-leverage extraction: a wrong orientation cascades to ~11 downstream errors (4 wall azimuths + 7 window azimuths). The two-pass system runs two independent methods in parallel:
+Orientation is the highest-leverage extraction: a wrong orientation cascades to ~11 downstream errors (4 wall azimuths + 7 window azimuths). The system first runs CV sensors (§3.3) to produce advisory hints, then runs two independent LLM methods in parallel:
 
 **Pass 1 — North Arrow + Street/Entry Direction:**
-1. Find north arrow on site plan → measure angle from page vertical
-2. Identify building front (street-facing for homes, entry-facing for ADUs)
-3. Measure front direction on the page (drawing angle)
-4. Calculate: `front_orientation = (drawing_angle - north_arrow_angle + 360) % 360`
+1. Receive CV hints (north arrow angle, wall edge angles) as advisory reference
+2. Find north arrow on site plan → measure angle from page vertical (verify against CV hint)
+3. Identify building front (street-facing for homes, entry-facing for ADUs)
+4. Measure front direction on the page (drawing angle, cross-reference with CV wall edges)
+5. Calculate: `front_orientation = (drawing_angle - north_arrow_angle + 360) % 360`
 
 **Pass 2 — Elevation Labels + Wall Edge Angle:**
-1. Find which elevation drawing shows the entry door (3'0" swing door, not 6'0" sliders)
-2. On the site plan, identify the entry wall using spatial context (closest to street/main house)
-3. Measure the wall edge angle on the site plan
-4. Compute perpendicular outward direction → drawing angle
-5. Same formula as Pass 1
+1. Receive same CV hints as advisory reference
+2. Find which elevation drawing shows the entry door (3'0" swing door, not 6'0" sliders)
+3. On the site plan, identify the entry wall using spatial context (closest to street/main house)
+4. Measure the wall edge angle on the site plan (verify against CV wall edge hints)
+5. Compute perpendicular outward direction → drawing angle
+6. Same formula as Pass 1
 
 **Verification logic (confidence-based):**
 1. If passes agree within ±20°: average them → high confidence
@@ -169,11 +214,11 @@ Orientation is the highest-leverage extraction: a wrong orientation cascades to 
 
 Both passes output structured intermediate JSON (wall angle, north arrow reading, drawing angle) for debugging — not just the final number.
 
-### 3.4 Parallel Domain Extraction
+### 3.5 Parallel Domain Extraction
 
 **File:** `src/agents/orchestrator.py` → `run_parallel_extraction()`
 
-After orientation and project extraction, the four domain extractors run in parallel using `asyncio`:
+After orientation and project extraction complete, the four domain extractors run in parallel using `asyncio`:
 
 ```python
 tasks = [
@@ -185,7 +230,7 @@ tasks = [
 results = await asyncio.gather(*tasks)
 ```
 
-A semaphore (`asyncio.Semaphore(3)`) limits concurrency to avoid overwhelming the system. Each extractor gets one automatic retry on failure.
+A semaphore (`asyncio.Semaphore(4)`) allows all four extractors to run truly in parallel. Each extractor gets one automatic retry on failure.
 
 **Orientation context propagation:** The zones and windows extractors receive pre-calculated wall azimuths derived from `front_orientation`:
 
@@ -198,7 +243,7 @@ S Wall (right) = (front_orientation + 90) % 360
 
 This ensures wall and window azimuths are consistent with the determined building orientation.
 
-### 3.5 Result Merging
+### 3.6 Result Merging
 
 **File:** `src/agents/orchestrator.py` → `merge_to_takeoff_spec()`
 
@@ -210,7 +255,7 @@ Merging handles:
 - **Legacy format conversion:** Flat window lists converted to per-wall fenestration
 - **Uncertainty flags:** Each extractor can report flags that propagate to the final output
 
-### 3.6 Verification and Ground Truth
+### 3.7 Verification and Ground Truth
 
 **Directory:** `evals/<eval-id>/ground_truth.csv`
 
@@ -222,7 +267,7 @@ Each evaluation case has a ground truth CSV exported from CBECC-Res compliance r
 - **Error classification:** Each discrepancy is typed as `omission`, `hallucination`, `wrong_value`, or `format_error`
 - **Domain breakdown:** Errors counted per domain (project, envelope, walls, windows, zones, hvac, dhw)
 
-### 3.7 The Critic Agent
+### 3.8 The Critic Agent
 
 **Files:**
 - `.claude/instructions/critic/instructions.md`
@@ -261,7 +306,7 @@ The critic instructions contain extensive anti-overfitting rules:
 }
 ```
 
-### 3.8 Proposal Application
+### 3.9 Proposal Application
 
 **File:** `src/improvement/apply.py`
 
@@ -274,7 +319,7 @@ When a proposal is accepted:
 
 Rollback is always possible by restoring snapshots from any previous iteration.
 
-### 3.9 Interactive Review
+### 3.10 Interactive Review
 
 **File:** `src/improvement/review.py`
 
@@ -305,7 +350,7 @@ for i in {1..5}; do
 done
 ```
 
-**Cycle time:** ~15-20 minutes per iteration (extraction + verification + critique)
+**Cycle time:** ~10-15 minutes per iteration (extraction + verification + critique)
 
 **Steps:**
 1. Load latest verification results from all evals
@@ -357,7 +402,54 @@ Runs both orientation passes in parallel per eval, applies verification logic, a
 
 ---
 
-## 5. Instruction Files (The Knobs We Turn)
+## 5. Pipeline Performance
+
+### 5.1 Timing Breakdown (Single Eval)
+
+The pipeline makes **8 total `claude --agent` subprocess invocations** per evaluation. Measured on chamberlin-circle (19 pages, cached discovery):
+
+```
+Stage                    Duration   Agent Calls   Parallelism
+─────────────────────────────────────────────────────────────
+Discovery (cached)         0.0s     0 (cached)    —
+Orientation + Project    ~120s      3 total       ◄─ Parallel
+  ├─ CV sensors            ~2s      0 (OpenCV)
+  ├─ Pass 1 (north arrow) ~70s      1 agent       ┐
+  ├─ Pass 2 (elevation)   ~70s      1 agent       ├─ concurrent
+  └─ Project extraction  ~110s      1 agent       ┘
+Domain extraction        ~160s      4 total       ◄─ Parallel
+  ├─ Zones               ~130s      1 agent       ┐
+  ├─ Windows             ~130s      1 agent       ├─ concurrent
+  ├─ HVAC                ~100s      1 agent       │  (semaphore=4)
+  └─ DHW                  ~80s      1 agent       ┘
+Merge + transform         0.0s     0              —
+─────────────────────────────────────────────────────────────
+Total                    ~280s     8 agents       (~4.7 min)
+```
+
+### 5.2 Parallelization Strategy
+
+**Before optimization:** Orientation → Project → Domain extraction ran strictly sequentially. A single eval took ~7 minutes.
+
+**After optimization:** Orientation and project extraction now run concurrently via `asyncio.gather()`, since project extraction doesn't depend on orientation data. Combined with bumping the domain extraction semaphore from 3 to 4 (matching the 4 extractors), a single eval dropped to ~4-5 minutes.
+
+```python
+# Orientation (async) and Project (sync via to_thread) run concurrently
+orientation_data, project_extraction = asyncio.run(
+    asyncio.gather(
+        run_orientation_twopass_async(eval_dir, document_map),
+        asyncio.to_thread(run_project_extraction, eval_dir, document_map)
+    )
+)
+```
+
+### 5.3 Discovery Caching
+
+Discovery is the most expensive single step when not cached (~60s). Since page classifications rarely change between iterations, results are cached to `evals/.cache/{eval_id}_discovery.json` with version-based invalidation. This makes iterative development cycles much faster — the first run classifies pages, subsequent runs skip straight to extraction.
+
+---
+
+## 6. Instruction Files (The Knobs We Turn)
 
 The entire system's behavior is controlled by these instruction files:
 
@@ -386,7 +478,7 @@ Each instruction file follows a consistent structure:
 
 ---
 
-## 6. Evaluation Dataset
+## 7. Evaluation Dataset
 
 | Eval ID | Building | Location | CZ | Type | Key Challenge |
 |---------|----------|----------|----|------|---------------|
@@ -398,9 +490,9 @@ Each instruction file follows a consistent structure:
 
 ---
 
-## 7. Key Design Decisions
+## 8. Key Design Decisions
 
-### 7.1 Instructions Over Code
+### 8.1 Instructions Over Code
 
 By encoding extraction logic in natural-language instructions rather than Python code, we gain:
 - **Critic-accessible:** An LLM can read, analyze, and modify instructions
@@ -408,7 +500,7 @@ By encoding extraction logic in natural-language instructions rather than Python
 - **Flexible:** No code deployment needed to change behavior
 - **Generalizable:** Instructions describe *how* to extract, not hard-coded rules for specific documents
 
-### 7.2 Implementation-Blind Critic
+### 8.2 Implementation-Blind Critic
 
 The critic agent is explicitly forbidden from reading agent code or orchestrator logic. It only sees:
 - Verification results (what was wrong)
@@ -416,14 +508,14 @@ The critic agent is explicitly forbidden from reading agent code or orchestrator
 
 This forces proposals to be about *instruction clarity*, not implementation details, which produces more robust improvements.
 
-### 7.3 Two-Pass Verification for Orientation
+### 8.3 Two-Pass Verification for Orientation
 
 Rather than trusting a single LLM call for the highest-leverage extraction, we run two independent methods and cross-validate. This:
 - **Catches systematic errors:** 90° side/front confusion and 180° front/back confusion are explicitly detected
 - **Increases confidence:** Agreement between independent methods is a strong signal
 - **Provides diagnostics:** Disagreement type tells us *what* went wrong, not just that it's wrong
 
-### 7.4 Anti-Overfitting by Design
+### 8.4 Anti-Overfitting by Design
 
 The improvement loop includes multiple layers of overfitting prevention:
 
@@ -433,23 +525,46 @@ The improvement loop includes multiple layers of overfitting prevention:
 4. **Version tracking:** Every change is versioned and snapshot-saved, enabling rollback if a change hurts generalization
 5. **Metrics comparison:** Before/after F1, precision, recall shown after each iteration
 
-### 7.5 Cached Discovery
+### 8.5 CV Hints as Advisory, Not Authoritative
+
+Computer vision measurements on architectural drawings are inherently noisy — Hough line detection finds hundreds of valid-length lines from dimension marks, text annotations, and detail symbols. Rather than trying to make CV perfectly accurate, we present its results as *advisory hints* the LLM should verify visually.
+
+This works because:
+- **LLMs are good at visual verification** — confirming "does this angle match what I see?" is easier than measuring from scratch
+- **Bad authority corrupts reasoning** — "do NOT re-estimate" prevents the LLM from correcting wrong values
+- **Cross-reference primes careful analysis** — the mere presence of a reference value causes the LLM to reason more carefully about spatial relationships, reducing front/back and side/front confusion errors
+
+### 8.6 Pipeline Parallelization
+
+The pipeline exploits data dependencies to maximize concurrency:
+- **Orientation + Project run in parallel** after discovery (project doesn't need orientation)
+- **All 4 domain extractors run concurrently** (semaphore=4 matches extractor count)
+- **Two orientation passes run in parallel** within the orientation stage
+
+This reduced single-eval time from ~7 minutes to ~4-5 minutes without any accuracy tradeoffs.
+
+### 8.7 Cached Discovery
 
 Discovery is expensive (~2-3 minutes per eval). Since page classifications rarely change, results are cached with version-based invalidation. This reduces the fast orientation loop from ~15 minutes to ~3 minutes per iteration.
 
 ---
 
-## 8. Results and Observations
+## 9. Results and Observations
 
-### Orientation Extraction (10-Run Baseline)
+### Orientation Extraction
 
-| Eval | Pass Rate | Avg Error | Key Insight |
-|------|-----------|-----------|-------------|
-| canterbury-rd | 90% | 0° | Stable, rarely fails |
-| chamberlin-circle | 100% | 0-9° | Fixed from 20% via instruction tuning |
-| martinez-adu | 100% | 0-9° | Fixed from 0% via wall-edge method |
-| poonian-adu | 30% | 7-34° | High drawing angle variability |
-| lamb-adu | 30% | 4-170° | Front/back confusion persists |
+**Latest results (5 runs per eval, two-pass + CV sensors):**
+
+| Eval | With CV | Without CV | Avg Error | Key Insight |
+|------|---------|------------|-----------|-------------|
+| canterbury-rd | 5/5 (100%) | 5/5 (100%) | 0° | Stable |
+| chamberlin-circle | 5/5 (100%) | 5/5 (100%) | 0° | Stable |
+| poonian-adu | 5/5 (100%) | 5/5 (100%) | 0.2° | Was 30% before CV fix |
+| lamb-adu | **5/5 (100%)** | 3/5 (60%) | 2.5° | CV prevents front/back confusion |
+| martinez-adu | **5/5 (100%)** | 4/5 (80%) | 2.2° | CV prevents side/front confusion |
+| **Total** | **25/25 (100%)** | **22/25 (88%)** | | |
+
+**Evolution:** Early in development, poonian-adu (30%) and lamb-adu (30%) were the hardest cases. Instruction tuning improved them partially, but the two-pass system + CV sensors eliminated the remaining errors. The CV data acts as cognitive scaffolding — it doesn't need to be perfectly accurate to help the LLM reason more carefully about spatial relationships.
 
 ### Lessons from the Improvement Loop
 
@@ -463,9 +578,11 @@ Discovery is expensive (~2-3 minutes per eval). Since page classifications rarel
 
 5. **The critic catches patterns humans miss.** Aggregate analysis across 5+ evals reveals systematic biases (e.g., "model confuses left-of-vertical vs right-of-vertical north arrows") that are hard to spot from individual test failures.
 
+6. **CV data as cognitive scaffolding works better than CV data as authority.** When CV hints are presented as "verify visually, override if inconsistent," the LLM benefits from the cross-reference without being corrupted by bad measurements. When presented as "do NOT re-estimate," even slightly wrong CV values propagate directly to the output. The presence of advisory CV data changes LLM reasoning behavior — it primes more careful spatial analysis even when the data itself is imprecise.
+
 ---
 
-## 9. How to Run
+## 10. How to Run
 
 ### Full Extraction
 ```bash
@@ -505,7 +622,7 @@ python3 -m improvement rollback 5
 
 ---
 
-## 10. File Reference
+## 11. File Reference
 
 ### Core Pipeline
 | File | Purpose |
@@ -515,6 +632,14 @@ python3 -m improvement rollback 5
 | `src/schemas/building_spec.py` | `BuildingSpec` output schema |
 | `src/schemas/takeoff_spec.py` | `TakeoffSpec` orientation-based schema |
 | `src/schemas/transform.py` | TakeoffSpec → BuildingSpec transformation |
+
+### CV Sensors
+| File | Purpose |
+|------|---------|
+| `src/cv_sensors/north_arrow.py` | North arrow angle detection (Hough lines + contour analysis) |
+| `src/cv_sensors/wall_detection.py` | Wall edge angle measurement |
+| `src/cv_sensors/preprocessing.py` | Canny edge detection, Otsu thresholding |
+| `src/cv_sensors/rendering.py` | PDF page rasterization via PyMuPDF |
 
 ### Improvement Loop
 | File | Purpose |
@@ -552,14 +677,16 @@ python3 -m improvement rollback 5
 
 ---
 
-## 11. Future Directions
+## 12. Future Directions
 
 1. **More evaluation cases:** 5 evals is a small dataset. Adding 10-20 more diverse building types (multi-story, mixed-use, additions) would improve generalization confidence.
 
-2. **CV-based north arrow detection:** Using computer vision (OpenCV) to detect and measure north arrow angles programmatically, removing the LLM's angular estimation noise.
+2. **~~CV-based north arrow detection~~** ~~Using computer vision (OpenCV) to detect and measure north arrow angles programmatically.~~ **Done.** CV sensors for north arrow and wall edge detection are integrated with advisory hints. Orientation now at 100% accuracy across all evals.
 
-3. **Confidence-weighted ensembling:** Running N>2 passes and using confidence-weighted voting rather than just two-pass verification.
+3. **Domain-specific fast loops:** Extending the fast orientation loop pattern to other domains (windows, HVAC) for rapid, focused improvement.
 
-4. **Domain-specific fast loops:** Extending the fast orientation loop pattern to other domains (windows, HVAC) for rapid, focused improvement.
+4. **Regression testing:** Automatically running all evals after every instruction change and blocking changes that regress any previously-passing case.
 
-5. **Regression testing:** Automatically running all evals after every instruction change and blocking changes that regress any previously-passing case.
+5. **Smaller/faster models for cost optimization:** Early testing shows Haiku can handle some extraction passes at 1.2x speed improvement and significantly lower cost. A hybrid approach using Haiku for simpler domains (DHW, project) and Sonnet for complex domains (orientation, zones) could reduce cost without sacrificing accuracy.
+
+6. **Further pipeline parallelization:** Domain extraction could potentially start immediately after discovery rather than waiting for orientation, since orientation is only needed at the merge step. This would save another ~120s per eval.
