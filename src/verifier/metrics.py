@@ -1,13 +1,16 @@
 """Precision/recall/F1 computation at field level."""
-from typing import Dict, List
+from typing import Any, Dict, List, Union
 from .compare import FieldDiscrepancy
+
+# Type alias for the metrics dict which contains mixed types
+MetricsDict = Dict[str, Any]
 
 
 def compute_field_level_metrics(
     discrepancies: List[FieldDiscrepancy],
     total_fields_gt: int,
     total_fields_extracted: int
-) -> Dict[str, float]:
+) -> MetricsDict:
     """
     Compute precision, recall, F1 at field level.
 
@@ -35,7 +38,7 @@ def compute_field_level_metrics(
     # FN = omissions (in GT but not extracted)
     # FP = hallucinations + wrong_values + format_errors (in extracted but wrong)
 
-    true_positives = total_fields_gt - omissions - wrong_values - format_errors
+    true_positives = max(0, total_fields_gt - omissions - wrong_values - format_errors)
     false_positives = hallucinations + wrong_values + format_errors
     false_negatives = omissions
 
@@ -66,7 +69,7 @@ def compute_field_level_metrics(
     }
 
 
-def compute_aggregate_metrics(eval_metrics: List[Dict[str, float]]) -> Dict[str, float]:
+def compute_aggregate_metrics(eval_metrics: List[MetricsDict]) -> MetricsDict:
     """
     Compute aggregate metrics across multiple evals (macro-averaging).
 

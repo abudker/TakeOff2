@@ -205,8 +205,7 @@ def verify_one(eval_id: str, extracted_json: str, evals_dir: str, output: Option
     # Load ground truth
     gt_path = evals_path / eval_id / "ground_truth.csv"
     if not gt_path.exists():
-        click.echo(f"Error: Ground truth not found at {gt_path}", err=True)
-        raise SystemExit(1)
+        raise click.ClickException(f"Ground truth not found at {gt_path}")
 
     ground_truth = load_ground_truth_csv(gt_path, mapping)
 
@@ -379,8 +378,7 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
     # Load manifest
     manifest_path = evals_path / "manifest.yaml"
     if not manifest_path.exists():
-        click.echo(f"Error: Manifest not found at {manifest_path}", err=True)
-        raise SystemExit(1)
+        raise click.ClickException(f"Manifest not found at {manifest_path}")
 
     with open(manifest_path) as f:
         manifest = yaml.safe_load(f)
@@ -479,9 +477,11 @@ def verify_all(evals_dir: str, results_subdir: str, output: Optional[str], save:
 
     if not all_metrics:
         click.echo("\nNo evaluations found with extraction results.")
-        click.echo("Run extraction first, then verify.")
-        click.echo(f"\nExpected structure: {evals_dir}/<eval_id>/{results_subdir}/extracted.json")
-        raise SystemExit(1)
+        raise click.ClickException(
+            f"No extracted JSON found.\n"
+            f"Run extraction first, then verify.\n"
+            f"Expected structure: {evals_dir}/<eval_id>/{results_subdir}/extracted.json"
+        )
 
     # Compute aggregate
     aggregate = compute_aggregate_metrics(all_metrics)

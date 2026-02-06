@@ -11,40 +11,8 @@ The TakeoffSpec is transformed to BuildingSpec for verification against ground t
 """
 from pydantic import BaseModel, Field
 from typing import Any, Optional, List
-from enum import Enum
 
-
-# ============================================================================
-# Enums
-# ============================================================================
-
-class Orientation(str, Enum):
-    """Cardinal orientation labels."""
-    NORTH = "north"
-    EAST = "east"
-    SOUTH = "south"
-    WEST = "west"
-
-
-class FlagSeverity(str, Enum):
-    """Uncertainty flag severity levels."""
-    HIGH = "high"      # Likely incorrect, needs review
-    MEDIUM = "medium"  # Uncertain, may need verification
-    LOW = "low"        # Minor uncertainty, probably correct
-
-
-class ComponentStatus(str, Enum):
-    """Status of building component."""
-    NEW = "New"
-    EXISTING = "Existing"
-    ALTERED = "Altered"
-
-
-class ZoneType(str, Enum):
-    """Thermal zone classification."""
-    CONDITIONED = "Conditioned"
-    UNCONDITIONED = "Unconditioned"
-    PLENUM = "Plenum"
+from .enums import Orientation, FlagSeverity, ComponentStatus, ZoneType
 
 
 # ============================================================================
@@ -321,7 +289,11 @@ class DHWSystem(BaseModel):
 # ============================================================================
 
 class TakeoffProjectInfo(BaseModel):
-    """Project metadata for takeoff."""
+    """Project metadata for takeoff.
+
+    Shares core fields with building_spec.ProjectInfoBase but adds
+    envelope aggregates and takeoff-specific fields.
+    """
     # Identification
     run_id: Optional[str] = Field(default=None, description="Run ID")
     run_title: Optional[str] = Field(default=None, description="Project/run title")

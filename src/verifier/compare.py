@@ -6,7 +6,7 @@ import re
 import yaml
 
 
-def normalize_text(text: str, field_path: str = None) -> str:
+def normalize_text(text: str, field_path: Optional[str] = None) -> str:
     """Normalize text for comparison.
 
     Args:
@@ -38,6 +38,15 @@ class FieldDiscrepancy:
     expected: Any
     actual: Any
     error_type: str  # omission, hallucination, format_error, wrong_value
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dict for JSON serialization."""
+        return {
+            "field_path": self.field_path,
+            "expected": self.expected,
+            "actual": self.actual,
+            "error_type": self.error_type,
+        }
 
 
 def load_field_mapping() -> Dict:
@@ -271,6 +280,8 @@ def compare_fields(
     """
     Compare extracted data against ground truth at field level.
 
+    Delegates to compare_all_fields and filters to mismatches only.
+
     Args:
         ground_truth: Dict with ground truth values (flattened or nested)
         extracted: Dict with extracted values (from JSON)
@@ -279,65 +290,14 @@ def compare_fields(
     Returns:
         List of FieldDiscrepancy objects for each mismatch
     """
-    if mapping is None:
-        mapping = load_field_mapping()
-
-    tolerances = mapping.get("tolerances", {"default": {"percent": 0.5, "absolute": 0.01}})
-    tolerance_categories = mapping.get("tolerance_categories", {})
-    non_extractable = set(mapping.get("non_extractable_fields", []))
-    discrepancies = []
-
-    gt_flat = flatten_dict(ground_truth)
-    ext_flat = flatten_dict(extracted)
-
-    # Check each ground truth field
-    for gt_path, expected_value in gt_flat.items():
-        # Skip non-extractable fields (CBECC-only)
-        if is_non_extractable(gt_path, non_extractable):
-            continue
-
-        actual_value = ext_flat.get(gt_path)
-
-        if actual_value is None:
-            discrepancies.append(FieldDiscrepancy(
-                field_path=gt_path,
-                expected=expected_value,
-                actual=None,
-                error_type="omission"
-            ))
-        elif not values_match(expected_value, actual_value, gt_path, tolerances, tolerance_categories):
-            # Determine if it's a format error or wrong value
-            expected_type = type(expected_value)
-            actual_type = type(actual_value)
-
-            # Consider int/float as compatible numeric types
-            numeric_types = (int, float)
-            if isinstance(expected_value, numeric_types) and isinstance(actual_value, numeric_types):
-                error_type = "wrong_value"
-            elif expected_type != actual_type:
-                error_type = "format_error"
-            else:
-                error_type = "wrong_value"
-
-            discrepancies.append(FieldDiscrepancy(
-                field_path=gt_path,
-                expected=expected_value,
-                actual=actual_value,
-                error_type=error_type
-            ))
-
-    # Check for hallucinated fields (in extracted but not in ground truth)
-    for ext_path, actual_value in ext_flat.items():
-        # Skip non-extractable fields (CBECC-only)
-        if is_non_extractable(ext_path, non_extractable):
-            continue
-
-        if ext_path not in gt_flat:
-            discrepancies.append(FieldDiscrepancy(
-                field_path=ext_path,
-                expected=None,
-                actual=actual_value,
-                error_type="hallucination"
-            ))
-
-    return discrepancies
+    comparisons = compare_all_fields(ground_truth, extracted, mapping)
+    return [
+        FieldDiscrepancy(
+            field_path=c.field_path,
+            expected=c.expected,
+            actual=c.actual,
+            error_type=c.error_type,
+        )
+        for c in comparisons
+        if not c.matches
+    ]

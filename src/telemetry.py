@@ -24,7 +24,7 @@ class Telemetry:
     """Tracks named timing spans with nesting support."""
 
     def __init__(self):
-        self.spans: List[Dict] = []
+        self.spans: List[Dict[str, Optional[float | str]]] = []
         self._stack: List[str] = []  # current nesting path
         self._start_time = time.monotonic()
 

@@ -6,9 +6,57 @@ Uses line detection (Hough) and contour-based methods for robustness.
 
 import cv2
 import numpy as np
-from typing import Optional, Tuple, Dict, Any
+from typing import List, Optional, Tuple, Dict, Any
 from .rendering import render_page_to_numpy
 from .preprocessing import preprocess_for_lines, preprocess_for_contours
+
+# --- Detection constants ---
+# Corner search: fraction of page width/height to search in each corner
+CORNER_SEARCH_FRACTION = 0.25
+
+# Hough line detection parameters
+LINE_HOUGH_THRESHOLD = 50
+LINE_HOUGH_MIN_LENGTH = 30
+LINE_HOUGH_MAX_GAP = 5
+
+# Arrow length bounds (pixels at default zoom)
+MIN_ARROW_LENGTH = 30   # Below this = noise
+MAX_ARROW_LENGTH = 250  # Above this = page border / dimension line
+
+# Lines within this many degrees of a cardinal axis are "axis-aligned"
+AXIS_TOLERANCE_DEG = 15
+
+# Confidence thresholds based on longest line length
+LINE_CONFIDENCE_MEDIUM_THRESHOLD = 80
+LINE_CONFIDENCE_LOW_THRESHOLD = 50
+
+# Contour area bounds for arrow tip detection
+MIN_CONTOUR_AREA = 100
+MAX_CONTOUR_AREA = 10000
+
+# Max angular difference for line+contour agreement
+AGREEMENT_THRESHOLD_DEG = 20
+
+
+def _no_detection(method: str = "none", debug: Optional[Dict] = None) -> Dict[str, Any]:
+    """Return a standard 'no detection' result."""
+    return {
+        "angle": None,
+        "confidence": "none",
+        "method": method,
+        "debug": debug or {},
+    }
+
+
+def _circular_mean_degrees(angles: List[float]) -> float:
+    """Compute circular mean of angles in degrees [0, 360).
+
+    Handles wraparound correctly (e.g., mean of 355 and 5 = 0, not 180).
+    """
+    rads = np.radians(angles)
+    mean_sin = np.mean(np.sin(rads))
+    mean_cos = np.mean(np.cos(rads))
+    return float(np.degrees(np.arctan2(mean_sin, mean_cos)) % 360)
 
 
 def detect_north_arrow_angle(
@@ -91,22 +139,13 @@ def _detect_via_lines(img: np.ndarray) -> Dict[str, Any]:
         edges,
         rho=1,
         theta=np.pi / 180,
-        threshold=50,
-        minLineLength=30,
-        maxLineGap=5
+        threshold=LINE_HOUGH_THRESHOLD,
+        minLineLength=LINE_HOUGH_MIN_LENGTH,
+        maxLineGap=LINE_HOUGH_MAX_GAP,
     )
 
     if lines is None or len(lines) == 0:
-        return {
-            "angle": None,
-            "confidence": "none",
-            "method": "lines",
-            "debug": {"lines_count": 0, "longest_line_length": 0}
-        }
-
-    # Filter lines to arrow-sized range (skip page borders and noise)
-    MIN_ARROW_LENGTH = 30   # Too short = noise
-    MAX_ARROW_LENGTH = 250  # Too long = page border or dimension line
+        return _no_detection("lines", {"lines_count": 0, "longest_line_length": 0})
 
     candidates = []
     for line in lines:
@@ -119,23 +158,17 @@ def _detect_via_lines(img: np.ndarray) -> Dict[str, Any]:
             candidates.append((x1, y1, x2, y2, length, compass))
 
     if not candidates:
-        return {
-            "angle": None,
-            "confidence": "none",
-            "method": "lines",
-            "debug": {"lines_count": len(lines), "filtered_count": 0}
-        }
+        return _no_detection("lines", {"lines_count": len(lines), "filtered_count": 0})
 
     # Prefer non-axis-aligned lines: architectural drawings are full of
-    # horizontal (90°/270°) and vertical (0°/180°) lines from dimensions,
+    # horizontal (90/270) and vertical (0/180) lines from dimensions,
     # text, and borders. A tilted north arrow stands out as non-axis-aligned.
-    AXIS_TOLERANCE = 15  # degrees from axis to be considered "axis-aligned"
     non_axis = []
     axis_aligned = []
     for c in candidates:
         compass = c[5]
         near_axis = any(
-            abs((compass - a + 180) % 360 - 180) < AXIS_TOLERANCE
+            abs((compass - a + 180) % 360 - 180) < AXIS_TOLERANCE_DEG
             for a in [0, 90, 180, 270]
         )
         if near_axis:
@@ -150,17 +183,11 @@ def _detect_via_lines(img: np.ndarray) -> Dict[str, Any]:
         max_length = non_axis[0][4]
     else:
         # Only axis-aligned lines found — likely not the arrow, just drawing elements.
-        # Return "none" to avoid feeding wrong data to the LLM.
-        return {
-            "angle": None,
-            "confidence": "none",
-            "method": "lines",
-            "debug": {
-                "lines_count": len(lines),
-                "filtered_count": len(candidates),
-                "all_axis_aligned": True
-            }
-        }
+        return _no_detection("lines", {
+            "lines_count": len(lines),
+            "filtered_count": len(candidates),
+            "all_axis_aligned": True,
+        })
 
     # Calculate angle
     x1, y1, x2, y2 = best_line
@@ -174,9 +201,9 @@ def _detect_via_lines(img: np.ndarray) -> Dict[str, Any]:
     compass_bearing = (90 - math_angle_deg) % 360
 
     # Determine confidence based on line length
-    if max_length > 80:
+    if max_length > LINE_CONFIDENCE_MEDIUM_THRESHOLD:
         confidence = "medium"
-    elif max_length > 50:
+    elif max_length > LINE_CONFIDENCE_LOW_THRESHOLD:
         confidence = "low"
     else:
         confidence = "none"
@@ -207,18 +234,13 @@ def _detect_via_contours(img: np.ndarray) -> Dict[str, Any]:
     )
 
     if not contours:
-        return {
-            "angle": None,
-            "confidence": "none",
-            "method": "contours",
-            "debug": {"contours_count": 0}
-        }
+        return _no_detection("contours", {"contours_count": 0})
 
     # Look for triangular contours (arrow tips) with size filtering
     for contour in contours:
         # Skip contours that are too small (noise) or too large (page-level shapes)
         area = cv2.contourArea(contour)
-        if area < 100 or area > 10000:
+        if area < MIN_CONTOUR_AREA or area > MAX_CONTOUR_AREA:
             continue
 
         # Approximate polygon
@@ -252,12 +274,7 @@ def _detect_via_contours(img: np.ndarray) -> Dict[str, Any]:
                 }
             }
 
-    return {
-        "angle": None,
-        "confidence": "none",
-        "method": "contours",
-        "debug": {"contours_count": len(contours)}
-    }
+    return _no_detection("contours", {"contours_count": len(contours)})
 
 
 def _combine_results(
@@ -268,16 +285,16 @@ def _combine_results(
     line_angle = line_result.get("angle")
     contour_angle = contour_result.get("angle")
 
-    # If both methods agree (within 20 degrees), combine them
+    # If both methods agree (within threshold), combine them
     if line_angle is not None and contour_angle is not None:
         angle_diff = abs(line_angle - contour_angle)
         # Handle wraparound (e.g., 355 vs 5 degrees)
         if angle_diff > 180:
             angle_diff = 360 - angle_diff
 
-        if angle_diff <= 20:
-            # Average the angles
-            avg_angle = (line_angle + contour_angle) / 2
+        if angle_diff <= AGREEMENT_THRESHOLD_DEG:
+            # Use circular mean to handle 0/360 boundary correctly
+            avg_angle = _circular_mean_degrees([line_angle, contour_angle])
             # Only upgrade to "high" if line method had at least "medium" confidence
             # (i.e., found a line in the valid arrow-size range with decent length)
             line_conf = line_result.get("confidence", "none")
@@ -301,12 +318,7 @@ def _combine_results(
         return contour_result
 
     # Both failed
-    return {
-        "angle": None,
-        "confidence": "none",
-        "method": "none",
-        "debug": {
-            "line": line_result["debug"],
-            "contour": contour_result["debug"]
-        }
-    }
+    return _no_detection("none", {
+        "line": line_result["debug"],
+        "contour": contour_result["debug"],
+    })
