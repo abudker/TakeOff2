@@ -44,7 +44,7 @@ from schemas.transform import transform_takeoff_to_building_spec
 logger = logging.getLogger(__name__)
 
 # Limit concurrent extractor invocations to avoid overwhelming the system
-EXTRACTION_SEMAPHORE = asyncio.Semaphore(3)
+EXTRACTION_SEMAPHORE = asyncio.Semaphore(4)
 
 # Claude Read tool limit for PDF pages
 MAX_PDF_PAGES_PER_READ = 20
@@ -1627,20 +1627,56 @@ def run_extraction(eval_name: str, eval_dir: Path, parallel: bool = True, output
             first_pdf = list(source_pdfs.values())[0]
             pdf_path = eval_dir / first_pdf.filename
 
-        # Step 1: Discovery phase
+        # Step 1: Discovery phase (with caching)
         t0 = time.monotonic()
-        document_map = run_discovery(eval_dir, source_pdfs)
+        cache_dir = eval_dir.parent / ".cache"
+        cache_file = cache_dir / f"{eval_name}_discovery.json"
+        if cache_file.exists():
+            try:
+                with open(cache_file) as cf:
+                    cache_data = json.load(cf)
+                if cache_data.get("cache_version", 1) >= CACHE_VERSION:
+                    document_map = DocumentMap.model_validate(cache_data)
+                    logger.info(f"Using cached discovery for {eval_name}")
+                else:
+                    document_map = run_discovery(eval_dir, source_pdfs)
+            except Exception:
+                document_map = run_discovery(eval_dir, source_pdfs)
+        else:
+            document_map = run_discovery(eval_dir, source_pdfs)
+        # Save cache
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        with open(cache_file, "w") as cf:
+            json.dump(document_map.model_dump(), cf, indent=2)
         timing["discovery"] = round(time.monotonic() - t0, 1)
 
-        # Step 2: Orientation extraction phase (two-pass with verification)
+        # Step 2: Orientation + Project extraction in parallel
+        # These are independent — project doesn't need orientation data
         t0 = time.monotonic()
-        orientation_data = run_orientation_twopass(eval_dir, document_map)
-        timing["orientation"] = round(time.monotonic() - t0, 1)
 
-        # Step 3: Project extraction phase
-        t0 = time.monotonic()
-        project_extraction = run_project_extraction(eval_dir, document_map, orientation_data)
-        timing["project"] = round(time.monotonic() - t0, 1)
+        async def _run_orientation_and_project():
+            t_orient = time.monotonic()
+            t_project = time.monotonic()
+
+            async def _orientation():
+                nonlocal t_orient
+                result = await run_orientation_twopass_async(eval_dir, document_map)
+                timing["orientation"] = round(time.monotonic() - t_orient, 1)
+                return result
+
+            async def _project():
+                nonlocal t_project
+                result = await asyncio.to_thread(
+                    run_project_extraction, eval_dir, document_map
+                )
+                timing["project"] = round(time.monotonic() - t_project, 1)
+                return result
+
+            return await asyncio.gather(_orientation(), _project())
+
+        orientation_data, project_extraction = asyncio.run(
+            _run_orientation_and_project()
+        )
 
         takeoff_spec = None
 
